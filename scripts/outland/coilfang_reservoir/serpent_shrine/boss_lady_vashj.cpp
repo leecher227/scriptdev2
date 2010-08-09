@@ -45,6 +45,8 @@ enum
     SAY_DEATH                   = -1548055,
 
     POINT_MOVE_CENTER           = 0,
+    POINT_ENCHANTED_WP          = 1,
+    POINT_SPOREBAT_WP           = 2,
 
     PHASE_1                     = 1,
     PHASE_2                     = 2,
@@ -80,6 +82,18 @@ const float afMiddlePos[3]   = {30.134f, -923.65f, 42.9f};
 
 const float afSporebatPos[4] = {30.977156f, -925.297761f, 77.176567f, 5.223932f};
 
+const float afSporebatWPPos[8][3] = 
+ {
+    {31.6f, -896.3f, 67.9f},
+    {9.1f , -913.9f, 67.9f},
+    {5.2f , -934.4f, 67.9f},
+    {20.7f, -946.9f, 67.9f},
+    {41.0f, -941.9f, 67.9f},
+    {47.7f, -927.3f, 67.9f},
+    {42.2f, -912.4f, 67.9f},
+    {27.0f, -905.9f, 67.9f}
+ };
+
 const float afElementPos[8][4] =
 {
     {8.3f  , -835.3f , 21.9f, 5.0f},
@@ -90,6 +104,18 @@ const float afElementPos[8][4] =
     {9.8f  , -1012.0f, 21.7f, 1.4f},
     {-35.0f, -987.6f , 21.5f, 0.8f},
     {-58.9f, -901.6f , 21.5f, 6.0f}
+};
+
+const float afElementWPPos[8][3] =
+{
+    {71.7f  , -883.91f, 41.1f},
+    {45.04f , -868.02f, 41.1f},
+    {14.59f , -867.89f, 41.1f},
+    {-25.42f, -906.74f, 41.1f},
+    {-11.8f , -963.41f, 41.1f},
+    {14.56f , -979.05f, 41.1f},
+    {43.47f , -979.41f, 41.1f},
+    {69.95f , -964.66f, 41.1f}
 };
 
 const float afCoilfangElitePos[3][4] =
@@ -168,6 +194,8 @@ struct MANGOS_DLL_DECL boss_lady_vashjAI : public ScriptedAI
         m_bEntangle = false;
 
         RemoveAllShieldGenerators();
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); 
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE); 
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_LADYVASHJ_EVENT, NOT_STARTED);
@@ -230,14 +258,14 @@ struct MANGOS_DLL_DECL boss_lady_vashjAI : public ScriptedAI
 
         if (uiEntry == NPC_SHIELD_GENERATOR)
         {
-            //we should really expect database to have this set already
-            if (!pSummoned->HasFlag(UNIT_FIELD_FLAGS, (UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE)))
+            SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_MAGIC_BARRIER);
+            if (pTempSpell)
             {
-                pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                pTempSpell->EffectApplyAuraName[EFFECT_INDEX_0] = 0;
+                pSummoned->CastSpell(m_creature, pTempSpell, true);
             }
-
-            pSummoned->CastSpell(m_creature,SPELL_MAGIC_BARRIER,true);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); 
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE); 
         }
     }
 
@@ -413,8 +441,7 @@ struct MANGOS_DLL_DECL boss_lady_vashjAI : public ScriptedAI
             //NPC_ENCHANTED_ELEMENTAL
             if (m_uiEnchantedElemental_Timer < uiDiff)
             {
-                if (Creature* pElemental = m_creature->SummonCreature(NPC_ENCHANTED_ELEMENTAL, afElementPos[m_uiEnchantedElemental_Pos][0], afElementPos[m_uiEnchantedElemental_Pos][1], afElementPos[m_uiEnchantedElemental_Pos][2], afElementPos[m_uiEnchantedElemental_Pos][3], TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 60000))
-                    pElemental->GetMotionMaster()->MoveFollow(m_creature, 0.0f, 0.0f);
+                m_creature->SummonCreature(NPC_ENCHANTED_ELEMENTAL, afElementPos[m_uiEnchantedElemental_Pos][0], afElementPos[m_uiEnchantedElemental_Pos][1], afElementPos[m_uiEnchantedElemental_Pos][2], afElementPos[m_uiEnchantedElemental_Pos][3], TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 60000);
 
                 if (m_uiEnchantedElemental_Pos == 7)
                     m_uiEnchantedElemental_Pos = 0;
@@ -482,6 +509,8 @@ struct MANGOS_DLL_DECL boss_lady_vashjAI : public ScriptedAI
                         m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
 
                     m_uiPhase = PHASE_3;
+                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); 
+                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE); 
                 }
                 m_uiCheck_Timer = 1000;
             }else m_uiCheck_Timer -= uiDiff;
@@ -496,13 +525,32 @@ struct MANGOS_DLL_DECL mob_enchanted_elementalAI : public ScriptedAI
     mob_enchanted_elementalAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_creature->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_FROST, true);
         SetCombatMovement(false);
         Reset();
     }
 
     ScriptedInstance *m_pInstance;                          // the instance
 
-    void Reset() { }
+    bool m_bFinalMove;
+
+    void Reset()
+    {
+        m_bFinalMove = false;
+        float fWP_X = afElementWPPos[0][0];
+        float fWP_Y = afElementWPPos[0][1];
+        float fWP_Z = afElementWPPos[0][2];
+        for (uint8 i = 1; i < 8; ++i)
+        {
+            if (m_creature->GetDistance(afElementWPPos[i][0], afElementWPPos[i][1], afElementWPPos[i][2]) < m_creature->GetDistance(fWP_X, fWP_Y, fWP_Z))
+            {
+                fWP_X = afElementWPPos[i][0];
+                fWP_Y = afElementWPPos[i][1];
+                fWP_Z = afElementWPPos[i][2];
+            }
+        }
+        m_creature->GetMotionMaster()->MovePoint(POINT_ENCHANTED_WP, fWP_X, fWP_Y, fWP_Z);
+    }
 
     void MoveInLineOfSight(Unit* pWho)
     {
@@ -522,7 +570,24 @@ struct MANGOS_DLL_DECL mob_enchanted_elementalAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff) { }
+    void MovementInform(uint32 uiMoveType, uint32 uiPointId)
+    {
+        if (uiMoveType != POINT_MOTION_TYPE)
+            return;
+
+        if (uiPointId == POINT_ENCHANTED_WP)
+            m_bFinalMove = true;
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_bFinalMove)
+        {
+            if (Unit* pVashj = Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_LADYVASHJ)))
+                m_creature->GetMotionMaster()->MoveFollow(pVashj, 0.0f, 0.0f);
+            m_bFinalMove = false;
+        }
+    }
 };
 
 //Tainted Elemental
@@ -532,6 +597,7 @@ struct MANGOS_DLL_DECL mob_tainted_elementalAI : public ScriptedAI
     mob_tainted_elementalAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_creature->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_FROST, true);
         SetCombatMovement(false);
         Reset();
     }
@@ -544,6 +610,7 @@ struct MANGOS_DLL_DECL mob_tainted_elementalAI : public ScriptedAI
     void Reset()
     {
         m_uiPoisonBolt_Timer = urand(5000, 10000);
+        m_creature->SetInCombatWithZone();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -554,9 +621,7 @@ struct MANGOS_DLL_DECL mob_tainted_elementalAI : public ScriptedAI
         //m_uiPoisonBolt_Timer
         if (m_uiPoisonBolt_Timer < uiDiff)
         {
-            Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-
-            if (pTarget && pTarget->IsWithinDistInMap(m_creature, 30.0f))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 DoCastSpellIfCan(pTarget, SPELL_POISON_BOLT);
 
             m_uiPoisonBolt_Timer = urand(5000, 10000);
@@ -571,6 +636,8 @@ struct MANGOS_DLL_DECL mob_toxic_sporebatAI : public ScriptedAI
     mob_toxic_sporebatAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        SetCombatMovement(false);
+        m_creature->SetSplineFlags(SPLINEFLAG_FLYING);
         Reset();
     }
 
@@ -579,11 +646,22 @@ struct MANGOS_DLL_DECL mob_toxic_sporebatAI : public ScriptedAI
     uint32 m_uiToxicSpore_Timer;
     uint32 m_uiCheck_Timer;
 
+    bool m_bNextMove;
+
     void Reset()
     {
-        m_creature->setFaction(14);
         m_uiToxicSpore_Timer = 5000;
         m_uiCheck_Timer = 1000;
+        m_bNextMove = true;
+    }
+
+    void MovementInform(uint32 uiMoveType, uint32 uiPointId)
+    {
+        if (uiMoveType != POINT_MOTION_TYPE)
+            return;
+
+        if (uiPointId == POINT_SPOREBAT_WP)
+            m_bNextMove = true;
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -592,12 +670,19 @@ struct MANGOS_DLL_DECL mob_toxic_sporebatAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
+        if (m_bNextMove)
+        {
+            uint32 uiRndPos = urand(0, 7);
+            m_creature->GetMotionMaster()->MovePoint(POINT_SPOREBAT_WP, afSporebatWPPos[uiRndPos][0], afSporebatWPPos[uiRndPos][1], afSporebatWPPos[uiRndPos][2]);
+            m_bNextMove = false;
+        }
+
         //m_uiToxicSpore_Timer
         if (m_uiToxicSpore_Timer < uiDiff)
         {
             //The Spores will hit you anywhere in the instance: underwater, at the elevator, at the entrance, wherever.
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCastSpellIfCan(pTarget, SPELL_TOXIC_SPORES);
+                DoCast(pTarget, SPELL_TOXIC_SPORES);
 
             m_uiToxicSpore_Timer = urand(20000, 25000);
         }else m_uiToxicSpore_Timer -= uiDiff;
@@ -610,12 +695,7 @@ struct MANGOS_DLL_DECL mob_toxic_sporebatAI : public ScriptedAI
                 //check if vashj is death
                 Unit* pVashj = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_LADYVASHJ));
                 if (!pVashj || !pVashj->isAlive())
-                {
-                    //remove
-                    m_creature->setDeathState(DEAD);
-                    m_creature->RemoveCorpse();
-                    m_creature->setFaction(35);
-                }
+                    m_creature->ForcedDespawn();
             }
 
             m_uiCheck_Timer = 1000;
