@@ -16,266 +16,297 @@
 
 /* ScriptData
 SDName: Boss_Ragnaros
-SD%Complete: 75
-SDComment: Intro Dialog and event NYI
+SD%Complete: 90
+SDComment: Ready for test
 SDCategory: Molten Core
 EndScriptData */
 
+/*
+
+DELETE FROM `creature` WHERE `id`=11502;
+UPDATE `creature_template` SET `spell1` = 0 WHERE `entry` = 12143;
+UPDATE `creature_template` SET `ScriptName` = '' WHERE `entry` = 12143;
+UPDATE `creature_template` SET `spell1` = 0, `spell2` = 0, `spell3` = 0, `spell4` = 0 WHERE `entry` = 11502;
+
+//old status
+UPDATE `creature_template` SET `spell1` = 20566, `spell2` = 19773, `spell3` = 19780, `spell4` = 20565 WHERE `entry` = 11502;
+UPDATE `creature_template` SET `ScriptName` = 'event_ai' WHERE `entry` = 12143;
+INSERT INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`modelid`,`equipment_id`,`position_x`,`position_y`,`position_z`,`orientation`,`spawntimesecs`,`spawndist`,`currentwaypoint`,`curhealth`,`curmana`,`DeathState`,`MovementType`) VALUES
+(97299, 11502, 409, 1, 0, 0, 834.55, -826.868, -231.599, 5.01111, 25, 0, 0, 1099230, 0, 0, 0);
+*/
+
 #include "precompiled.h"
+#include "molten_core.h"
 
-#define SAY_REINFORCEMENTS1         -1409013
-#define SAY_REINFORCEMENTS2         -1409014
-#define SAY_HAND                    -1409015
-#define SAY_WRATH                   -1409016
-#define SAY_KILL                    -1409017
-#define SAY_MAGMABURST              -1409018
-
-#define SPELL_HANDOFRAGNAROS        19780
-#define SPELL_WRATHOFRAGNAROS       20566
-#define SPELL_LAVABURST             21158
-
-#define SPELL_MAGMABURST            20565                   //Ranged attack
-
-#define SPELL_SONSOFFLAME_DUMMY     21108                   //Server side effect
-#define SPELL_RAGSUBMERGE           21107                   //Stealth aura
-#define SPELL_RAGEMERGE             20568
-#define SPELL_MELTWEAPON            21388
-#define SPELL_ELEMENTALFIRE         20564
-#define SPELL_ERRUPTION             17731
-
-#define ADD_1X 848.740356
-#define ADD_1Y -816.103455
-#define ADD_1Z -229.74327
-#define ADD_1O 2.615287
-
-#define ADD_2X 852.560791
-#define ADD_2Y -849.861511
-#define ADD_2Z -228.560974
-#define ADD_2O 2.836073
-
-#define ADD_3X 808.710632
-#define ADD_3Y -852.845764
-#define ADD_3Z -227.914963
-#define ADD_3O 0.964207
-
-#define ADD_4X 786.597107
-#define ADD_4Y -821.132874
-#define ADD_4Z -226.350128
-#define ADD_4O 0.949377
-
-#define ADD_5X 796.219116
-#define ADD_5Y -800.948059
-#define ADD_5Z -226.010361
-#define ADD_5O 0.560603
-
-#define ADD_6X 821.602539
-#define ADD_6Y -782.744109
-#define ADD_6Z -226.023575
-#define ADD_6O 6.157440
-
-#define ADD_7X 844.924744
-#define ADD_7Y -769.453735
-#define ADD_7Z -225.521698
-#define ADD_7O 4.4539958
-
-#define ADD_8X 839.823364
-#define ADD_8Y -810.869385
-#define ADD_8Z -229.683182
-#define ADD_8O 4.693108
-
-struct MANGOS_DLL_DECL boss_ragnarosAI : public ScriptedAI
+enum
 {
-    boss_ragnarosAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        SetCombatMovement(false);
-        Reset();
-    }
+    // the add
+	NPC_SON_OF_FLAME			    =	12143,
 
-    uint32 WrathOfRagnaros_Timer;
-    uint32 HandOfRagnaros_Timer;
-    uint32 LavaBurst_Timer;
-    uint32 MagmaBurst_Timer;
-    uint32 ElementalFire_Timer;
-    uint32 Erruption_Timer;
-    uint32 Submerge_Timer;
-    uint32 Attack_Timer;
-    Creature *Summoned;
-    bool HasYelledMagmaBurst;
-    bool HasSubmergedOnce;
-    bool WasBanished;
-    bool HasAura;
+	SAY_REINFORCEMENTS_1		    =	-1409013,
+	SAY_REINFORCEMENTS_2		    =	-1409014,
+	SAY_HAND					    =	-1409015,
+	SAY_WRATH					    =	-1409016,
+	SAY_KILL					    =	-1409017,
+	SAY_MAGMA_BURST				    =	-1409018,
+
+	SPELL_HAND_OF_RAGNAROS		    =	19780,
+	SPELL_WRATH_OF_RAGNAROS		    =	20566,
+
+	SPELL_MAGMA_BURST			    =	20565,
+
+	SPELL_RAGNAROS_SUBMERGE_FADE    =	21107,
+	SPELL_RAGNAROS_SUBMERGE_VISUAL	=	20567,
+	SPELL_RAGNAROS_EMERGE		    =	20568,
+	SPELL_ERRUPTION				    =	17731,
+
+	SPELL_MELT_WEAPON_AURA		    =	21388,
+
+	//Son of Flame Aura
+	SPELL_LAVA_SHIELD_AURA		    =	21857
+};
+
+float _PositionOfAdds[8][4]=
+{	
+    {848.740356f, -816.103455f, -229.743270f, 2.615287f},
+    {852.560791f, -849.861511f, -228.560974f, 2.836073f},
+	{808.710632f, -852.845764f, -227.914963f, 0.964207f},
+	{786.597107f, -821.132874f, -226.350128f, 0.949377f},
+    {796.219116f, -800.948059f, -226.010361f, 0.560603f},
+    {821.602539f, -782.744109f, -226.023575f, 6.157440f},
+	{844.924744f, -769.453735f, -225.521698f, 4.4539958f},
+	{839.823364f, -810.869385f, -229.683182f, 4.693108f},
+};
+
+ struct MANGOS_DLL_DECL boss_ragnarosAI : public ScriptedAI
+{
+    boss_ragnarosAI(Creature *pCreature) : ScriptedAI(pCreature)
+	{
+		m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+		SetCombatMovement(false);
+		Reset();
+	}
+
+	ScriptedInstance* m_pInstance;
+
+	Creature* pSonsOfFlame[8];
+
+    uint32 uiWrathOfRagnaros_Timer;
+    uint32 uiHandOfRagnaros_Timer;
+    uint32 uiMagmaBurst_Timer;
+    uint32 uiElementalFire_Timer;
+    uint32 uiErruption_Timer;
+    uint32 uiSubmerge_Timer;
+    uint32 uiAttack_Timer;
+
+	//timer for checking the adds whether they are dead or not
+	uint32 uiCheckAdds_Timer;
+
+    bool bHasYelledMagmaBurst;
+    bool bHasSubmergedOnce;
+    bool bWasBanished; 
+    bool bHasAura;
 
     void Reset()
     {
-        WrathOfRagnaros_Timer = 30000;
-        HandOfRagnaros_Timer = 25000;
-        LavaBurst_Timer = 10000;
-        MagmaBurst_Timer = 2000;
-        Erruption_Timer = 15000;
-        ElementalFire_Timer = 3000;
-        Submerge_Timer = 180000;
-        Attack_Timer = 90000;
-        HasYelledMagmaBurst = false;
-        HasSubmergedOnce = false;
-        WasBanished = false;
+		if (m_pInstance)
+			m_pInstance->SetData(TYPE_RAGNAROS, NOT_STARTED);
 
-        m_creature->CastSpell(m_creature,SPELL_MELTWEAPON,true);
-        HasAura = true;
+		uiWrathOfRagnaros_Timer = 25000;
+		uiHandOfRagnaros_Timer = 20000;
+		uiMagmaBurst_Timer = 2000;
+		uiErruption_Timer = 15000;
+		uiElementalFire_Timer = 3000;
+		uiSubmerge_Timer = 180000;
+		uiAttack_Timer = 90000;
+		uiCheckAdds_Timer = 2000;
+		bHasYelledMagmaBurst = false;
+		bHasSubmergedOnce = false;
+		bWasBanished = false;
+
+		if(bHasAura)
+			m_creature->RemoveAurasDueToSpell(SPELL_MELT_WEAPON_AURA);
+
+		bHasAura = false;
     }
 
-    void KilledUnit(Unit* victim)
+    void KilledUnit(Unit* pVictim)
     {
-        if (urand(0, 4))
+        if (rand()%5)
             return;
 
         DoScriptText(SAY_KILL, m_creature);
     }
 
-    void UpdateAI(const uint32 diff)
+	void MoveInLineOfSight(Unit* pWho)
+	{
+		if (m_pInstance && m_pInstance->GetData(DATA_VAR_RAGNAROS_INTRO) == DONE && m_creature->IsWithinDistInMap(pWho, m_creature->GetAttackDistance(pWho)))
+			AttackStart(pWho);
+	}
+
+    void Aggro(Unit* pWho)
+	{
+		if (m_pInstance)
+			m_pInstance->SetData(TYPE_RAGNAROS, IN_PROGRESS);
+	}
+
+	void JustDied(Unit* pKiller)
     {
-        if (WasBanished && Attack_Timer < diff)
-        {
-            //Become unbanished again
-            m_creature->setFaction(14);
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            DoCastSpellIfCan(m_creature,SPELL_RAGEMERGE);
-            WasBanished = false;
-        } else if (WasBanished)
-        {
-            Attack_Timer -= diff;
-            //Do nothing while banished
-            return;
-        }
-
-        //Return since we have no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        //WrathOfRagnaros_Timer
-        if (WrathOfRagnaros_Timer < diff)
-        {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_WRATHOFRAGNAROS);
-
-            if (urand(0, 1))
-                DoScriptText(SAY_WRATH, m_creature);
-
-            WrathOfRagnaros_Timer = 30000;
-        }else WrathOfRagnaros_Timer -= diff;
-
-        //HandOfRagnaros_Timer
-        if (HandOfRagnaros_Timer < diff)
-        {
-            DoCastSpellIfCan(m_creature,SPELL_HANDOFRAGNAROS);
-
-            if (urand(0, 1))
-                DoScriptText(SAY_HAND, m_creature);
-
-            HandOfRagnaros_Timer = 25000;
-        }else HandOfRagnaros_Timer -= diff;
-
-        //LavaBurst_Timer
-        if (LavaBurst_Timer < diff)
-        {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_LAVABURST);
-            LavaBurst_Timer = 10000;
-        }else LavaBurst_Timer -= diff;
-
-        //Erruption_Timer
-        if (LavaBurst_Timer < diff)
-        {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_ERRUPTION);
-            Erruption_Timer = urand(20000, 45000);
-        }else Erruption_Timer -= diff;
-
-        //ElementalFire_Timer
-        if (ElementalFire_Timer < diff)
-        {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_ELEMENTALFIRE);
-            ElementalFire_Timer = urand(10000, 14000);
-        }else ElementalFire_Timer -= diff;
-
-        //Submerge_Timer
-        if (!WasBanished && Submerge_Timer < diff)
-        {
-            //Creature spawning and ragnaros becomming unattackable
-            //is not very well supported in the core
-            //so added normaly spawning and banish workaround and attack again after 90 secs.
-
-            m_creature->InterruptNonMeleeSpells(false);
-            //Root self
-            DoCastSpellIfCan(m_creature,23973);
-            m_creature->setFaction(35);
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            m_creature->HandleEmote(EMOTE_ONESHOT_SUBMERGE);
-
-            if (!HasSubmergedOnce)
-            {
-                DoScriptText(SAY_REINFORCEMENTS1, m_creature);
-
-                // summon 10 elementals
-                for(int i = 0; i < 9; ++i)
-                {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
-                    {
-                        if (Creature* pSummoned = m_creature->SummonCreature(12143,pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(),0.0f,TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN,900000))
-                            pSummoned->AI()->AttackStart(pTarget);
-                    }
-                }
-
-                HasSubmergedOnce = true;
-                WasBanished = true;
-                DoCastSpellIfCan(m_creature,SPELL_RAGSUBMERGE);
-                Attack_Timer = 90000;
-            }
-            else
-            {
-                DoScriptText(SAY_REINFORCEMENTS2, m_creature);
-
-                for(int i = 0; i < 9; ++i)
-                {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
-                    {
-                        if (Creature* pSummoned = m_creature->SummonCreature(12143,pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(),0.0f,TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN,900000))
-                            pSummoned->AI()->AttackStart(pTarget);
-                    }
-                }
-
-                WasBanished = true;
-                DoCastSpellIfCan(m_creature,SPELL_RAGSUBMERGE);
-                Attack_Timer = 90000;
-            }
-
-            Submerge_Timer = 180000;
-        }else Submerge_Timer -= diff;
-
-        //If we are within range melee the target
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
-        {
-            //Make sure our attack is ready and we arn't currently casting
-            if (m_creature->isAttackReady() && !m_creature->IsNonMeleeSpellCasted(false))
-            {
-                m_creature->AttackerStateUpdate(m_creature->getVictim());
-                m_creature->resetAttackTimer();
-            }
-        }
-        else
-        {
-            //MagmaBurst_Timer
-            if (MagmaBurst_Timer < diff)
-            {
-                DoCastSpellIfCan(m_creature->getVictim(),SPELL_MAGMABURST);
-
-                if (!HasYelledMagmaBurst)
-                {
-                    DoScriptText(SAY_MAGMABURST, m_creature);
-                    HasYelledMagmaBurst = true;
-                }
-
-                MagmaBurst_Timer = 2500;
-            }else MagmaBurst_Timer -= diff;
-        }
+		if (m_pInstance)
+			m_pInstance->SetData(TYPE_RAGNAROS, DONE);
     }
+
+	bool AddsAreDead()
+	{
+		for(uint8 i = 0; i < 8 ; ++i)
+			if (pSonsOfFlame[i] && pSonsOfFlame[i]->isAlive())
+				return false;
+
+		return true;
+	}
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+		if (!m_pInstance || m_pInstance->GetData(DATA_VAR_RAGNAROS_INTRO) != DONE)
+			return;
+
+		if (bWasBanished && uiAttack_Timer < uiDiff)
+		{
+			//Become unbanished again 
+			//m_creature->setFaction(14);
+			m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			DoCast(m_creature,SPELL_RAGNAROS_EMERGE);
+			bWasBanished = false;
+		}
+		else if (bWasBanished && uiCheckAdds_Timer < uiDiff)
+		{
+			if (AddsAreDead())
+			{
+				//Become unbanished again 
+				m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+				DoCast(m_creature,SPELL_RAGNAROS_EMERGE);
+				bWasBanished = false;
+			}
+			uiCheckAdds_Timer = 2000;
+		}			
+		else if (bWasBanished)
+		{
+			uiAttack_Timer -= uiDiff;
+			uiCheckAdds_Timer -= uiDiff;
+			return;
+		}
+
+		if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+			return;
+
+		if (!bHasAura)
+		{
+			DoCast(m_creature,SPELL_MELT_WEAPON_AURA);
+			bHasAura = true;
+		}
+
+		if (uiWrathOfRagnaros_Timer < uiDiff)
+		{
+			DoCast(m_creature,SPELL_WRATH_OF_RAGNAROS);
+			m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), 70);
+
+			if (rand()%2 == 0)            
+				DoScriptText(SAY_WRATH, m_creature);            
+
+			uiWrathOfRagnaros_Timer = 25000;
+		}
+		else 
+			uiWrathOfRagnaros_Timer -= uiDiff;
+
+		if (uiHandOfRagnaros_Timer < uiDiff)
+		{
+			DoCast(m_creature,SPELL_HAND_OF_RAGNAROS);
+
+			if (rand()%2 == 0)
+				DoScriptText(SAY_HAND, m_creature);
+
+			uiHandOfRagnaros_Timer = 20000 + rand()%10000;
+		}
+		else 
+			uiHandOfRagnaros_Timer -= uiDiff;
+
+		if (uiErruption_Timer < uiDiff)
+		{
+			DoCast(m_creature,SPELL_ERRUPTION);
+
+			uiErruption_Timer = 20000 + rand()%25000;
+		}
+		else 
+			uiErruption_Timer -= uiDiff;
+
+		if (!bWasBanished && uiSubmerge_Timer < uiDiff)
+		{
+			//Creature spawning and ragnaros becomming unattackable
+			//is not very well supported in the core
+			//so added normaly spawning and banish workaround and attack again after 90 secs.
+
+			m_creature->InterruptNonMeleeSpells(false);
+			//Root self
+			//m_creature->setFaction(35);
+			m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			DoCast(m_creature,SPELL_RAGNAROS_SUBMERGE_VISUAL);
+			m_creature->HandleEmoteCommand(EMOTE_ONESHOT_SUBMERGE);
+
+			if (!bHasSubmergedOnce)
+			{
+				DoScriptText(SAY_REINFORCEMENTS_1, m_creature);
+				bHasSubmergedOnce = true;
+			}
+			else
+				DoScriptText(SAY_REINFORCEMENTS_2, m_creature);
+
+			Unit* pTarget = NULL;
+			// summon 8 Son of Flames
+			for(uint8 i = 0; i < 8; ++i)
+			{
+				pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1);
+				pSonsOfFlame[i] = m_creature->SummonCreature(NPC_SON_OF_FLAME, _PositionOfAdds[i][0], _PositionOfAdds[i][1], _PositionOfAdds[i][2], _PositionOfAdds[i][3], TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 900000);
+				if (pSonsOfFlame[i] && pTarget)
+				{
+					// set on the aoe mana burn
+					pSonsOfFlame[i]->CastSpell(pSonsOfFlame[i],SPELL_LAVA_SHIELD_AURA,false);
+					pSonsOfFlame[i]->AI()->AttackStart(pTarget);
+				}
+			}
+                
+			bWasBanished = true;
+			DoCast(m_creature,SPELL_RAGNAROS_SUBMERGE_FADE);
+			uiAttack_Timer = 90000;
+			uiCheckAdds_Timer = 2000;
+
+			uiSubmerge_Timer = 180000;
+		}
+		else 
+			uiSubmerge_Timer -= uiDiff;
+
+		if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+			DoMeleeAttackIfReady();	        
+		else
+		{
+			if (uiMagmaBurst_Timer < uiDiff)
+			{
+				// if nobody is in range
+				if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+					DoCast(pTarget,SPELL_MAGMA_BURST);
+
+				if (!bHasYelledMagmaBurst)
+				{
+					DoScriptText(SAY_MAGMA_BURST, m_creature);
+					bHasYelledMagmaBurst = true;
+				}
+				uiMagmaBurst_Timer = 2500;
+			}
+			else 
+				uiMagmaBurst_Timer -= uiDiff;
+		}
+	}
 };
+
 CreatureAI* GetAI_boss_ragnaros(Creature* pCreature)
 {
     return new boss_ragnarosAI(pCreature);
@@ -283,7 +314,8 @@ CreatureAI* GetAI_boss_ragnaros(Creature* pCreature)
 
 void AddSC_boss_ragnaros()
 {
-    Script *newscript;
+    Script* newscript;
+
     newscript = new Script;
     newscript->Name = "boss_ragnaros";
     newscript->GetAI = &GetAI_boss_ragnaros;

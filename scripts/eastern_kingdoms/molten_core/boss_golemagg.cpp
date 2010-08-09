@@ -16,8 +16,9 @@
 
 /* ScriptData
 SDName: Boss_Golemagg
-SD%Complete: 75
-SDComment: Timers need to be confirmed, Golemagg's Trust need to be checked
+SD%Complete: 80
+SDComment: Trust doesn not work - players get the buff oO
+UPDATE `creature_template` SET `spell1` = 0, `spell2` = 0 WHERE `entry` = 11672;
 SDCategory: Molten Core
 EndScriptData */
 
@@ -26,15 +27,16 @@ EndScriptData */
 
 enum
 {
-    SPELL_MAGMASPLASH       = 13879,
-    SPELL_PYROBLAST         = 20228,
-    SPELL_EARTHQUAKE        = 19798,
-    SPELL_ENRAGE            = 19953,
-    SPELL_GOLEMAGG_TRUST    = 20553,
+    NPC_CORE_RAGER          =   11672,
+	EMOTE_GOLEMAGG_HELP		=	-1409002,
 
-    // Core Rager
-    EMOTE_LOWHP             = -1409002,
-    SPELL_MANGLE            = 19820
+	SPELL_MAGMA_SPLASH_AURA	=	13879,
+	SPELL_PYRO_BLAST		=	20228,
+	SPELL_EARTH_QUAKE		=	19798,
+
+	//CoreRager Spells
+	SPELL_MANGLE			=	19820,
+	SPELL_GOLEMAGG_TRUST	=	20553	//if golemagg is in rage 
 };
 
 struct MANGOS_DLL_DECL boss_golemaggAI : public ScriptedAI
@@ -47,129 +49,150 @@ struct MANGOS_DLL_DECL boss_golemaggAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
 
-    uint32 m_uiPyroblastTimer;
-    uint32 m_uiEarthquakeTimer;
-    uint32 m_uiBuffTimer;
-    bool m_bEnraged;
+    uint32 uiPyroblast_Timer;
+    uint32 uiEarthQuake_Timer;
+
+	bool bHasPerformedAggro;	
 
     void Reset()
     {
-        m_uiPyroblastTimer = 7*IN_MILLISECONDS;              // These timers are probably wrong
-        m_uiEarthquakeTimer = 3*IN_MILLISECONDS;
-        m_uiBuffTimer = 2.5*IN_MILLISECONDS;
-        m_bEnraged = false;
+		if (m_pInstance)
+			m_pInstance->SetData(TYPE_GOLEMAGG, NOT_STARTED);
 
-        m_creature->CastSpell(m_creature, SPELL_MAGMASPLASH, true);
+		uiPyroblast_Timer = 7000;      //These times are probably wrong
+		uiEarthQuake_Timer = 3000;
+
+		bHasPerformedAggro = false;
+		m_creature->RemoveAurasDueToSpell(SPELL_MAGMA_SPLASH_AURA);
+        DoCast(m_creature,SPELL_MAGMA_SPLASH_AURA);
+
+        //shouldn't happen they die and you wipe but still added
+        std::list<Creature*> m_lCoreragers;
+        GetCreatureListWithEntryInGrid(m_lCoreragers,m_creature,NPC_CORE_RAGER,100.0f);
+        if (!m_lCoreragers.empty())
+            for(std::list<Creature*>::iterator iter = m_lCoreragers.begin(); iter != m_lCoreragers.end(); ++iter)
+                if ((*iter) && (*iter)->isDead())                
+                    (*iter)->Respawn();
+	}
+
+    void Aggro(Unit* pWho)
+    {	
+		if (m_pInstance)
+			m_pInstance->SetData(TYPE_GOLEMAGG, IN_PROGRESS);
+        m_creature->CallForHelp(30.0f);
     }
 
     void JustDied(Unit* pKiller)
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_GOLEMAGG, DONE);
-    }
+		if (m_pInstance)
+			m_pInstance->SetData(TYPE_GOLEMAGG, DONE);
+	}
 
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        // Pyroblast
-        if (m_uiPyroblastTimer < uiDiff)
+        if (m_creature->GetHealthPercent() <= 11.0f)
+        {
+			if (!bHasPerformedAggro)
+			{
+				m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), 90);
+				bHasPerformedAggro = true;
+			}
+
+            if (uiEarthQuake_Timer < uiDiff)
+            {
+                DoCast(m_creature,SPELL_EARTH_QUAKE);
+
+                uiEarthQuake_Timer = 3000;
+            }
+			else 
+				uiEarthQuake_Timer -= uiDiff;
+        }
+
+        if (uiPyroblast_Timer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                DoCastSpellIfCan(pTarget, SPELL_PYROBLAST);
+                DoCast(pTarget, SPELL_PYRO_BLAST);
 
-            m_uiPyroblastTimer = 7*IN_MILLISECONDS;
+            uiPyroblast_Timer = 7000;
         }
-        else
-            m_uiPyroblastTimer -= uiDiff;
-
-        // Enrage
-        if (!m_bEnraged && m_creature->GetHealthPercent() < 10.0f)
-        {
-            DoCastSpellIfCan(m_creature, SPELL_ENRAGE);
-            m_bEnraged = true;
-        }
-
-        // Earthquake
-        if (m_bEnraged)
-        {
-            if (m_uiEarthquakeTimer < uiDiff)
-            {
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_EARTHQUAKE);
-                m_uiEarthquakeTimer = 3*IN_MILLISECONDS;
-            }
-            else
-                m_uiEarthquakeTimer -= uiDiff;
-        }
-
-        /*
-        // Golemagg's Trust
-        if (m_uiBuffTimer < uiDiff)
-        {
-            DoCastSpellIfCan(m_creature, SPELL_GOLEMAGG_TRUST);
-            m_uiBuffTimer = 2.5*IN_MILLISECONDS;
-        }
-        else
-            m_uiBuffTimer -= uiDiff;
-        */
+		else 
+			uiPyroblast_Timer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
-};
+}; 
 
 struct MANGOS_DLL_DECL mob_core_ragerAI : public ScriptedAI
 {
     mob_core_ragerAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        Reset();
+		Reset();
     }
 
     ScriptedInstance* m_pInstance;
-    uint32 m_uiMangleTimer;
+
+	Unit* pGolemagg;
+
+    uint32 uiMangle_Timer;
+
+	bool bHasPerformedAggro;
 
     void Reset()
     {
-        m_uiMangleTimer = 7*IN_MILLISECONDS;                 // These times are probably wrong
+		if (m_pInstance)
+			pGolemagg = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_GOLEMAGG));
+
+		uiMangle_Timer = 7000;      //These times are probably wrong 
+
+		bHasPerformedAggro = false;
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
-    {
-        if (m_creature->GetHealthPercent() < 50.0f)
-        {
-            if (m_pInstance)
-            {
-                if (Creature* pGolemagg = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_GOLEMAGG)))
-                {
-                    if (pGolemagg->isAlive())
-                    {
-                        DoScriptText(EMOTE_LOWHP, m_creature);
-                        m_creature->SetHealth(m_creature->GetMaxHealth());
-                    }
-                    else
-                        uiDamage = m_creature->GetHealth();
-                }
-            }
-        }
-    }
+	void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
+	{
+		if (m_pInstance && pGolemagg && m_creature->GetHealthPercent() <= 50.0f)
+		{
+			if (pGolemagg->isAlive())
+			{
+				DoScriptText(EMOTE_GOLEMAGG_HELP,m_creature);
+				m_creature->SetHealth(m_creature->GetMaxHealth());
+			}
+			else
+				uiDamage = m_creature->GetHealth();
+		}
+	}
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+		if (!m_creature->SelectHostileTarget() || !m_creature->getVictim()  || !pGolemagg)
             return;
 
-        // Mangle
-        if (m_uiMangleTimer < uiDiff)
+		/*if (m_creature->IsWithinDistInMap(pGolemagg, 20.0f) && !m_creature->HasAura(SPELL_GOLEMAGG_TRUST))
+			DoCast(m_creature, SPELL_GOLEMAGG_TRUST);*/       //keeps spamming making their AI stuck
+
+        if (uiMangle_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_MANGLE);
-            m_uiMangleTimer = 10*IN_MILLISECONDS;
+            DoCast(m_creature->getVictim(),SPELL_MANGLE);
+
+            uiMangle_Timer = 10000;
         }
-        else
-            m_uiMangleTimer -= uiDiff;
+		else 
+			uiMangle_Timer -= uiDiff;
+
+		if (m_creature->GetHealthPercent() <= 11.0f)
+        {
+			if (!bHasPerformedAggro)
+			{
+				m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), 90);
+				bHasPerformedAggro = true;
+			}
+		}
 
         DoMeleeAttackIfReady();
-    }
+	}
 };
 
 CreatureAI* GetAI_boss_golemagg(Creature* pCreature)

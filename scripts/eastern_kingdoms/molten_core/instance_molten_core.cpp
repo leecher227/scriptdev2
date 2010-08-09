@@ -16,10 +16,16 @@
 
 /* ScriptData
 SDName: Instance_Molten_Core
-SD%Complete: 0
-SDComment: Place Holder
+SD%Complete: 80
+SDComment: In Progress
 SDCategory: Molten Core
 EndScriptData */
+
+/*
+	Query for spawning the chest:	
+	INSERT INTO `gameobject` (`guid`,`id`,`map`,`spawnMask`,`position_x`,`position_y`,`position_z`,`orientation`,`rotation0`,`rotation1`,`rotation2`,`rotation3`,`spawntimesecs`,`animprogress`,`state`) VALUES
+    (67870, 179703, 409, 1, 751.893, -1184.72, -118.249, 2.88729, 0, 0, 0.991927, 0.126809, -360, 100, 1);
+*/
 
 #include "precompiled.h"
 #include "molten_core.h"
@@ -32,7 +38,13 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
     std::string strInstData;
 
     uint64 m_uiLucifronGUID, m_uiMagmadarGUID, m_uiGehennasGUID, m_uiGarrGUID, m_uiGeddonGUID, m_uiShazzrahGUID, m_uiSulfuronGUID, m_uiGolemaggGUID, m_uiMajorDomoGUID, m_uiRagnarosGUID, m_uiFlamewakerPriestGUID;
-    uint64 m_uiRuneKoroGUID, m_uiRuneZethGUID, m_uiRuneMazjGUID, m_uiRuneTheriGUID, m_uiRuneBlazGUID, m_uiRuneKressGUID, m_uiRuneMohnGUID, m_uiFirelordCacheGUID;
+    uint64 m_uiFirelordCacheGUID;
+ //   uint64 m_uiRuneKoroGUID, m_uiRuneZethGUID, m_uiRuneMazjGUID, m_uiRuneTheriGUID, m_uiRuneBlazGUID, m_uiRuneKressGUID, m_uiRuneMohnGUID, m_uiFirelordCacheGUID;
+
+	uint32 m_uiVarRagnarosIntro;
+	uint32 m_uiDomoPorted;
+	uint32 m_uiDomosAddsSpawned;
+	uint32 m_uiBossesAreDead;
 
     void Initialize()
     {
@@ -48,8 +60,13 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
         m_uiGolemaggGUID = 0;
         m_uiMajorDomoGUID = 0;
         m_uiRagnarosGUID = 0;
-        m_uiFlamewakerPriestGUID = 0;
 
+		m_uiVarRagnarosIntro = 0;
+		m_uiDomosAddsSpawned = 0;
+		m_uiDomoPorted		= 0;
+		m_uiBossesAreDead	= 0;
+
+/*
         m_uiRuneKoroGUID = 0;
         m_uiRuneZethGUID = 0;
         m_uiRuneMazjGUID = 0;
@@ -57,7 +74,7 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
         m_uiRuneBlazGUID = 0;
         m_uiRuneKressGUID = 0;
         m_uiRuneMohnGUID = 0;
-
+*/
         m_uiFirelordCacheGUID = 0;
     }
 
@@ -70,6 +87,13 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
     {
         switch(pGo->GetEntry())
         {
+			/*
+			Runes are only needed in TBC and PreBC Content, not in WotLk
+			Runes are not working at the moment - you can not use the water
+			on them to douse them.
+			Outcomment this , if this has been fixed and want to have a PreBC
+			Molten Core.
+
             case 176951:                                    //Sulfuron
                 m_uiRuneKoroGUID = pGo->GetGUID();
                 break;
@@ -91,7 +115,8 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
             case 176957:                                    //Gehennas
                 m_uiRuneMohnGUID = pGo->GetGUID();
                 break;
-            case 179703:
+			*/
+            case GO_CACHE_OF_THE_FIRE_LORD:
                 m_uiFirelordCacheGUID = pGo->GetGUID();     //majordomo event chest
                 break;
         }
@@ -127,12 +152,10 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
                 break;
             case NPC_DOMO:
                 m_uiMajorDomoGUID = pCreature->GetGUID();
+				pCreature->SetVisibility(VISIBILITY_OFF);
                 break;
             case NPC_RAGNAROS:
                 m_uiRagnarosGUID = pCreature->GetGUID();
-                break;
-            case NPC_FLAMEWAKERPRIEST:
-                m_uiFlamewakerPriestGUID = pCreature->GetGUID();
                 break;
         }
     }
@@ -166,14 +189,34 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
                 m_auiEncounter[7] = uiData;
                 break;
             case TYPE_MAJORDOMO:
-                if (uiData == DONE)
-                    DoRespawnGameObject(m_uiFirelordCacheGUID);
                 m_auiEncounter[8] = uiData;
                 break;
             case TYPE_RAGNAROS:
                 m_auiEncounter[9] = uiData;
                 break;
+			case DATA_DOMO_ADDS_SPAWNED:
+				m_uiDomosAddsSpawned = uiData;
+				break;
+			case DATA_DOMO_PORTED:
+				m_uiDomoPorted = uiData;
+				if(uiData == DONE)
+					DoRespawnGameObject(m_uiFirelordCacheGUID);
+				break;
+			case DATA_VAR_RAGNAROS_INTRO:
+				m_uiVarRagnarosIntro = uiData;
+				break;
         }
+
+		if (CanSpawnMajorDomo() && m_uiBossesAreDead != DONE)
+		{
+			debug_log("SD2 : Majordomo was summoned!");
+
+			Creature* pDomo = instance->GetCreature(m_uiMajorDomoGUID);
+			if (pDomo && m_uiDomoPorted != DONE)
+				pDomo->SetVisibility(VISIBILITY_ON);
+
+			m_uiBossesAreDead = DONE;
+		}
 
         if (uiData == DONE)
         {
@@ -183,7 +226,7 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
             saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " "
                 << m_auiEncounter[3] << " " << m_auiEncounter[4] << " " << m_auiEncounter[5] << " "
                 << m_auiEncounter[6] << " " << m_auiEncounter[7] << " " << m_auiEncounter[8] << " "
-                << m_auiEncounter[9];
+                << m_auiEncounter[9] << " " << m_uiDomoPorted	 << " ";
 
             strInstData = saveStream.str();
 
@@ -199,13 +242,13 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
 
     bool CanSpawnMajorDomo()
     {
-        return m_auiEncounter[0] && m_auiEncounter[1] && m_auiEncounter[2] && m_auiEncounter[3] &&
-            m_auiEncounter[4] && m_auiEncounter[5] && m_auiEncounter[6];
+        return	m_auiEncounter[0] && m_auiEncounter[1] && m_auiEncounter[2] && m_auiEncounter[3] &&
+				m_auiEncounter[4] && m_auiEncounter[5] && m_auiEncounter[6];
     }
 
     uint32 GetData(uint32 uiType)
     {
-        switch(uiType)
+        switch(uiType)        
         {
             case TYPE_SULFURON:
                 return m_auiEncounter[0];
@@ -227,6 +270,14 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
                 return m_auiEncounter[8];
             case TYPE_RAGNAROS:
                 return m_auiEncounter[9];
+			case DATA_DOMO_ADDS_SPAWNED:
+				return m_uiDomosAddsSpawned;
+			case DATA_DOMO_PORTED:
+				return m_uiDomoPorted;
+			case DATA_VAR_RAGNAROS_INTRO:
+				return m_uiVarRagnarosIntro;
+			case DATA_BOSSES_ARE_DEAD:
+				return m_uiBossesAreDead;
         }
         return 0;
     }
@@ -260,13 +311,44 @@ struct MANGOS_DLL_DECL instance_molten_core : public ScriptedInstance
 
         std::istringstream loadStream(chrIn);
 
-        loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
-            >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7]
-            >> m_auiEncounter[8] >> m_auiEncounter[9];
+        loadStream	>> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
+					>> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7]
+					>> m_auiEncounter[8] >> m_auiEncounter[9] >> m_uiDomoPorted;
 
         for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
             if (m_auiEncounter[i] == IN_PROGRESS)           // Do not load an encounter as "In Progress" - reset it instead.
                 m_auiEncounter[i] = NOT_STARTED;
+
+        // Useless, not able to get pDomo , because instance->GetCreature return NULL
+        // FIX ME AS FAST AS POSSIBLE! This is important, because the event will broke if the server crash!
+        
+		/*if (CanSpawnMajorDomo())
+		{
+			debug_log("SD2 : MajorDomo is able to spawn!");
+			m_uiBossesAreDead = DONE;
+			Creature* pDomo = instance->GetCreature(m_uiMajorDomoGUID);
+			if (pDomo)
+			{
+			    debug_log("SD2 : Majordomo was found!");
+				if (m_uiDomoPorted != DONE)
+				{
+					pDomo->SetVisibility(VISIBILITY_ON);
+					debug_log("SD2 : Majordomo was set visible and resetet after the server restart!");
+				}
+				else
+				{
+					debug_log("SD2 : Majordomo was teleportet to Ragnaros after the restart and is visible!");
+					Creature* pTempDomo = pDomo->SummonCreature(12018, 854.975f, -827.593f, -228.504f, 4.99008f, TEMPSUMMON_TIMED_DESPAWN,3600000);
+					if (pTempDomo)
+					{
+					    pTempDomo->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+					    pTempDomo->setFaction(35);
+					}
+				}
+			}
+			else
+			    debug_log("SD2 : Majordomo wasn't found! GUID : %u",m_uiMajorDomoGUID);
+		}*/
 
         OUT_LOAD_INST_DATA_COMPLETE;
     }

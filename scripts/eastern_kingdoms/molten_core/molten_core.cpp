@@ -28,20 +28,23 @@ EndContentData */
 #include "precompiled.h"
 #include "simple_ai.h"
 
-#define SPELL_CONE_OF_FIRE          19630
-#define SPELL_BITE                  19771
+enum
+{
+	SPELL_CONE_OF_FIRE          =	19630,
+	SPELL_BITE                  =	19771,
 
 //Random Debuff (each hound has only one of these)
-#define SPELL_GROUND_STOMP          19364
-#define SPELL_ANCIENT_DREAD         19365
-#define SPELL_CAUTERIZING_FLAMES    19366
-#define SPELL_WITHERING_HEAT        19367
-#define SPELL_ANCIENT_DESPAIR       19369
-#define SPELL_ANCIENT_HYSTERIA      19372
+	SPELL_GROUND_STOMP          =	19364,
+	SPELL_ANCIENT_DREAD         =	19365,
+	SPELL_CAUTERIZING_FLAMES    =	19366,
+	SPELL_WITHERING_HEAT        =	19367,
+	SPELL_ANCIENT_DESPAIR       =	19369,
+	SPELL_ANCIENT_HYSTERIA      =	19372
+};
 
 CreatureAI* GetAI_mob_ancient_core_hound(Creature* pCreature)
 {
-    SimpleAI *ai = new SimpleAI(pCreature);
+    SimpleAI* ai = new SimpleAI(pCreature);
 
     ai->Spell[0].Enabled          = true;
     ai->Spell[0].Spell_Id         = SPELL_CONE_OF_FIRE;
@@ -79,7 +82,7 @@ CreatureAI* GetAI_mob_ancient_core_hound(Creature* pCreature)
 
 void AddSC_molten_core()
 {
-    Script *newscript;
+    Script* newscript;
 
     newscript = new Script;
     newscript->Name = "mob_ancient_core_hound";
