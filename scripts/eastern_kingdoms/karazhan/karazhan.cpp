@@ -414,6 +414,239 @@ bool GossipSelect_npc_berthold(Player* pPlayer, Creature* pCreature, uint32 uiSe
     return true;
 }
 
+/*###
+# npc_image_of_medivh
+####*/
+
+/*
+TODO:
+-arcanacros turns around when he cast a spell
+-arcanacros don't get any dmg, because he's in evade mode...
+
+/*
+Image of Medivh yells: You've got my attention, dragon. You'll find I'm not as easily scared as the villagers below.
+Image of Arcanagos yells: Your dabbling in the arcane has gone too far, Medivh. You've attracted the attention of powers beyond your understanding. You must leave Karazhan at once!
+Image of Medivh yells: You dare challenge me at my own dwelling? Your arrogance is astounding, even for a dragon!
+Image of Arcanagos yells: A dark power seeks to use you, Medivh! If you stay, dire days will follow. You must hurry, we don't have much time!
+Image of Medivh yells: I do not know what you speak of, dragon... but I will not be bullied by this display of insolence. I'll leave Karazhan when it suits me!
+Image of Arcanagos yells: You leave me no alternative. I will stop you by force if you won't listen to reason!
+Image of Medivh begins to cast a spell of great power, weaving his own essence into the magic.
+Image of Arcanagos yells: What have you done, wizard? This cannot be! I'm burning from... within!
+Image of Medivh says: He should not have angered me. I must go... recover my strength now...
+*/
+
+/*
+UPDATE `creature_template` SET `speed` = 3 WHERE `entry` = 17652;
+*/
+
+/*
+-- DB scriptdev2
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1532201,'You\'ve got my attention, dragon. You\'ll find I\'m not as easily scared as the villagers below.',0,1,0,0,'image_of_medivh SAY_DIALOG_MEDIVH_1'),
+(-1532202,'Your dabbling in the arcane has gone too far, Medivh. You\'ve attracted the attention of powers beyond your understanding. You must leave Karazhan at once!',0,1,0,0,'image_of_arcanagos SAY_DIALOG_ARCANAGOS_2'),
+(-1532203,'You dare challenge me at my own dwelling? Your arrogance is astounding, even for a dragon!',0,1,0,0,'image_of_medivh SAY_DIALOG_MEDIVH_3'),
+(-1532204,'A dark power seeks to use you, Medivh! If you stay, dire days will follow. You must hurry, we don\'t have much time!',0,1,0,0,'image_of_arcanagos SAY_DIALOG_ARCANAGOS_4'),
+(-1532205,'I do not know what you speak of, dragon... but I will not be bullied by this display of insolence. I\'ll leave Karazhan when it suits me!',0,1,0,0,'image_of_medivh SAY_DIALOG_MEDIVH_5'),
+(-1532206,'You leave me no alternative. I will stop you by force if you won\'t listen to reason!',0,1,0,0,'image_of_arcanagos SAY_DIALOG_ARCANAGOS_6'),
+(-1532207,'begins to cast a spell of great power, weaving his own essence into the magic.',0,2,0,0,'image_of_medivh EMOTE_DIALOG_MEDIVH_7'),
+(-1532208,'What have you done, wizard? This cannot be! I\'m burning from... within!',0,1,0,0,'image_of_arcanagos SAY_DIALOG_ARCANAGOS_8'),
+(-1532209,'He should not have angered me. I must go... recover my strength now...',0,1,0,0,'image_of_medivh SAY_DIALOG_MEDIVH_9');
+*/
+
+#define SAY_DIALOG_MEDIVH_1         -1532201
+#define SAY_DIALOG_ARCANAGOS_2      -1532202
+#define SAY_DIALOG_MEDIVH_3         -1532203
+#define SAY_DIALOG_ARCANAGOS_4      -1532204
+#define SAY_DIALOG_MEDIVH_5         -1532205
+#define SAY_DIALOG_ARCANAGOS_6      -1532206
+#define EMOTE_DIALOG_MEDIVH_7       -1532207
+#define SAY_DIALOG_ARCANAGOS_8      -1532208
+#define SAY_DIALOG_MEDIVH_9         -1532209
+
+
+//Medivhs Image Spells
+
+#define SPELL_FIRE_BALL             30967
+#define SPELL_CONFLAGRATION_BLAST   30977
+#define SPELL_EVOCATION             30972
+#define SPELL_MANASHIELD            30973
+//Image of Arcanagos Spells
+
+#define SPELL_REFLECTION            30969
+#define SPELL_REFLECT_UBERFIREBALL  30971
+#define SPELL_SHOOT_UBERFIREBALL    30968
+#define SPELL_PREPARE_FOR_FIREBALL  30970
+#define SPELL_CONLAGRATION          16806
+
+#define MOB_ARCANAGOS               17652
+#define QUEST_MASTERS_TERRACE		9645
+
+static float MedivPos[4] = {-11161.49f, -1902.24f, 91.48f, 1.94f};
+static float ArcanagosPos[4] = {-11173.24f, -1879.90f, 100.40f, 5.24f};
+static float ArcanagosEndPos[4] = {-11003.53f, -1755.60f, 175.34f, 4.09f};
+
+struct MANGOS_DLL_DECL npc_image_of_medivhAI : public ScriptedAI
+{
+    npc_image_of_medivhAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance  = (ScriptedInstance*)pCreature->GetInstanceData();
+        Reset();
+    }
+
+    ScriptedInstance* m_pInstance;
+
+    uint64 m_uiArcanagosGUID;
+    bool m_bEventStarted;
+    uint32 m_uiNextStep_Timer;
+    uint8 m_uiStep;
+
+    void Reset()
+    {
+        if (m_pInstance)
+        {
+            m_pInstance->SetData64(DATA_IMAGE_OF_MEDIVH, m_creature->GetGUID());
+            m_creature->GetMotionMaster()->MovePoint(1, MedivPos[0], MedivPos[1], MedivPos[2]);
+            m_uiStep = 0;
+        }
+    }
+
+    void Aggro(Unit* pWho)
+    {
+    }
+
+    void MovementInform(uint32 uiType, uint32 uiPointId)
+    {
+        if (uiType != POINT_MOTION_TYPE)
+            return;
+
+        if (uiPointId == 1)
+        {
+            StartEvent();
+            m_creature->SetOrientation(MedivPos[3]);
+        }
+    }
+
+    void StartEvent()
+    {
+        m_uiStep = 1;
+        m_bEventStarted = true;
+        if (Creature* pArcanagos = m_creature->SummonCreature(MOB_ARCANAGOS, ArcanagosPos[0]-40, ArcanagosPos[1]+40, ArcanagosPos[2], ArcanagosPos[3], TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 145000))
+        {
+            m_uiArcanagosGUID = pArcanagos->GetGUID();
+            pArcanagos->SetSplineFlags(SPLINEFLAG_FLYING);
+            pArcanagos->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
+            pArcanagos->GetMotionMaster()->MovePoint(0, ArcanagosPos[0], ArcanagosPos[1], ArcanagosPos[2]);
+            pArcanagos->SetOrientation(ArcanagosPos[3]);
+        }
+        m_uiNextStep_Timer = 10000;
+    }
+
+
+    uint32 NextStep(uint32 step)
+    {
+        Creature* pArcanagos = (Creature*)Unit::GetUnit(*m_creature, m_uiArcanagosGUID);
+        if (!pArcanagos)
+            return 9999999;
+        
+        switch(step)
+        {
+            case 0: return 9999999;
+            case 1:
+                DoScriptText(SAY_DIALOG_MEDIVH_1, m_creature);
+                return 10000;
+            case 2:
+                DoScriptText(SAY_DIALOG_ARCANAGOS_2, pArcanagos);
+                return 20000;
+            case 3:
+                DoScriptText(SAY_DIALOG_MEDIVH_3, m_creature);
+                return 10000;
+            case 4:
+                DoScriptText(SAY_DIALOG_ARCANAGOS_4, pArcanagos);
+                return 20000;
+            case 5:
+				pArcanagos->SetInCombatWith(m_creature);
+                DoScriptText(SAY_DIALOG_MEDIVH_5, m_creature);
+                return 20000;
+            case 6:
+                DoScriptText(SAY_DIALOG_ARCANAGOS_6, pArcanagos);
+                return 10000;
+            case 7:
+                m_creature->CastSpell(pArcanagos, SPELL_FIRE_BALL, false);
+                return 4000;
+            case 8:
+                pArcanagos->CastSpell(pArcanagos, SPELL_REFLECTION, false);
+                return 3000;
+            case 9:
+                pArcanagos->CastSpell(m_creature, SPELL_REFLECT_UBERFIREBALL, false);                
+                return 1000;
+            case 10:
+                m_creature->CastSpell(m_creature, SPELL_MANASHIELD, false);
+                return 3000;
+            case 11:
+                m_creature->RemoveAurasDueToSpell(SPELL_MANASHIELD);
+                m_creature->CastSpell(m_creature, SPELL_EVOCATION, false);
+                DoScriptText(EMOTE_DIALOG_MEDIVH_7, m_creature);
+                return 5000;
+            case 12:
+                m_creature->RemoveAllAuras();
+                m_creature->CastSpell(pArcanagos, SPELL_FIRE_BALL, false);
+                return 4000;
+            case 13:
+                //m_creature->CastSpell(pArcanagos, SPELL_CONFLAGRATION_BLAST, true);
+                pArcanagos->CastSpell(pArcanagos, SPELL_CONFLAGRATION_BLAST, false);
+                return 1000;
+            case 14:
+                DoScriptText(SAY_DIALOG_ARCANAGOS_8, pArcanagos);
+                return 5000;
+            case 15:
+                pArcanagos->GetMotionMaster()->MovePoint(0, ArcanagosEndPos[0], ArcanagosEndPos[1], ArcanagosEndPos[2]);
+                return 5000;
+            case 16:
+                DoScriptText(SAY_DIALOG_MEDIVH_9, m_creature);
+                return 10000;
+            case 17:
+            {
+                Map* pMap = m_creature->GetMap();
+                if (pMap && pMap->IsDungeon())
+                {
+                    Map::PlayerList const &PlayerList = pMap->GetPlayers();
+                    if (!PlayerList.isEmpty())
+                    {
+                        for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+                        {
+                            if (i->getSource()->isAlive() && i->getSource()->IsActiveQuest(QUEST_MASTERS_TERRACE) && (i->getSource()->GetQuestStatus(QUEST_MASTERS_TERRACE) == QUEST_STATUS_INCOMPLETE))
+                                i->getSource()->GroupEventHappens(QUEST_MASTERS_TERRACE, m_creature);
+                        }
+                    }
+                }
+                m_creature->ClearInCombat();
+                return 9999999;
+            }
+            default:
+                return 9999999; 
+        }  
+         
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+
+        if (m_uiNextStep_Timer < uiDiff)
+        {
+            if (m_bEventStarted)
+                m_uiNextStep_Timer = NextStep(m_uiStep++);
+        }
+        else
+            m_uiNextStep_Timer -= uiDiff;     
+    }
+};
+
+CreatureAI* GetAI_npc_image_of_medivh(Creature *pCreature)
+{
+    return new npc_image_of_medivhAI(pCreature);
+}
+
+
 void AddSC_karazhan()
 {
     Script* newscript;
@@ -429,5 +662,10 @@ void AddSC_karazhan()
     newscript->Name = "npc_berthold";
     newscript->pGossipHello = &GossipHello_npc_berthold;
     newscript->pGossipSelect = &GossipSelect_npc_berthold;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_image_of_medivh";
+    newscript->GetAI = &GetAI_npc_image_of_medivh;
     newscript->RegisterSelf();
 }

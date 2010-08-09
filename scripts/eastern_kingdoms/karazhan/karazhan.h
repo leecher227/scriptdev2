@@ -36,7 +36,8 @@ enum
     DATA_GO_NETHER_DOOR             = 23,
     DATA_GO_GAME_DOOR               = 24,
     DATA_GO_GAME_EXIT_DOOR          = 25,
-    DATA_GO_SIDE_ENTRANCE_DOOR      = 26
+    DATA_GO_SIDE_ENTRANCE_DOOR      = 26,
+    DATA_IMAGE_OF_MEDIVH            = 27
 };
 
 enum OperaEvents

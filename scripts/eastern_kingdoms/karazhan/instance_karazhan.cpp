@@ -62,6 +62,8 @@ struct MANGOS_DLL_DECL instance_karazhan : public ScriptedInstance
     uint64 m_uiNetherspaceDoor;                             // Door at Malchezaar
     uint64 m_uiDustCoveredChest;                            // Chest respawn at event complete
 
+    uint64 m_uiImageOfMedivhGUID;
+
     void Initialize()
     {
         memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
@@ -84,6 +86,8 @@ struct MANGOS_DLL_DECL instance_karazhan : public ScriptedInstance
         m_uiGamesmansExitDoor   = 0;
         m_uiNetherspaceDoor     = 0;
         m_uiDustCoveredChest    = 0;
+
+        m_uiImageOfMedivhGUID = 0;
     }
 
     bool IsEncounterInProgress() const
@@ -207,6 +211,14 @@ struct MANGOS_DLL_DECL instance_karazhan : public ScriptedInstance
 
             SaveToDB();
             OUT_SAVE_INST_DATA_COMPLETE;
+        }
+    }
+
+    void SetData64(uint32 uiType, uint64 uiData)
+    {
+        switch(uiType)
+        {        
+            case DATA_IMAGE_OF_MEDIVH: m_uiImageOfMedivhGUID = uiData; break;
         }
     }
 
