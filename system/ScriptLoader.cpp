@@ -139,6 +139,10 @@ extern void AddSC_instance_sunken_temple();                 //sunken_temple
 extern void AddSC_sunken_temple();
 extern void AddSC_boss_brutallus();                         //sunwell_plateau
 extern void AddSC_boss_kalecgos();
+extern void AddSC_boss_felmyst();
+extern void AddSC_boss_eredar_twins();
+extern void AddSC_boss_muru_entropius();
+extern void AddSC_boss_kiljaeden();
 extern void AddSC_instance_sunwell_plateau();
 extern void AddSC_boss_archaedas();                         //uldaman
 extern void AddSC_boss_ironaya();
@@ -551,6 +555,10 @@ void AddScripts()
     AddSC_sunken_temple();
     AddSC_boss_brutallus();                                 //sunwell_plateau
     AddSC_boss_kalecgos();
+    AddSC_boss_felmyst();
+    AddSC_boss_eredar_twins();
+    AddSC_boss_muru_entropius();
+    AddSC_boss_kiljaeden();
     AddSC_instance_sunwell_plateau();
     AddSC_boss_archaedas();                                 //uldaman
     AddSC_boss_ironaya();
