@@ -50,6 +50,11 @@ struct MANGOS_DLL_DECL instance_serpentshrine_cavern : public ScriptedInstance
     uint32 m_auiShieldGenerator[MAX_GENERATOR];
     uint32 m_auiEncounter[MAX_ENCOUNTER];
 
+    uint32 Spellbinder_Count;
+    uint64 LeotherasTheBlind;
+    uint64 LeotherasEventStarter;
+    uint64 GreyheartSpellbinder[3];
+
     void Initialize()
     {
         memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
@@ -61,6 +66,17 @@ struct MANGOS_DLL_DECL instance_serpentshrine_cavern : public ScriptedInstance
         m_uiLadyVashj = 0;
         m_uiKarathress = 0;
         m_uiKarathressEvent_Starter = 0;
+
+        LeotherasTheBlind = 0;
+        LeotherasEventStarter = 0;
+
+        Spellbinder_Count = 0;
+        GreyheartSpellbinder[0] = 0;
+        GreyheartSpellbinder[1] = 0;
+        GreyheartSpellbinder[2] = 0;
+
+        memset(&m_auiShieldGenerator, 0, sizeof(m_auiShieldGenerator));
+        memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
     }
 
     bool IsEncounterInProgress() const
@@ -81,6 +97,13 @@ struct MANGOS_DLL_DECL instance_serpentshrine_cavern : public ScriptedInstance
             case 21966: m_uiSharkkis   = pCreature->GetGUID(); break;
             case 21965: m_uiTidalvess  = pCreature->GetGUID(); break;
             case 21964: m_uiCaribdis   = pCreature->GetGUID(); break;
+            case 21215: LeotherasTheBlind = pCreature->GetGUID(); break;
+            case 21806:
+                {
+                    GreyheartSpellbinder[Spellbinder_Count] = pCreature->GetGUID();
+                    Spellbinder_Count++;
+                    break;
+                }
         }
     }
 
@@ -88,6 +111,8 @@ struct MANGOS_DLL_DECL instance_serpentshrine_cavern : public ScriptedInstance
     {
         if (uiType == DATA_KARATHRESS_STARTER)
             m_uiKarathressEvent_Starter = uiData;
+        if (uiType == DATA_LEOTHERAS_EVENT_STARTER)
+            LeotherasEventStarter = uiData;
     }
 
     uint64 GetData64(uint32 uiIdentifier)
@@ -106,6 +131,16 @@ struct MANGOS_DLL_DECL instance_serpentshrine_cavern : public ScriptedInstance
                 return m_uiKarathress;
             case DATA_KARATHRESS_STARTER:
                 return m_uiKarathressEvent_Starter;
+            case DATA_SPELLBINDER_1:
+                return GreyheartSpellbinder[0];
+            case DATA_SPELLBINDER_2:
+                return GreyheartSpellbinder[1];
+            case DATA_SPELLBINDER_3:
+                return GreyheartSpellbinder[2];
+            case DATA_LEOTHERAS:
+                 return LeotherasTheBlind;
+            case DATA_LEOTHERAS_EVENT_STARTER:
+                 return LeotherasEventStarter;
         }
         return 0;
     }

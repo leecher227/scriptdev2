@@ -26,6 +26,12 @@ enum
     TYPE_SHIELDGENERATOR1           = 20,
     TYPE_SHIELDGENERATOR2           = 21,
     TYPE_SHIELDGENERATOR3           = 22,
-    TYPE_SHIELDGENERATOR4           = 23
+    TYPE_SHIELDGENERATOR4           = 23,
+
+    DATA_LEOTHERAS                  = 50,
+    DATA_LEOTHERAS_EVENT_STARTER    = 51,
+    DATA_SPELLBINDER_1              = 52,
+    DATA_SPELLBINDER_2              = 53,
+    DATA_SPELLBINDER_3              = 54
 };
 #endif
