@@ -35,8 +35,8 @@ enum
     EMOTE_SHIELD                       = -1576022,
 
     // Anomalus
-    SPELL_CREATE_RIFT                  = 47743,
-    SPELL_CHARGE_RIFT                  = 47747,
+    SPELL_CREATE_RIFT                  = 47743,             //Don't work, using WA
+    SPELL_CHARGE_RIFT                  = 47747,             //Works wrong (affect players, not rifts)
     SPELL_RIFT_SHIELD                  = 47748,
 
     SPELL_SPARK                        = 47751,
@@ -51,9 +51,23 @@ enum
     SPELL_CHARGED_RIFT_AURA            = 47733,
     SPELL_CHARGED_RIFT_SUMMON_AURA     = 47742,
 
+    SPELL_CHAOTIC_ENERGY_BURST         = 47688,
+    SPELL_CHARGED_CHAOTIC_ENERGY_BURST = 47737,
+    SPELL_ARCANEFORM                   = 48019,             //Chaotic Rift visual
+
     SPELL_SUMMON_CRAZED_MANA_WRAITH    = 47692,
     NPC_CHAOTIC_RIFT                   = 26918,
     NPC_CRAZED_MANA_WRAITH             = 26746
+};
+
+float RiftLocation[6][3]=
+{
+    {652.64f, -273.70f, -8.75f},
+    {634.45f, -265.94f, -8.44f},
+    {620.73f, -281.17f, -9.02f},
+    {626.10f, -304.67f, -9.44f},
+    {639.87f, -314.11f, -9.49f},
+    {651.72f, -297.44f, -9.37f}
 };
 
 /*######
@@ -72,17 +86,17 @@ struct MANGOS_DLL_DECL boss_anomalusAI : public ScriptedAI
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    bool   m_bChaoticRift;
-    uint32 m_uiSparkTimer;
-    uint32 m_uiCreateRiftTimer;
-    uint64 m_uiChaoticRiftGUID;
+    uint8 Phase;
+    uint32 SPELL_SPARK_Timer;
+    uint32 SPELL_CREATE_RIFT_Timer;
+    uint64 ChaoticRiftGUID;
 
     void Reset()
     {
-        m_bChaoticRift = false;
-        m_uiSparkTimer = 5000;
-        m_uiCreateRiftTimer = 25000;
-        m_uiChaoticRiftGUID = 0;
+        Phase = 0;
+        SPELL_SPARK_Timer = 5000;
+        SPELL_CREATE_RIFT_Timer = 25000;
+        ChaoticRiftGUID = 0;
     }
 
     void Aggro(Unit* pWho)
@@ -104,74 +118,103 @@ struct MANGOS_DLL_DECL boss_anomalusAI : public ScriptedAI
             DoScriptText(SAY_KILL, m_creature);
     }
 
-    void JustSummoned(Creature* pSummoned)
+    void UpdateAI(const uint32 diff)
     {
-        if (pSummoned->GetEntry() == NPC_CHAOTIC_RIFT)
-        {
-            DoScriptText(SAY_RIFT, m_creature);
-
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                pSummoned->AI()->AttackStart(pTarget);
-        }
-    }
-
-    void SummonedCreatureDespawn(Creature* pSummoned)
-    {
-        if (pSummoned->GetGUID() == m_uiChaoticRiftGUID)
-        {
-            if (m_creature->HasAura(SPELL_RIFT_SHIELD))
-                m_creature->RemoveAurasDueToSpell(SPELL_RIFT_SHIELD);
-
-            m_uiChaoticRiftGUID = 0;
-        }
-    }
-
-    uint64 CreateRiftAtRandomPoint()
-    {
-        float fPosX, fPosY, fPosZ;
-        m_creature->GetPosition(fPosX, fPosY, fPosZ);
-        m_creature->GetRandomPoint(fPosX, fPosY, fPosZ, urand(15, 25), fPosX, fPosY, fPosZ);
-
-        Creature* pRift = m_creature->SummonCreature(NPC_CHAOTIC_RIFT, fPosX, fPosY, fPosZ, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 1000);
-        DoScriptText(EMOTE_OPEN_RIFT, m_creature);
-
-        return pRift?pRift->GetGUID():0;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() || m_creature->HasAura(SPELL_RIFT_SHIELD))
-             return;
-
-        // Create additional Chaotic Rift at 50% HP
-        if (!m_bChaoticRift && m_creature->GetHealthPercent() < 50.0f)
-        {
-            DoScriptText(EMOTE_SHIELD, m_creature);
-            m_uiChaoticRiftGUID = CreateRiftAtRandomPoint();
-
-            DoScriptText(SAY_SHIELD, m_creature);
-            DoCastSpellIfCan(m_creature, SPELL_RIFT_SHIELD);
-            m_bChaoticRift = true;
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-        }
-
-        if (m_uiCreateRiftTimer < uiDiff)
+        
+        if (m_creature->HasAura(SPELL_RIFT_SHIELD))
         {
-            CreateRiftAtRandomPoint();
-            m_uiCreateRiftTimer = 25000;
-        }
-        else
-            m_uiCreateRiftTimer -= uiDiff;
+            Unit* Rift;
+            if (ChaoticRiftGUID)
+                Rift = Unit::GetUnit((*m_creature), ChaoticRiftGUID);
+            if (Rift && Rift->isDead())
+            {
+                m_creature->RemoveAurasDueToSpell(SPELL_RIFT_SHIELD);
+                ChaoticRiftGUID = 0;
+            }
+            return;
+        } else
+            ChaoticRiftGUID = 0;
 
-        if (m_uiSparkTimer < uiDiff)
+        if (Phase == 0 && m_creature->GetHealthPercent() <= 75.0f)
+        {
+            Phase = 1;
+            DoScriptText(SAY_SHIELD, m_creature);
+            DoScriptText(EMOTE_SHIELD, m_creature);
+            DoCast(m_creature, SPELL_RIFT_SHIELD);
+
+            int tmp = rand()%(2);
+            Creature* Rift = m_creature->SummonCreature(NPC_CHAOTIC_RIFT, RiftLocation[tmp][0], RiftLocation[tmp][1], RiftLocation[tmp][2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000);
+            if (Rift)
+            {
+                DoScriptText(EMOTE_OPEN_RIFT, m_creature);
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    Rift->AI()->AttackStart(target);
+                ChaoticRiftGUID = Rift->GetGUID();
+                DoScriptText(SAY_RIFT, m_creature);
+            }
+        }
+
+        if (Phase == 1 && m_creature->GetHealthPercent() <= 50.0f)
+        {
+            Phase = 2;
+            DoScriptText(SAY_SHIELD, m_creature);
+            DoScriptText(EMOTE_SHIELD, m_creature);
+            DoCast(m_creature, SPELL_RIFT_SHIELD);
+
+            int tmp = rand()%(2);
+            Creature* Rift = m_creature->SummonCreature(NPC_CHAOTIC_RIFT, RiftLocation[tmp][0], RiftLocation[tmp][1], RiftLocation[tmp][2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000);
+            if (Rift)
+            {
+                DoScriptText(EMOTE_OPEN_RIFT, m_creature);
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    Rift->AI()->AttackStart(target);
+                ChaoticRiftGUID = Rift->GetGUID();
+                DoScriptText(SAY_RIFT, m_creature);
+            }
+        }
+
+        if (Phase == 2 && m_creature->GetHealthPercent() <= 25.0f)
+        {
+            Phase = 3;
+            DoScriptText(SAY_SHIELD, m_creature);
+            DoScriptText(EMOTE_SHIELD, m_creature);
+            DoCast(m_creature, SPELL_RIFT_SHIELD);
+
+            int tmp = rand()%(2);
+            Creature* Rift = m_creature->SummonCreature(NPC_CHAOTIC_RIFT, RiftLocation[tmp][0], RiftLocation[tmp][1], RiftLocation[tmp][2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000);
+            if (Rift)
+            {
+                DoScriptText(EMOTE_OPEN_RIFT, m_creature);
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    Rift->AI()->AttackStart(target);
+                ChaoticRiftGUID = Rift->GetGUID();
+                DoScriptText(SAY_RIFT, m_creature);
+            }
+        }
+
+        if (SPELL_SPARK_Timer < diff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_SPARK : SPELL_SPARK_H);
+            SPELL_SPARK_Timer = 5000;
+        }else SPELL_SPARK_Timer -=diff;
 
-            m_uiSparkTimer = 5000;
-        }
-        else
-            m_uiSparkTimer -= uiDiff;
+        if (SPELL_CREATE_RIFT_Timer < diff)
+        {
+            DoScriptText(SAY_RIFT, m_creature);
+
+            int tmp = rand()%(2);
+            Creature* Rift = m_creature->SummonCreature(NPC_CHAOTIC_RIFT, RiftLocation[tmp][0], RiftLocation[tmp][1], RiftLocation[tmp][2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000);
+            if (Rift)
+            {
+                DoScriptText(EMOTE_OPEN_RIFT, m_creature);
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    Rift->AI()->AttackStart(pTarget);
+            }
+            SPELL_CREATE_RIFT_Timer = 25000;
+        }else SPELL_CREATE_RIFT_Timer -=diff;
 
         DoMeleeAttackIfReady();
     }
@@ -191,39 +234,54 @@ struct MANGOS_DLL_DECL mob_chaotic_riftAI : public Scripted_NoMovementAI
     }
 
     ScriptedInstance* m_pInstance;
-    uint32 m_uiSummonTimer;
+
+    uint32 SPELL_CHAOTIC_ENERGY_BURST_Timer;
+    uint32 SUMMON_CRAZED_MANA_WRAITH_Timer;
 
     void Reset()
     {
-        m_uiSummonTimer = 16000;
-        DoCastSpellIfCan(m_creature, SPELL_RIFT_AURA);
-        //DoCastSpellIfCan(m_creature, SPELL_RIFT_SUMMON_AURA);
+        SPELL_CHAOTIC_ENERGY_BURST_Timer = 1000;
+        SUMMON_CRAZED_MANA_WRAITH_Timer = 5000;
+        m_creature->SetDisplayId(25206); //For some reason in DB models for ally and horde are different.
+                                         //Model for ally (1126) does not show auras. Horde model works perfect.
+                                         //Set model to horde number
+        DoCast(m_creature, SPELL_ARCANEFORM, false);
     }
 
-    void JustSummoned(Creature* pSummoned)
-    {
-        if (pSummoned->GetEntry() == NPC_CRAZED_MANA_WRAITH)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                pSummoned->AI()->AttackStart(pTarget);
-        }
-    }
-
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 diff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (!m_creature->HasAura(SPELL_ARCANE_FORM))
-            DoCastSpellIfCan(m_creature, SPELL_ARCANE_FORM);
-
-        if (m_uiSummonTimer < uiDiff)
+        if (SPELL_CHAOTIC_ENERGY_BURST_Timer < diff)
         {
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_CRAZED_MANA_WRAITH);
-            m_uiSummonTimer = 16000;
-        }
-        else
-            m_uiSummonTimer -= uiDiff;
+            if (m_pInstance)
+            {
+                Unit* pAnomalus = Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ANOMALUS));
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    if (pAnomalus && pAnomalus->HasAura(SPELL_RIFT_SHIELD))
+                        DoCast(pTarget, SPELL_CHARGED_CHAOTIC_ENERGY_BURST);
+                    else
+                        DoCast(pTarget, SPELL_CHAOTIC_ENERGY_BURST);
+                SPELL_CHAOTIC_ENERGY_BURST_Timer = 1000;
+            }
+        }else SPELL_CHAOTIC_ENERGY_BURST_Timer -=diff;
+
+        if (SUMMON_CRAZED_MANA_WRAITH_Timer < diff)
+        {
+            Creature* pWraith = m_creature->SummonCreature(NPC_CRAZED_MANA_WRAITH, m_creature->GetPositionX()+1, m_creature->GetPositionY()+1, m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000);
+            if (pWraith)
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    pWraith->AI()->AttackStart(pTarget);
+            if (m_pInstance)
+            {
+                Unit* pAnomalus = Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ANOMALUS));
+                if (pAnomalus && pAnomalus->HasAura(SPELL_RIFT_SHIELD))
+                    SUMMON_CRAZED_MANA_WRAITH_Timer = 5000;
+                else
+                    SUMMON_CRAZED_MANA_WRAITH_Timer = 10000;
+            }
+        }else SUMMON_CRAZED_MANA_WRAITH_Timer -=diff;
     }
 };
 

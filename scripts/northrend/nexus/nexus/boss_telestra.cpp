@@ -67,6 +67,11 @@ enum
     PHASE_4                 = 4
 };
 
+#define CENTER_X            504.80f
+#define CENTER_Y            89.07f
+#define CENTER_Z            -16.12f
+#define CENTER_O            6.27f
+
 /*######
 ## boss_telestra
 ######*/
@@ -98,11 +103,15 @@ struct MANGOS_DLL_DECL boss_telestraAI : public ScriptedAI
         m_uiFirebombTimer = urand(2000, 4000);
         m_uiIceNovaTimer = urand(8000, 12000);
         m_uiGravityWellTimer = urand(15000, 25000);
+
+        SetEquipmentSlots(true);
+        DespawnClones();
     }
 
     void JustReachedHome()
     {
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
     }
 
     void AttackStart(Unit* pWho)
@@ -145,6 +154,12 @@ struct MANGOS_DLL_DECL boss_telestraAI : public ScriptedAI
             case SPELL_ARCANE_DIES:
             case SPELL_FROST_DIES:
             {
+                if (m_uiCloneDeadCount == 0 || m_uiCloneDeadCount == 3)
+                {
+                    m_creature->Relocate(CENTER_X, CENTER_Y, CENTER_Z, CENTER_O);
+                    m_creature->SendMonsterMove(CENTER_X, CENTER_Y, CENTER_Z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1);
+                }
+
                 ++m_uiCloneDeadCount;
 
                 if (m_uiCloneDeadCount == 3 || m_uiCloneDeadCount == 6)
@@ -153,6 +168,8 @@ struct MANGOS_DLL_DECL boss_telestraAI : public ScriptedAI
                     m_creature->CastSpell(m_creature, SPELL_SPAWN_BACK_IN, false);
 
                     m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    SetEquipmentSlots(true);
 
                     DoScriptText(SAY_MERGE, m_creature);
 
@@ -162,6 +179,8 @@ struct MANGOS_DLL_DECL boss_telestraAI : public ScriptedAI
             }
             case SPELL_SUMMON_CLONES:
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                SetEquipmentSlots(false, EQUIP_UNEQUIP);
                 break;
         }
     }
@@ -174,8 +193,19 @@ struct MANGOS_DLL_DECL boss_telestraAI : public ScriptedAI
             case NPC_TELEST_ARCANE: pSummoned->CastSpell(pSummoned, SPELL_ARCANE_VISUAL, true); break;
             case NPC_TELEST_FROST: pSummoned->CastSpell(pSummoned, SPELL_FROST_VISUAL, true); break;
         }
+        pSummoned->SetInCombatWithZone();
     }
 
+    void DespawnClones()
+    {
+        if (Creature* pTemp = GetClosestCreatureWithEntry(m_creature, NPC_TELEST_FIRE, 100.0f))
+            pTemp->ForcedDespawn();
+        if (Creature* pTemp = GetClosestCreatureWithEntry(m_creature, NPC_TELEST_ARCANE, 100.0f))
+            pTemp->ForcedDespawn();
+        if (Creature* pTemp = GetClosestCreatureWithEntry(m_creature, NPC_TELEST_FROST, 100.0f))
+            pTemp->ForcedDespawn();
+    }
+    
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())

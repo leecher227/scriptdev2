@@ -39,6 +39,7 @@ bool GOHello_go_containment_sphere(Player* pPlayer, GameObject* pGo)
     }
 
     pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
+    pGo->SetGoState(GO_STATE_ACTIVE);
     return false;
 }
 
@@ -103,7 +104,39 @@ struct MANGOS_DLL_DECL instance_nexus : public ScriptedInstance
 
     void OnCreatureCreate(Creature* pCreature)
     {
-        switch(pCreature->GetEntry())
+        uint64 uiCreatureEntry = pCreature->GetEntry();
+
+        if (instance)
+        {
+            Map::PlayerList const& lPlayers = instance->GetPlayers();
+            uint32 uiTeamInInstance;
+
+            if (!lPlayers.isEmpty())
+                if (Player* pPlayer = lPlayers.begin()->getSource())
+                    uiTeamInInstance = pPlayer->GetTeam();
+
+            if (uiTeamInInstance == ALLIANCE)
+                switch (uiCreatureEntry)
+                {
+                    case NPC_ALLIANCE_BERSERKER:
+                        pCreature->UpdateEntry(NPC_HORDE_BERSERKER);
+                        break;
+                    case NPC_ALLIANCE_RANGER:
+                        pCreature->UpdateEntry(NPC_HORDE_RANGER);
+                        break;
+                    case NPC_ALLIANCE_CLERIC:
+                        pCreature->UpdateEntry(NPC_HORDE_CLERIC);
+                        break;
+                    case NPC_ALLIANCE_COMMANDER:
+                        pCreature->UpdateEntry(NPC_HORDE_COMMANDER);
+                        break;
+                    case NPC_COMMANDER_STOUTBEARD:
+                        pCreature->UpdateEntry(NPC_COMMANDER_KOLURG);
+                        break;
+                }
+        }
+
+        switch (uiCreatureEntry)
         {
             case NPC_ANOMALUS:
                 m_uiAnomalusGUID = pCreature->GetGUID();
@@ -188,7 +221,11 @@ struct MANGOS_DLL_DECL instance_nexus : public ScriptedInstance
             if (Creature* pCreature = instance->GetCreature(m_uiKeristrazaGUID))
             {
                 if (pCreature->isAlive())
+                {
                     pCreature->RemoveAurasDueToSpell(SPELL_FROZEN_PRISON);
+                    pCreature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    pCreature->SetInCombatWithZone();
+                }
             }
         }
 
