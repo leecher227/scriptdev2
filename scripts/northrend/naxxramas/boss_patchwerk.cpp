@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Patchwerk
-SD%Complete: 100
-SDComment:
+SD%Complete: 80
+SDComment: TODO: confirm how hateful strike work
 SDCategory: Naxxramas
 EndScriptData */
 
@@ -40,6 +40,8 @@ enum
     SPELL_BERSERK         = 26662,
     SPELL_SLIMEBOLT       = 32309
 };
+
+const float MELEE_DISTANCE = 5.0;
 
 struct MANGOS_DLL_DECL boss_patchwerkAI : public ScriptedAI
 {
@@ -68,6 +70,12 @@ struct MANGOS_DLL_DECL boss_patchwerkAI : public ScriptedAI
         m_bBerserk = false;
     }
 
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_PATCHWERK, FAIL);
+    }
+
     void KilledUnit(Unit* pVictim)
     {
         if (urand(0, 4))
@@ -92,12 +100,6 @@ struct MANGOS_DLL_DECL boss_patchwerkAI : public ScriptedAI
             m_pInstance->SetData(TYPE_PATCHWERK, IN_PROGRESS);
     }
 
-    void JustReachedHome()
-    {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_PATCHWERK, FAIL);
-    }
-
     void DoHatefulStrike()
     {
         // The ability is used on highest HP target choosen of the top 2 (3 heroic) targets on threat list being in melee range
@@ -105,15 +107,15 @@ struct MANGOS_DLL_DECL boss_patchwerkAI : public ScriptedAI
         uint32 uiHighestHP = 0;
         uint32 uiTargets = m_bIsRegularMode ? 2 : 3;
 
-        ThreatList const& tList = m_creature->getThreatManager().getThreatList();
-        for (ThreatList::const_iterator iter = tList.begin();iter != tList.end(); ++iter)
+        ThreatList const& lThreatList = m_creature->getThreatManager().getThreatList();
+        for (ThreatList::const_iterator iter = lThreatList.begin(); iter != lThreatList.end(); ++iter)
         {
             if (!uiTargets)
                 break;
 
             if (Unit* pTempTarget = Unit::GetUnit((*m_creature), (*iter)->getUnitGuid()))
             {
-                if (pTempTarget->GetHealth() > uiHighestHP && m_creature->IsWithinDistInMap(pTempTarget, ATTACK_DISTANCE))
+                if (pTempTarget->GetHealth() > uiHighestHP && m_creature->IsWithinDistInMap(pTempTarget, MELEE_DISTANCE))
                 {
                     uiHighestHP = pTempTarget->GetHealth();
                     pTarget = pTempTarget;
@@ -124,7 +126,7 @@ struct MANGOS_DLL_DECL boss_patchwerkAI : public ScriptedAI
         }
 
         if (pTarget)
-            DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_HATEFULSTRIKE : SPELL_HATEFULSTRIKE_H);
+            DoCast(pTarget, m_bIsRegularMode ? SPELL_HATEFULSTRIKE : SPELL_HATEFULSTRIKE_H);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -144,9 +146,9 @@ struct MANGOS_DLL_DECL boss_patchwerkAI : public ScriptedAI
         // Soft Enrage at 5%
         if (!m_bEnraged)
         {
-            if (m_creature->GetHealthPercent() < 5.0f)
+            if (m_creature->GetHealth()*20 < m_creature->GetMaxHealth())
             {
-                DoCastSpellIfCan(m_creature, SPELL_ENRAGE);
+                DoCast(m_creature, SPELL_ENRAGE);
                 DoScriptText(EMOTE_ENRAGE, m_creature);
                 m_bEnraged = true;
             }
@@ -157,7 +159,7 @@ struct MANGOS_DLL_DECL boss_patchwerkAI : public ScriptedAI
         {
             if (m_uiBerserkTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature, SPELL_BERSERK);
+                DoCast(m_creature, SPELL_BERSERK);
                 DoScriptText(EMOTE_BERSERK, m_creature);
                 m_bBerserk = true;
             }
@@ -169,7 +171,7 @@ struct MANGOS_DLL_DECL boss_patchwerkAI : public ScriptedAI
             // Slimebolt - casted only while Berserking to prevent kiting
             if (m_uiSlimeboltTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_SLIMEBOLT);
+                DoCast(m_creature->getVictim(), SPELL_SLIMEBOLT);
                 m_uiSlimeboltTimer = 5000;
             }
             else

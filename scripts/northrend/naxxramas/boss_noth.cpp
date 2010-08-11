@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Noth
-SD%Complete: 60
-SDComment: Summons need tuning, timers need tuning, need to add berserk "phase" after last skeleton phase
+SD%Complete: 90%
+SDComment:
 SDCategory: Naxxramas
 EndScriptData */
 
@@ -34,52 +34,37 @@ enum
     SAY_SLAY2                           = -1533080,
     SAY_DEATH                           = -1533081,
 
-    EMOTE_WARRIOR                       = -1533130,
-    EMOTE_SKELETON                      = -1533131,
-    EMOTE_TELEPORT                      = -1533132,
-    EMOTE_TELEPORT_RETURN               = -1533133,
-
-    SPELL_TELEPORT                      = 29216,
-    SPELL_TELEPORT_RETURN               = 29231,
-
-    SPELL_BLINK_1                       = 29208,
-    SPELL_BLINK_2                       = 29209,
-    SPELL_BLINK_3                       = 29210,
-    SPELL_BLINK_4                       = 29211,
-
+    SPELL_BLINK                         = 29211,            //29208, 29209 and 29210 too
     SPELL_CRIPPLE                       = 29212,
-    SPELL_CRIPPLE_H                     = 54814,
     SPELL_CURSE_PLAGUEBRINGER           = 29213,
     SPELL_CURSE_PLAGUEBRINGER_H         = 54835,
 
-    SPELL_SUMMON_WARRIOR_1              = 29247,
-    SPELL_SUMMON_WARRIOR_2              = 29248,
-    SPELL_SUMMON_WARRIOR_3              = 29249,
+    SPELL_BERSERK                       = 26662,            //probably incorrect spell
 
-    SPELL_SUMMON_WARRIOR_THREE          = 29237,
+    SPELL_SUMMON_CHAMPION_AND_CONSTRUCT = 29240,
+    SPELL_SUMMON_GUARDIAN_AND_CONSTRUCT = 29269,
 
-    SPELL_SUMMON_CHAMP01                = 29217,
-    SPELL_SUMMON_CHAMP02                = 29224,
-    SPELL_SUMMON_CHAMP03                = 29225,
-    SPELL_SUMMON_CHAMP04                = 29227,
-    SPELL_SUMMON_CHAMP05                = 29238,
-    SPELL_SUMMON_CHAMP06                = 29255,
-    SPELL_SUMMON_CHAMP07                = 29257,
-    SPELL_SUMMON_CHAMP08                = 29258,
-    SPELL_SUMMON_CHAMP09                = 29262,
-    SPELL_SUMMON_CHAMP10                = 29267,
+    NPC_PLAGUED_WARRIOR                 = 16984,
+    NPC_PLAGUED_CHAMPION                = 16983,
+    NPC_PLAGUED_GUARDIAN                = 16981,
+};
 
-    SPELL_SUMMON_GUARD01                = 29226,
-    SPELL_SUMMON_GUARD02                = 29239,
-    SPELL_SUMMON_GUARD03                = 29256,
-    SPELL_SUMMON_GUARD04                = 29268,
+#define CENTER_X    2684.77f
+#define CENTER_Y    -3502.44f
+#define CENTER_Z    261.31f
 
-    PHASE_GROUND                        = 0,
-    PHASE_BALCONY                       = 1,
+#define BALCONY_X 2631.370f
+#define BALCONY_Y -3529.680f
+#define BALCONY_Z 274.040f
+#define BALCONY_O 6.277f
 
-    PHASE_SKELETON_1                    = 1,
-    PHASE_SKELETON_2                    = 2,
-    PHASE_SKELETON_3                    = 3
+float adds_coords[5][4] =
+{
+    {2726.49f, -3515.57f, 263.59f, 2.89f},
+    {2727.15f, -3464.06f, 263.94f, 3.93f},
+    {2704.39f, -3458.15f, 264.59f, 4.29f},
+    {2664.04f, -3460.16f, 265.03f, 5.25f},
+    {2644.45f, -3464.11f, 265.20f, 5.60f}
 };
 
 struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
@@ -93,30 +78,41 @@ struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
 
     instance_naxxramas* m_pInstance;
     bool m_bIsRegularMode;
+    bool m_bIsEnraged;
 
-    uint8 m_uiPhase;
-    uint8 m_uiPhaseSub;
-    uint32 m_uiPhaseTimer;
+    bool isTeleported;
+    bool m_bDelay;
+    
+    uint8 SecondPhaseCounter;
 
-    uint32 m_uiBlinkTimer;
-    uint32 m_uiCurseTimer;
-    uint32 m_uiSummonTimer;
+    uint32 Blink_Timer;
+    uint32 Curse_Timer;
+    uint32 Summon_Timer;
+    uint32 SecondPhase_Timer;
+    uint32 Teleport_Timer;
 
     void Reset()
     {
-        m_uiPhase = PHASE_GROUND;
-        m_uiPhaseSub = PHASE_GROUND;
-        m_uiPhaseTimer = 110000;
+        isTeleported = false;
+        m_bDelay = false;
+        SecondPhaseCounter = 0;
+        m_bIsEnraged = false;
+        Blink_Timer = urand(20000, 30000);
+        Curse_Timer = 6000;
+        Summon_Timer = 30000;
+        Teleport_Timer = 120000;
 
-        m_uiBlinkTimer = 25000;
-        m_uiCurseTimer = 4000;
-        m_uiSummonTimer = 30000;
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
-    void Aggro(Unit* pWho)
+    void JustReachedHome()
     {
-        m_creature->SetInCombatWithZone();
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_NOTH, FAIL);
+    }
 
+    void Aggro(Unit *who)
+    {
         switch(urand(0, 2))
         {
             case 0: DoScriptText(SAY_AGGRO1, m_creature); break;
@@ -124,16 +120,35 @@ struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
             case 2: DoScriptText(SAY_AGGRO3, m_creature); break;
         }
 
+        m_creature->SetInCombatWithZone();
+
         if (m_pInstance)
             m_pInstance->SetData(TYPE_NOTH, IN_PROGRESS);
     }
 
-    void JustSummoned(Creature* pSummoned)
+    void AttackStart(Unit* pWho)
     {
-        pSummoned->SetInCombatWithZone();
+        if (!pWho || isTeleported)
+            return;
+
+        if (m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+
+            if (IsCombatMovement())
+                m_creature->GetMotionMaster()->MoveChase(pWho);
+        }
     }
 
-    void KilledUnit(Unit* pVictim)
+    void JustSummoned(Creature* pSummoned)
+    {
+        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            pSummoned->AI()->AttackStart(pTarget);
+    }
+
+    void KilledUnit(Unit* victim)
     {
         DoScriptText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
     }
@@ -146,156 +161,123 @@ struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
             m_pInstance->SetData(TYPE_NOTH, DONE);
     }
 
-    void JustReachedHome()
-    {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_NOTH, FAIL);
-    }
-
-    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
-    {
-        if (pCaster == m_creature && pSpell->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_LEAP)
-            DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_CRIPPLE : SPELL_CRIPPLE_H);
-    }
-
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 diff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_uiPhase == PHASE_GROUND)
+        if (m_bDelay)
         {
-            if (m_uiPhaseTimer < uiDiff)
-            {
-                // TODO: avoid teleport when skeleton phases is ended
+            DoStartMovement(m_creature->getVictim());
+            m_bDelay = false;
+        }
 
-                if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT) == CAST_OK)
-                {
-                    DoScriptText(EMOTE_TELEPORT, m_creature);
-                    m_creature->GetMotionMaster()->MoveIdle();
-                    m_uiPhaseTimer = 70000;
-                    m_uiPhase = PHASE_BALCONY;
-                    ++m_uiPhaseSub;
-                    return;
-                }
+        if (isTeleported)
+        {
+            if (Teleport_Timer < diff)
+            {
+                m_creature->MonsterTextEmote("%s teleports back into the battle!", 0, true);
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                m_creature->GetMap()->CreatureRelocation(m_creature, CENTER_X, CENTER_Y, CENTER_Z, 0);
+                m_creature->SendMonsterMove(CENTER_X, CENTER_Y, CENTER_Z, SPLINETYPE_NORMAL, SPLINEFLAG_DONE, 0);
+                isTeleported = false;
+                m_bDelay = true;
+                Teleport_Timer = 120000;
             }
             else
-                m_uiPhaseTimer -= uiDiff;
+                Teleport_Timer -= diff;
 
-            if (m_bIsRegularMode)
+            if (SecondPhase_Timer < diff)
             {
-                if (m_uiBlinkTimer < uiDiff)
+                m_creature->MonsterTextEmote("%s raises more skeletons!", 0, true);
+                for (uint8 i = 1; i <= (m_bIsRegularMode ? 2 : 4); ++i)
                 {
-                    static uint32 const auiSpellBlink[4] =
-                    {
-                        SPELL_BLINK_1, SPELL_BLINK_2, SPELL_BLINK_3, SPELL_BLINK_4
-                    };
-
-                    if (DoCastSpellIfCan(m_creature, auiSpellBlink[urand(0,3)]) == CAST_OK)
-                    {
-                        DoResetThreat();
-                        m_uiBlinkTimer = 25000;
-                    }
+                    uint32 uiAdd = NPC_PLAGUED_CHAMPION;
+                    if (SecondPhaseCounter != 1 && i%2 == 0)
+                        uiAdd = NPC_PLAGUED_GUARDIAN;
+                    uint8 uiI = urand(0, 4);
+                    m_creature->SummonCreature(uiAdd, adds_coords[uiI][0], adds_coords[uiI][1], adds_coords[uiI][2], adds_coords[uiI][4], TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
                 }
-                else
-                    m_uiBlinkTimer -= uiDiff;
-            }
-
-            if (m_uiCurseTimer < uiDiff)
-            {
-                DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_CURSE_PLAGUEBRINGER : SPELL_CURSE_PLAGUEBRINGER_H);
-                m_uiCurseTimer = 28000;
+                SecondPhase_Timer = 35000;
             }
             else
-                m_uiCurseTimer -= uiDiff;
+                SecondPhase_Timer -= diff;
 
-            if (m_uiSummonTimer < uiDiff)
+            return;
+        }
+
+        //Blink_Timer
+        if (!m_bIsRegularMode)
+            if (Blink_Timer < diff)
             {
-                DoScriptText(SAY_SUMMON, m_creature);
-                DoScriptText(EMOTE_WARRIOR, m_creature);
-
-                if (m_bIsRegularMode)
+                DoCast(m_creature->getVictim(), SPELL_CRIPPLE);
+                uint8 uiRX = urand(0, 60);
+                uint8 uiRY = urand(0, 60);
+                m_creature->GetMap()->CreatureRelocation(m_creature, CENTER_X-30+uiRX, CENTER_Y-30+uiRY, CENTER_Z, 0);
+                m_creature->SendMonsterMove(CENTER_X-30+uiRX, CENTER_Y-30+uiRY, CENTER_Z, SPLINETYPE_NORMAL, SPLINEFLAG_DONE, 0);
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
-                    static uint32 const auiSpellSummonPlaguedWarrior[3] =
-                    {
-                        SPELL_SUMMON_WARRIOR_1, SPELL_SUMMON_WARRIOR_2, SPELL_SUMMON_WARRIOR_3
-                    };
-
-                    for(uint8 i = 0; i < 2; ++i)
-                        DoCastSpellIfCan(m_creature, auiSpellSummonPlaguedWarrior[urand(0,2)], CAST_TRIGGERED);
+                    DoResetThreat();
+                    AttackStart(pTarget);
                 }
-                else
-                {
-                    DoCastSpellIfCan(m_creature, SPELL_SUMMON_WARRIOR_THREE, CAST_TRIGGERED);
-                }
-
-                m_uiSummonTimer = 30000;
+                Blink_Timer = urand(20000, 30000);
+                m_bDelay = true;
             }
             else
-                m_uiSummonTimer -= uiDiff;
+                Blink_Timer -= diff;
 
-            DoMeleeAttackIfReady();
+        //Curse_Timer
+        if (Curse_Timer < diff)
+        {
+            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CURSE_PLAGUEBRINGER : SPELL_CURSE_PLAGUEBRINGER_H);
+            Curse_Timer = urand (25000, 30000);
         }
         else
+            Curse_Timer -= diff;
+
+        //Summon_Timer
+        if (Summon_Timer < diff)
         {
-            if (m_uiPhaseTimer < uiDiff)
+            DoScriptText(SAY_SUMMON, m_creature);
+            m_creature->MonsterTextEmote("%s summons the Skeletal Warriors!", 0, true);
+
+            for (uint8 i = 0; i < (m_bIsRegularMode ? 2 : 3); ++i)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT_RETURN) == CAST_OK)
-                {
-                    DoScriptText(EMOTE_TELEPORT_RETURN, m_creature);
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-                    m_uiPhaseTimer = 90000;
-                    m_uiPhase = PHASE_GROUND;
-                    return;
-                }
+                uint8 uiI = urand(0, 4);
+                m_creature->SummonCreature(NPC_PLAGUED_WARRIOR, adds_coords[uiI][0], adds_coords[uiI][1], adds_coords[uiI][2], adds_coords[uiI][4], TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
             }
-            else
-                m_uiPhaseTimer -= uiDiff;
 
-            if (m_uiSummonTimer < uiDiff)
-            {
-                DoScriptText(EMOTE_SKELETON, m_creature);
-
-                static uint32 const auiSpellSummonPlaguedChampion[10] =
-                {
-                    SPELL_SUMMON_CHAMP01, SPELL_SUMMON_CHAMP02, SPELL_SUMMON_CHAMP03, SPELL_SUMMON_CHAMP04, SPELL_SUMMON_CHAMP05, SPELL_SUMMON_CHAMP06, SPELL_SUMMON_CHAMP07, SPELL_SUMMON_CHAMP08, SPELL_SUMMON_CHAMP09, SPELL_SUMMON_CHAMP10
-                };
-
-                static uint32 const auiSpellSummonPlaguedGuardian[4] =
-                {
-                    SPELL_SUMMON_GUARD01, SPELL_SUMMON_GUARD02, SPELL_SUMMON_GUARD03, SPELL_SUMMON_GUARD04
-                };
-
-                // A bit unclear how many in each sub phase, and if there are any clear difference in 25man
-                switch(m_uiPhaseSub)
-                {
-                    case PHASE_SKELETON_1:
-                    {
-                        for(uint8 i = 0; i < 2; ++i)
-                            DoCastSpellIfCan(m_creature, auiSpellSummonPlaguedChampion[urand(0,9)], CAST_TRIGGERED);
-
-                        break;
-                    }
-                    case PHASE_SKELETON_2:
-                    {
-                        DoCastSpellIfCan(m_creature, auiSpellSummonPlaguedChampion[urand(0,9)], CAST_TRIGGERED);
-                        DoCastSpellIfCan(m_creature, auiSpellSummonPlaguedGuardian[urand(0,3)], CAST_TRIGGERED);
-                        break;
-                    }
-                    case PHASE_SKELETON_3:
-                    {
-                        for(uint8 i = 0; i < 2; ++i)
-                            DoCastSpellIfCan(m_creature, auiSpellSummonPlaguedGuardian[urand(0,3)], CAST_TRIGGERED);
-
-                        break;
-                    }
-                }
-
-                m_uiSummonTimer = 30000;
-            }
-            else
-                m_uiSummonTimer -= uiDiff;
+            Summon_Timer = 30000;
         }
+        else
+            Summon_Timer -= diff;
+
+        if (!m_bIsEnraged)
+            if (Teleport_Timer < diff)
+                if (SecondPhaseCounter < 3)
+                {
+                    m_creature->MonsterTextEmote("%s teleports to the balcony above!", 0, true);
+                    m_creature->InterruptNonMeleeSpells(false);
+                    m_creature->StopMoving();
+                    m_creature->GetMotionMaster()->Clear();
+                    m_creature->GetMotionMaster()->MoveIdle();
+                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    m_creature->GetMap()->CreatureRelocation(m_creature, BALCONY_X, BALCONY_Y, BALCONY_Z, BALCONY_O);
+                    m_creature->SendMonsterMove(BALCONY_X, BALCONY_Y, BALCONY_Z, SPLINETYPE_NORMAL, SPLINEFLAG_DONE, 0);
+                    isTeleported = true;
+                    SecondPhase_Timer = 0;
+                    Teleport_Timer = 70000;
+                    SecondPhaseCounter++;
+                }
+                else
+                {
+                    DoCast(m_creature, SPELL_BERSERK);
+                    m_bIsEnraged = true;
+                }
+            else
+                Teleport_Timer -= diff;
+
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -306,9 +288,9 @@ CreatureAI* GetAI_boss_noth(Creature* pCreature)
 
 void AddSC_boss_noth()
 {
-    Script* NewScript;
-    NewScript = new Script;
-    NewScript->Name = "boss_noth";
-    NewScript->GetAI = &GetAI_boss_noth;
-    NewScript->RegisterSelf();
+    Script *newscript;
+    newscript = new Script;
+    newscript->Name = "boss_noth";
+    newscript->GetAI = &GetAI_boss_noth;
+    newscript->RegisterSelf();
 }

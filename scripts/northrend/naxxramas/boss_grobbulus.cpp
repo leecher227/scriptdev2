@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,16 +16,272 @@
 
 /* ScriptData
 SDName: Boss_Grobbulus
+SDAuthor: ckegg
 SD%Complete: 0
 SDComment: Place holder
 SDCategory: Naxxramas
 EndScriptData */
 
-/*Poison Cloud 26590
-Slime Spray 28157
-Fallout slime 28218
-Mutating Injection 28169
-Enrages 26527*/
-
 #include "precompiled.h"
 #include "naxxramas.h"
+
+#define SPELL_BOMBARD_SLIME         28280
+
+#define SPELL_POISON_CLOUD          28240
+#define SPELL_MUTATING_INJECTION    28169
+#define SPELL_SLIME_SPRAY           28157
+#define H_SPELL_SLIME_SPRAY         54364
+#define SPELL_BERSERK               26662
+
+#define MOB_FALLOUT_SLIME           16290
+#define MOB_GROBBULUS_POISON_CLOUD  16363
+
+#define SPELL_POISON_CLOUD          30914
+#define SPELL_AOE_NATURE_DMG        30915
+
+struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
+{
+    boss_grobbulusAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (instance_naxxramas*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
+
+    instance_naxxramas* m_pInstance;
+    bool m_bIsRegularMode;
+
+    uint32 PoisonCloud_Timer;
+    uint32 MutatingInjection_Timer;
+    uint32 SlimeSpary_Timer;
+    uint32 Enrage_Timer;
+
+    void Reset()
+    {
+        PoisonCloud_Timer = 15000;
+        MutatingInjection_Timer = 20000;
+        SlimeSpary_Timer = 15000+rand()%10000;
+        Enrage_Timer = (m_bIsRegularMode ? 720000 : 540000);
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_GROBBULUS, FAIL);
+    }
+
+    void JustDied(Unit* Killer)
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_GROBBULUS, DONE);
+    }
+
+    void Aggro(Unit *who)
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_GROBBULUS, IN_PROGRESS);
+    }
+
+    void SpellHitTarget(Unit *target, const SpellEntry *spell)
+    {
+        if(spell->Id == SPELL_SLIME_SPRAY || spell->Id == H_SPELL_SLIME_SPRAY)
+        {
+            if (Creature* pTemp = m_creature->SummonCreature(MOB_FALLOUT_SLIME, target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 1000))
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                {
+                    pTemp->AddThreat(pTarget);
+                    pTemp->AI()->AttackStart(pTarget);
+                }
+        }
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (PoisonCloud_Timer < diff)
+        {
+            //DoCast(m_creature->getVictim(), SPELL_POISON_CLOUD);
+            DoSpawnCreature(MOB_GROBBULUS_POISON_CLOUD, 0, 0, 0, 0, TEMPSUMMON_TIMED_DESPAWN, 120000);
+            PoisonCloud_Timer = 15000;
+        }else PoisonCloud_Timer -= diff;
+
+        if (MutatingInjection_Timer < diff)
+        {
+            if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                DoCast(target, SPELL_MUTATING_INJECTION);
+
+            MutatingInjection_Timer = 20000;
+            float fPercentHealth = m_creature->GetHealth() / m_creature->GetMaxHealth() * 100;
+            if (fPercentHealth < 75)
+                MutatingInjection_Timer = 18000;
+            if (fPercentHealth < 50)
+                MutatingInjection_Timer = 16000;
+            if (fPercentHealth < 25)
+                MutatingInjection_Timer = 14000;
+            if (fPercentHealth < 10)
+                MutatingInjection_Timer = 10000;
+        }
+        else
+            MutatingInjection_Timer -= diff;
+
+        if (SlimeSpary_Timer < diff)
+        {
+            DoCast(m_creature->getVictim(),m_bIsRegularMode ? SPELL_SLIME_SPRAY : H_SPELL_SLIME_SPRAY);
+            SlimeSpary_Timer = 15000+rand()%10000;
+        }
+        else
+            SlimeSpary_Timer -= diff;
+
+        if (Enrage_Timer < diff)
+        {
+            DoCast(m_creature, SPELL_BERSERK);
+            Enrage_Timer = 300000;
+        }
+        else
+            Enrage_Timer -= diff;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+struct MANGOS_DLL_DECL npc_grobbulus_poison_cloudAI : public ScriptedAI
+{
+    npc_grobbulus_poison_cloudAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
+
+    bool m_bIsRegularMode;
+
+    uint32 Dmg_Timer;
+    uint32 Disappear_Timer;
+
+    void Reset()
+    {
+        Dmg_Timer = 1000;
+        Disappear_Timer = 65000;
+        SetCombatMovement(false);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.85f);
+        if (SpellEntry* TempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_POISON_CLOUD))
+        {
+            TempSpell->EffectTriggerSpell[0] = 204;
+            m_creature->CastCustomSpell(m_creature, TempSpell, NULL, NULL, NULL, true);
+        }
+    }
+
+    void MoveInLineOfSight(Unit *pWho) { }
+
+    void AttackStart(Unit *pWho) { }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (Dmg_Timer < diff)
+        {
+            uint8 RadiusIndex;
+            switch (uint32(Disappear_Timer / 4300))
+            {
+                case 0:
+                case 1:  RadiusIndex = 43; break;
+                case 2:  RadiusIndex = 18; break;
+                case 3:  RadiusIndex = 61; break;
+                case 4:  RadiusIndex = 17; break;
+                case 5:  RadiusIndex = 32; break;
+                case 6:  RadiusIndex = 42; break;
+                case 7:  RadiusIndex = 13; break;
+                case 8:  RadiusIndex = 40; break;
+                case 9:  RadiusIndex = 14; break;
+                case 10: RadiusIndex = 37; break;
+                case 11: RadiusIndex = 29;  break;
+                case 12: RadiusIndex = 8; break;
+                case 13: RadiusIndex = 26; break;
+                case 14:
+                case 15: RadiusIndex = 15;  break;
+            }
+            if (SpellEntry* TempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_AOE_NATURE_DMG))
+            {
+                TempSpell->EffectRadiusIndex[0] = RadiusIndex;
+                TempSpell->EffectBasePoints[0] = (m_bIsRegularMode ? 2000 : 4250);
+                m_creature->CastCustomSpell(m_creature, TempSpell, NULL, NULL, NULL, true);
+            }
+            Dmg_Timer = 1000;
+        }else Dmg_Timer -= diff;
+
+        if (Disappear_Timer < diff)
+        {
+            m_creature->ForcedDespawn();
+        }else Disappear_Timer -= diff;
+
+    }
+};
+
+struct MANGOS_DLL_DECL npc_fallout_slimeAI : public ScriptedAI
+{
+    npc_fallout_slimeAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
+
+    bool m_bIsRegularMode;
+
+    uint32 Dmg_Timer;
+
+    void Reset()
+    {
+        Dmg_Timer = 2000;
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (Dmg_Timer < diff)
+        {
+            if (SpellEntry* TempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_AOE_NATURE_DMG))
+            {
+                TempSpell->EffectRadiusIndex[0] = 13;
+                TempSpell->EffectBasePoints[0] = (m_bIsRegularMode ? 1000 : 2000);
+                m_creature->CastCustomSpell(m_creature, TempSpell, NULL, NULL, NULL, true);
+            }
+            Dmg_Timer = 2000;
+        }else Dmg_Timer -= diff;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_boss_grobbulus(Creature* pCreature)
+{
+    return new boss_grobbulusAI(pCreature);
+}
+
+CreatureAI* GetAI_npc_grobbulus_poison_cloud(Creature* pCreature)
+{
+    return new npc_grobbulus_poison_cloudAI(pCreature);
+}
+
+CreatureAI* GetAI_npc_fallout_slime(Creature* pCreature)
+{
+    return new npc_fallout_slimeAI(pCreature);
+}
+
+void AddSC_boss_grobbulus()
+{
+    Script *newscript;
+    newscript = new Script;
+    newscript->Name = "boss_grobbulus";
+    newscript->GetAI = &GetAI_boss_grobbulus;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_grobbulus_poison_cloud";
+    newscript->GetAI = &GetAI_npc_grobbulus_poison_cloud;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_fallout_slime";
+    newscript->GetAI = &GetAI_npc_fallout_slime;
+    newscript->RegisterSelf();
+}

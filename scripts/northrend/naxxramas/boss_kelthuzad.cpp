@@ -15,7 +15,7 @@
  */
 
 /* ScriptData
-SDName: Boss_KelThuzad
+SDName: Boss_KelThuzud
 SD%Complete: 75
 SDComment: Timers will need adjustments, along with tweaking positions and amounts
 SDCategory: Naxxramas
@@ -39,6 +39,12 @@ enum
 
     //when cat dies
     SAY_CAT_DIED                        = -1533089,
+
+    //when each of the 4 wing bosses dies
+    SAY_TAUNT1                          = -1533090,
+    SAY_TAUNT2                          = -1533091,
+    SAY_TAUNT3                          = -1533092,
+    SAY_TAUNT4                          = -1533093,
 
     SAY_SUMMON_MINIONS                  = -1533105,         //start of phase 1
 
@@ -76,25 +82,14 @@ enum
 
     SPELL_MANA_DETONATION               = 27819,
     SPELL_SHADOW_FISSURE                = 27810,
-    SPELL_FROST_BLAST                   = 27808,
-
-    SPELL_CHANNEL_VISUAL                = 29423,
-
-    MAX_SOLDIER_COUNT                   = 71,
-    MAX_ABOMINATION_COUNT               = 8,
-    MAX_BANSHEE_COUNT                   = 8,
+    SPELL_FROST_BLAST                   = 27808
 };
 
 static float M_F_ANGLE = 0.2f;                              // to adjust for map rotation
 static float M_F_HEIGHT = 2.0f;                             // adjust for height difference
 static float M_F_RANGE = 55.0f;                             // ~ range from center of chamber to center of alcove
 
-enum Phase
-{
-    PHASE_INTRO,
-    PHASE_NORMAL,
-    PHASE_GUARDIANS,
-};
+#define M_PI_F        float(M_PI)
 
 struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 {
@@ -103,13 +98,13 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         m_pInstance = (instance_naxxramas*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
 
-        m_uiGuardiansCountMax = m_bIsRegularMode ? 2 : 4;
         Reset();
     }
 
     instance_naxxramas* m_pInstance;
     bool m_bIsRegularMode;
 
+    uint64 m_auiGuardiansGUID[5];
     uint32 m_uiGuardiansCount;
     uint32 m_uiGuardiansCountMax;
     uint32 m_uiGuardiansTimer;
@@ -122,112 +117,128 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 
     uint32 m_uiPhase1Timer;
     uint32 m_uiSoldierTimer;
-    uint32 m_uiBansheeTimer;
-    uint32 m_uiAbominationTimer;
-    uint8  m_uiPhase;
-    uint32 m_uiSoldierCount;
-    uint32 m_uiBansheeCount;
-    uint32 m_uiAbominationCount;
-    uint32 m_uiSummonIntroTimer;
-    uint32 m_uiIntroPackCount;
+    uint32 m_uiUndeadTimer;
+    uint32 m_uiChainsEndTimer;
+    uint32 m_uiChainsTargetsCastTimer;
+    bool m_bSummonedIntro;
+    bool m_bIsPhase3;
 
-    std::set<uint64> m_lIntroMobsSet;
-    std::set<uint64> m_lAddsSet;
+    std::set<uint64> m_lSoldierSet;                         // keeps explicit guids of intro soldiers
+    std::set<uint64> m_lUndeadSet;                          // the rest of the intro mobs
+    std::set<Unit*> m_lChainsTargets;
+
+    void GetChamberCenterCoords(float &fX, float &fY, float &fZ)
+    {
+        fX = 3716.63f;
+        fY = -5106.91f;
+        fZ = 141.29f;
+    }
 
     void Reset()
     {
-        m_uiFrostBoltTimer      = urand(1000, 60000);       //It won't be more than a minute without cast it
-        m_uiFrostBoltNovaTimer  = 15000;                    //Cast every 15 seconds
-        m_uiChainsTimer         = urand(30000, 60000);      //Cast no sooner than once every 30 seconds
-        m_uiManaDetonationTimer = 20000;                    //Seems to cast about every 20 seconds
-        m_uiShadowFissureTimer  = 25000;                    //25 seconds
-        m_uiFrostBlastTimer     = urand(30000, 60000);      //Random time between 30-60 seconds
-        m_uiGuardiansTimer      = 5000;                     //5 seconds for summoning each Guardian of Icecrown in phase 3
-        m_uiGuardiansCount      = 0;
-        m_uiSummonIntroTimer    = 0;
-        m_uiIntroPackCount      = 0;
-
-        m_uiPhase1Timer         = 228000;                   //Phase 1 lasts "3 minutes and 48 seconds"
-        m_uiSoldierTimer        = 5000;
-        m_uiBansheeTimer        = 5000;
-        m_uiAbominationTimer    = 5000;
-        m_uiSoldierCount        = 0;
-        m_uiBansheeCount        = 0;
-        m_uiAbominationCount    = 0;
-        m_uiPhase               = PHASE_INTRO;
+        m_uiFrostBoltTimer = urand(1000, 5000);
+        m_uiFrostBoltNovaTimer = 15000;
+        m_uiChainsTimer = urand(60000, 90000);
+        m_uiManaDetonationTimer = urand(30000, 60000);
+        m_uiShadowFissureTimer = urand (15000, 40000);
+        m_uiFrostBlastTimer = urand(45000, 50000);
+        m_uiGuardiansTimer = 5000;
+        memset(&m_auiGuardiansGUID, 0, sizeof(m_auiGuardiansGUID));
+        m_uiGuardiansCount = 0;
+        m_uiGuardiansCountMax = m_bIsRegularMode ? 2 : 4;
+        m_uiPhase1Timer = 228000;                           //Phase 1 lasts "3 minutes and 48 seconds"
+        m_uiSoldierTimer = 5000;
+        m_uiUndeadTimer = 5000;
+        DespawnAllIntroCreatures();
+        m_bSummonedIntro = false;
+        m_bIsPhase3 = false;
+        m_lChainsTargets.clear();
 
         // it may be some spell should be used instead, to control the intro phase
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        SetCombatMovement(false);
     }
 
     void KilledUnit(Unit* pVictim)
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
-            return;
-
-        if (urand(0, 1))
-            DoScriptText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
+        DoScriptText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
     }
 
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
-        DespawnAdds();
 
+        for(int i=0; i<5; ++i)
+        {
+            if (m_auiGuardiansGUID[i])
+            {
+                Creature* pGuardian = (Creature*)Unit::GetUnit(*m_creature, m_auiGuardiansGUID[i]);
+
+                if (!pGuardian || !pGuardian->isAlive())
+                    continue;
+
+                pGuardian->AI()->EnterEvadeMode();
+            }
+        }
+
+        if (!m_lChainsTargets.empty())
+        {
+            for(std::set<Unit*>::iterator itr = m_lChainsTargets.begin(); itr != m_lChainsTargets.end(); ++itr)
+            {
+                ((Player*)(*itr))->SetClientControl(*itr, 1);
+            }
+        }
+
+        m_lSoldierSet.clear();
         if (m_pInstance)
             m_pInstance->SetData(TYPE_KELTHUZAD, DONE);
     }
 
-    void JustReachedHome()
-    {
-        DespawnIntroCreatures();
-        DespawnAdds();
-
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_KELTHUZAD, NOT_STARTED);
-    }
-
     void MoveInLineOfSight(Unit* pWho)
     {
-        if (m_pInstance && m_pInstance->GetData(TYPE_KELTHUZAD) != IN_PROGRESS)
+        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
             return;
 
         ScriptedAI::MoveInLineOfSight(pWho);
     }
 
-    void DespawnIntroCreatures()
+    void Aggro(Unit* pWho)
     {
-        if (m_pInstance)
+        switch(urand(0, 2))
         {
-            for(std::set<uint64>::const_iterator itr = m_lIntroMobsSet.begin(); itr != m_lIntroMobsSet.end(); ++itr)
-            {
-                if (Creature* pCreature = m_pInstance->instance->GetCreature(*itr))
-                    pCreature->ForcedDespawn();
-            }
+            case 0: DoScriptText(SAY_AGGRO1, m_creature); break;
+            case 1: DoScriptText(SAY_AGGRO2, m_creature); break;
+            case 2: DoScriptText(SAY_AGGRO3, m_creature); break;
         }
-
-        m_lIntroMobsSet.clear();
     }
 
-    void DespawnAdds()
+    void JustReachedHome()
     {
         if (m_pInstance)
+            m_pInstance->SetData(TYPE_KELTHUZAD, FAIL);
+    }
+
+    void DespawnAllIntroCreatures()
+    {
+        if (!m_lSoldierSet.empty())
         {
-            for(std::set<uint64>::const_iterator itr = m_lAddsSet.begin(); itr != m_lAddsSet.end(); ++itr)
+            for(std::set<uint64>::iterator itr = m_lSoldierSet.begin(); itr != m_lSoldierSet.end(); ++itr)
             {
-                if (Creature* pCreature = m_pInstance->instance->GetCreature(*itr))
-                {
-                    if (pCreature->isAlive())
-                    {
-                        pCreature->AI()->EnterEvadeMode();
-                        pCreature->ForcedDespawn(15000);
-                    }
-                }
+                if (Creature* pSoldier = m_pInstance->instance->GetCreature(*itr))
+                    pSoldier->ForcedDespawn();
             }
         }
 
-        m_lAddsSet.clear();
+        if (!m_lUndeadSet.empty())
+        {
+            for(std::set<uint64>::iterator itr = m_lUndeadSet.begin(); itr != m_lUndeadSet.end(); ++itr)
+            {
+                if (Creature* pSoldier = m_pInstance->instance->GetCreature(*itr))
+                    pSoldier->ForcedDespawn();
+            }
+        }
+
+        m_lSoldierSet.clear();
+        m_lUndeadSet.clear();
     }
 
     float GetLocationAngle(uint32 uiId)
@@ -235,71 +246,74 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         switch(uiId)
         {
             case 1: return M_PI_F - M_F_ANGLE;              // south
-            case 2: return M_PI_F / 2 * 3 - M_F_ANGLE;      // east
+            case 2: return (M_PI_F / 2) * 3 - M_F_ANGLE;    // east
             case 3: return M_PI_F / 2 - M_F_ANGLE;          // west
             case 4: return M_PI_F / 4 - M_F_ANGLE;          // north-west
-            case 5: return M_PI_F / 4 * 7 - M_F_ANGLE;      // north-east
-            case 6: return M_PI_F / 4 * 5 - M_F_ANGLE;      // south-east
-            case 7: return M_PI_F / 4 * 3 - M_F_ANGLE;      // south-west
+            case 5: return (M_PI_F / 4) * 7 - M_F_ANGLE;    // north-east
+            case 6: return (M_PI_F / 4) * 5 - M_F_ANGLE;    // south-east
+            case 7: return 3*M_PI_F / 4 - M_F_ANGLE;        // south-west
         }
 
         return M_F_ANGLE;
     }
 
-    void SummonIntroCreatures(uint32 packId)
+    void SummonIntroStart()
     {
         if (!m_pInstance)
             return;
 
-        float fAngle = GetLocationAngle(packId+1);
-
-        float fX, fY, fZ;
-        m_pInstance->GetChamberCenterCoords(fX, fY, fZ);
-
-        fX += M_F_RANGE * cos(fAngle);
-        fY += M_F_RANGE * sin(fAngle);
-        fZ += M_F_HEIGHT;
-
-        MaNGOS::NormalizeMapCoord(fX);
-        MaNGOS::NormalizeMapCoord(fY);
-
-        uint32 uiNpcEntry = NPC_SOUL_WEAVER;
-        
-        for(uint8 uiI = 0; uiI < 14; ++uiI)
+        for(int i = 0; i < 7; ++i)
         {
-            if (uiI > 0)
+            float fAngle = GetLocationAngle(i+1);
+
+            float fx, fy, fz;
+            GetChamberCenterCoords(fx, fy, fz);
+
+            fx += M_F_RANGE * cos(fAngle);
+            fy += M_F_RANGE * sin(fAngle);
+            fz += M_F_HEIGHT;
+
+            MaNGOS::NormalizeMapCoord(fx);
+            MaNGOS::NormalizeMapCoord(fy);
+
+            for(int i = 0; i < 14; ++i)
             {
-                if (uiI < 4)
-                    uiNpcEntry = NPC_UNSTOPPABLE_ABOM;
-                else
-                    uiNpcEntry = NPC_SOLDIER_FROZEN;
+                uint32 uiNpcEntry = NPC_SOUL_WEAVER;
+
+                if (i > 0)
+                {
+                    if (i < 4)
+                        uiNpcEntry = NPC_UNSTOPPABLE_ABOM;
+                    else
+                        uiNpcEntry = NPC_SOLDIER_FROZEN;
+                }
+
+                float ffx, ffy, ffz;
+                m_creature->GetRandomPoint(fx, fy, fz, 15.0f, ffx, ffy, ffz);
+
+                m_creature->SummonCreature(uiNpcEntry, ffx, ffy, ffz, 0.0f, TEMPSUMMON_CORPSE_DESPAWN, 5000);
             }
-
-            float fNewX, fNewY, fNewZ;
-            m_creature->GetRandomPoint(fX, fY, fZ, 12.0f, fNewX, fNewY, fNewZ);
-
-            m_creature->SummonCreature(uiNpcEntry, fNewX, fNewY, fNewZ, fAngle + M_PI_F, TEMPSUMMON_CORPSE_DESPAWN, 5000);
         }
     }
 
-    void SummonMob(uint32 uiType)
+    void SummonGuardian()
     {
         if (!m_pInstance)
             return;
 
-        float fAngle = GetLocationAngle(urand(1, 7));
+        float fAngle = GetLocationAngle(urand(1,7));
 
-        float fX, fY, fZ;
-        m_pInstance->GetChamberCenterCoords(fX, fY, fZ);
+        float fx, fy, fz;
+       GetChamberCenterCoords(fx, fy, fz);
 
-        fX += M_F_RANGE * cos(fAngle);
-        fY += M_F_RANGE * sin(fAngle);
-        fZ += M_F_HEIGHT;
+        fx += M_F_RANGE * cos(fAngle);
+        fy += M_F_RANGE * sin(fAngle);
+        fz += M_F_HEIGHT;
 
-        MaNGOS::NormalizeMapCoord(fX);
-        MaNGOS::NormalizeMapCoord(fY);
+        MaNGOS::NormalizeMapCoord(fx);
+        MaNGOS::NormalizeMapCoord(fy);
 
-        m_creature->SummonCreature(uiType, fX, fY, fZ, 0.0f, TEMPSUMMON_CORPSE_DESPAWN, 5000);
+        m_creature->SummonCreature(NPC_GUARDIAN, fx, fy, fz, 0.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 4000);
     }
 
     void JustSummoned(Creature* pSummoned)
@@ -310,244 +324,337 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             {
                 DoScriptText(EMOTE_GUARDIAN, m_creature);
 
-                m_lAddsSet.insert(pSummoned->GetGUID());
-                ++m_uiGuardiansCount;
-
                 pSummoned->SetInCombatWithZone();
+
+                //Safe storing of creatures
+                m_auiGuardiansGUID[m_uiGuardiansCount] = pSummoned->GetGUID();
+
+                //Update guardian count
+                ++m_uiGuardiansCount;
                 break;
             }
             case NPC_SOLDIER_FROZEN:
-            case NPC_UNSTOPPABLE_ABOM:
-            case NPC_SOUL_WEAVER:
-            {
-                if (m_uiIntroPackCount < 7)
-                    m_lIntroMobsSet.insert(pSummoned->GetGUID());
-                else
-                {
-                    m_lAddsSet.insert(pSummoned->GetGUID());
-
-                    if(m_pInstance)
-                    {
-                        float fX, fY, fZ;
-                        m_pInstance->GetChamberCenterCoords(fX, fY, fZ);
-                        pSummoned->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
-                    }
-                }
-
+                m_lSoldierSet.insert(pSummoned->GetGUID());
                 break;
-            }
-        }
-    }
-
-    void SummonedCreatureJustDied(Creature* pSummoned)
-    {
-        switch(pSummoned->GetEntry())
-        {
-            case NPC_GUARDIAN:
-            case NPC_SOLDIER_FROZEN:
             case NPC_UNSTOPPABLE_ABOM:
             case NPC_SOUL_WEAVER:
-                m_lAddsSet.erase(pSummoned->GetGUID());
+                m_lUndeadSet.insert(pSummoned->GetGUID());
                 break;
         }
     }
 
-    void SummonedMovementInform(Creature* pSummoned, uint32 uiMotionType, uint32 uiPointId)
+    void MovementInform(uint32 uiMotionType, uint32 uiPointId)
     {
         if (uiMotionType == POINT_MOTION_TYPE && uiPointId == 0)
-            pSummoned->SetInCombatWithZone();
+            m_creature->SetInCombatWithZone();
+    }
+
+    bool SendRandomSoldierToCenter()
+    {
+        if (!m_lSoldierSet.empty())
+            for(std::set<uint64>::iterator itr = m_lSoldierSet.begin(); itr != m_lSoldierSet.end(); ++itr)
+                if (Creature* pSoldier = m_pInstance->instance->GetCreature(*itr))
+                    if (pSoldier->isDead())
+                        m_lSoldierSet.erase(pSoldier->GetGUID());
+
+        std::set<uint64>::iterator itr = m_lSoldierSet.begin();
+
+        uint32 uiPosition = urand(0, m_lSoldierSet.size()-1);
+        advance(itr, uiPosition);
+
+        if (*itr)
+        {
+            if (Creature* pSoldier = m_pInstance->instance->GetCreature(*itr))
+            {
+                if (pSoldier->getVictim())
+                    return false;
+
+                float fx, fy, fz;
+                GetChamberCenterCoords(fx, fy, fz);
+                pSoldier->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                pSoldier->GetMotionMaster()->MovePoint(0, fx, fy, fz);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool SendRandomUndeadToCenter()
+    {
+        if (!m_lUndeadSet.empty())
+            for(std::set<uint64>::iterator itr = m_lUndeadSet.begin(); itr != m_lUndeadSet.end(); ++itr)
+                if (Creature* pSoldier = m_pInstance->instance->GetCreature(*itr))
+                    if (pSoldier->isDead())
+                        m_lUndeadSet.erase(pSoldier->GetGUID());
+
+        std::set<uint64>::iterator itr = m_lUndeadSet.begin();
+
+        uint32 uiPosition = urand(0, m_lUndeadSet.size()-1);
+
+        advance(itr, uiPosition);
+
+        if (*itr)
+        {
+            if (Creature* pUndead = m_pInstance->instance->GetCreature(*itr))
+            {
+                if (pUndead->getVictim())
+                    return false;
+
+                float fx, fy, fz;
+                GetChamberCenterCoords(fx, fy, fz);
+                pUndead->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                pUndead->GetMotionMaster()->MovePoint(0, fx, fy, fz);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
+        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+        {
+            if (!m_pInstance)
+                return;
+
+            if (m_pInstance->GetData(TYPE_KELTHUZAD) != IN_PROGRESS)
+                return;
+
+            if (!m_bSummonedIntro)
+            {
+                m_bSummonedIntro = true;
+                SummonIntroStart();
+            }
+
+            if (m_uiPhase1Timer < uiDiff)
+            {
+                m_creature->SetInCombatWithZone();
+                if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+                {
+                    if (m_pInstance)
+                        m_pInstance->SetData(TYPE_KELTHUZAD, FAIL);
+
+                    Reset();
+                    return;
+                }
+
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+
+                DoScriptText(EMOTE_PHASE2, m_creature);
+                return;
+            }
+            else
+            {
+                if (m_uiSoldierTimer < uiDiff)
+                {
+                    if (SendRandomSoldierToCenter())
+                        m_uiSoldierTimer = 3000;
+                }
+                else
+                    m_uiSoldierTimer -= uiDiff;
+
+                if (m_uiUndeadTimer < uiDiff)
+                {
+                    if (SendRandomUndeadToCenter())
+                        m_uiUndeadTimer = 13000;
+                }
+                else
+                    m_uiUndeadTimer -= uiDiff;
+
+                m_uiPhase1Timer -= uiDiff;
+            }
+
+            return;
+        }
+
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (!m_pInstance || m_pInstance->GetData(TYPE_KELTHUZAD) != IN_PROGRESS)
-            return;
-
-        if (m_uiPhase == PHASE_INTRO)
+        if (m_uiFrostBoltTimer < uiDiff)
         {
-            if (m_uiIntroPackCount < 7)
-            {
-                if (m_uiSummonIntroTimer < uiDiff)
-                {
-                    if (!m_uiIntroPackCount)
-                        DoScriptText(SAY_SUMMON_MINIONS, m_creature);
-
-                    SummonIntroCreatures(m_uiIntroPackCount);
-                    ++m_uiIntroPackCount;
-                    m_uiSummonIntroTimer = 2000;
-                }
-                else
-                    m_uiSummonIntroTimer -= uiDiff;
-            }
-            else
-            {
-                if (m_uiPhase1Timer < uiDiff)
-                {
-                    m_uiPhase = PHASE_NORMAL;
-                    DespawnIntroCreatures();
-
-                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    SetCombatMovement(true);
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-
-                    DoScriptText(EMOTE_PHASE2, m_creature);
-
-                    switch(urand(0, 2))
-                    {
-                        case 0: DoScriptText(SAY_AGGRO1, m_creature); break;
-                        case 1: DoScriptText(SAY_AGGRO2, m_creature); break;
-                        case 2: DoScriptText(SAY_AGGRO3, m_creature); break;
-                    };
-                }
-                else
-                    m_uiPhase1Timer -= uiDiff;
-
-                if (m_uiSoldierCount < MAX_SOLDIER_COUNT)
-                {
-                    if (m_uiSoldierTimer < uiDiff)
-                    {
-                        SummonMob(NPC_SOLDIER_FROZEN);
-                        ++m_uiSoldierCount;
-                        m_uiSoldierTimer = 3000;
-                    }
-                    else
-                        m_uiSoldierTimer -= uiDiff;
-                }
-
-                if (m_uiAbominationCount < MAX_ABOMINATION_COUNT)
-                {
-                    if (m_uiAbominationTimer < uiDiff)
-                    {
-                        SummonMob(NPC_UNSTOPPABLE_ABOM);
-                        ++m_uiAbominationCount;
-                        m_uiAbominationTimer = 25000;
-                    }
-                    else
-                        m_uiAbominationTimer -= uiDiff;
-                }
-
-                if (m_uiBansheeCount < MAX_BANSHEE_COUNT)
-                {
-                    if (m_uiBansheeTimer < uiDiff)
-                    {
-                        SummonMob(NPC_SOUL_WEAVER);
-                        ++m_uiBansheeCount;
-                        m_uiBansheeTimer = 25000;
-                    }
-                    else
-                        m_uiBansheeTimer -= uiDiff;
-                }
-            }
+            DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FROST_BOLT : SPELL_FROST_BOLT_H);
+            m_uiFrostBoltTimer = urand(2000, 30000);
         }
-        else // normal or guardian phase
+        else
+            m_uiFrostBoltTimer -= uiDiff;
+
+        if (m_uiFrostBoltNovaTimer < uiDiff)
         {
-            if (m_uiFrostBoltTimer < uiDiff)
-            {
-                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FROST_BOLT : SPELL_FROST_BOLT_H) == CAST_OK)
-                    m_uiFrostBoltTimer = urand(1000, 60000);
-            }
-            else
-                m_uiFrostBoltTimer -= uiDiff;
-
-            if (m_uiFrostBoltNovaTimer < uiDiff)
-            {
-                if (DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FROST_BOLT_NOVA : SPELL_FROST_BOLT_NOVA_H) == CAST_OK)
-                    m_uiFrostBoltNovaTimer = 15000;
-            }
-            else
-                m_uiFrostBoltNovaTimer -= uiDiff;
-
-            if (m_uiManaDetonationTimer < uiDiff)
-            {
-                Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-
-                if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER && pTarget->getPowerType() == POWER_MANA)
-                {
-                    if (DoCastSpellIfCan(pTarget, SPELL_MANA_DETONATION) == CAST_OK)
-                    {
-                        if (urand(0, 1))
-                            DoScriptText(SAY_SPECIAL1_MANA_DET, m_creature);
-
-                        m_uiManaDetonationTimer = 20000;
-                    }
-                }
-            }
-            else
-                m_uiManaDetonationTimer -= uiDiff;
-
-            if (m_uiShadowFissureTimer < uiDiff)
-            {
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                {
-                    if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_FISSURE) == CAST_OK)
-                    {
-                        if (urand(0, 1))
-                            DoScriptText(SAY_SPECIAL3_MANA_DET, m_creature);
-
-                        m_uiShadowFissureTimer = 25000;
-                    }
-                }
-            }
-            else
-                m_uiShadowFissureTimer -= uiDiff;
-
-            if (m_uiFrostBlastTimer < uiDiff)
-            {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FROST_BLAST) == CAST_OK)
-                {
-                    if (urand(0, 1))
-                        DoScriptText(SAY_FROST_BLAST, m_creature);
-
-                    m_uiFrostBlastTimer = urand(30000, 60000);
-                }
-            }
-            else
-                m_uiFrostBlastTimer -= uiDiff;
-
-            if (!m_bIsRegularMode)
-            {
-                if (m_uiChainsTimer < uiDiff)
-                {
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CHAINS_OF_KELTHUZAD) == CAST_OK)
-                    {
-                        DoScriptText(urand(0, 1) ? SAY_CHAIN1 : SAY_CHAIN2, m_creature);
-
-                        m_uiChainsTimer = urand(30000, 60000);
-                    }
-                }
-                else
-                    m_uiChainsTimer -= uiDiff;
-            }
-
-            if (m_uiPhase == PHASE_NORMAL)
-            {
-                if (m_creature->GetHealthPercent() < 45.0f)
-                {
-                    m_uiPhase = PHASE_GUARDIANS;
-                    DoScriptText(SAY_REQUEST_AID, m_creature);
-
-                    // here Lich King should respond to Kel'Thuzad but I don't know which creature to make talk
-                    // so for now just make Kel'Thuzad says it.
-                    DoScriptText(SAY_ANSWER_REQUEST, m_creature);
-                }
-            }
-            else if (m_uiPhase == PHASE_GUARDIANS && m_uiGuardiansCount < m_uiGuardiansCountMax)
-            {
-                if (m_uiGuardiansTimer < uiDiff)
-                {
-                    // Summon a Guardian of Icecrown in a random alcove
-                    SummonMob(NPC_GUARDIAN);
-                    m_uiGuardiansTimer = 5000;
-                }
-                else
-                    m_uiGuardiansTimer -= uiDiff;
-            }
-
-            DoMeleeAttackIfReady();
+            DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_FROST_BOLT_NOVA : SPELL_FROST_BOLT_NOVA_H);
+            m_uiFrostBoltNovaTimer = 15000;
         }
+        else
+            m_uiFrostBoltNovaTimer -= uiDiff;
+
+        if (!m_bIsRegularMode)
+            if (m_uiChainsTimer < uiDiff)
+            {
+                m_lChainsTargets.clear();
+                if (SpellEntry* TempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_CHAINS_OF_KELTHUZAD_TARGET))
+                {
+                    TempSpell->EffectApplyAuraName[0]=SPELL_AURA_MOD_CHARM;
+                    uint8 uiChainsTargetsCount = 0;
+                    for (uint8 i=0; i<25; ++i)
+                    {
+                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+                        {
+                            if (pTarget->GetTypeId() == TYPEID_PLAYER && !pTarget->HasAura(SPELL_CHAINS_OF_KELTHUZAD_TARGET, EFFECT_INDEX_0))
+                            {
+                                m_creature->InterruptNonMeleeSpells(false);
+                                m_creature->CastCustomSpell(pTarget, TempSpell, NULL, NULL, NULL, true);
+                                ((Player*)pTarget)->SetClientControl(pTarget, 0);
+                                m_lChainsTargets.insert(pTarget);
+                                ++uiChainsTargetsCount;
+                            }
+                            if (uiChainsTargetsCount>=3)
+                                break;
+                        }
+                    }
+                    m_uiChainsEndTimer = 20000;
+                    m_uiChainsTargetsCastTimer = 3500;
+                    DoResetThreat();
+                }
+                
+                //DoCastSpellIfCan(pTarget, SPELL_CHAINS_OF_KELTHUZAD);
+
+                DoScriptText(urand(0, 1) ? SAY_CHAIN1 : SAY_CHAIN2, m_creature);
+
+                m_uiChainsTimer = urand(60000, 90000);
+            }
+            else
+                m_uiChainsTimer -= uiDiff;
+
+        if (!m_lChainsTargets.empty())
+        {
+            if (m_uiChainsTargetsCastTimer < uiDiff)
+            {
+                for (std::set<Unit*>::iterator itr = m_lChainsTargets.begin(); itr != m_lChainsTargets.end(); ++itr)
+                {
+                    if (*itr)
+                    {
+                        int32 amount = 150000;
+                        (*itr)->CastCustomSpell(m_creature, 36983, &amount, NULL, NULL, false);
+                    }
+                }
+    
+                m_uiChainsTargetsCastTimer = 4500;
+            }
+            else
+                m_uiChainsTargetsCastTimer -= uiDiff;
+
+            if (m_uiChainsEndTimer < uiDiff)
+            {
+                for(std::set<Unit*>::iterator itr = m_lChainsTargets.begin(); itr != m_lChainsTargets.end(); ++itr)
+                {
+                    if (*itr)
+                    {
+                        ((Player*)(*itr))->SetClientControl(*itr, 1);
+                    }
+                }
+                m_lChainsTargets.clear();
+            }
+            else
+                m_uiChainsEndTimer -= uiDiff;
+        }
+
+        if (m_uiManaDetonationTimer < uiDiff)
+        {
+            Unit* pTarget = NULL;
+            Map *map = m_creature->GetMap();
+            if (map && map->IsDungeon())
+            {
+                std::set<Unit*> lManaDetonationTargets;
+                Map::PlayerList const &PlayerList = map->GetPlayers();
+                if (!PlayerList.isEmpty())
+                    for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+                    {
+                        uint8 uiTargetClass = ((Unit*)itr->getSource())->getClass();
+                        if (!itr->getSource()->isGameMaster() && itr->getSource()->isAlive() && uiTargetClass!=CLASS_WARRIOR
+                            && uiTargetClass!=CLASS_ROGUE && uiTargetClass!=CLASS_DEATH_KNIGHT)
+                        {
+                            lManaDetonationTargets.insert(itr->getSource());
+                        }
+                    }
+
+                std::set<Unit*>::iterator itr = lManaDetonationTargets.begin();
+                advance(itr, urand(0, lManaDetonationTargets.size()-1));
+                pTarget = *itr;
+            }
+
+            if (pTarget)
+            {
+                m_creature->InterruptNonMeleeSpells(false);
+                DoCastSpellIfCan(pTarget, SPELL_MANA_DETONATION);
+            }
+
+            if (urand(0, 1))
+                DoScriptText(SAY_SPECIAL1_MANA_DET, m_creature);
+
+            m_uiManaDetonationTimer = urand(30000, 60000);
+        }
+        else
+            m_uiManaDetonationTimer -= uiDiff;
+
+        if (m_uiShadowFissureTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            {
+                m_creature->InterruptNonMeleeSpells(false);
+                DoCastSpellIfCan(pTarget, SPELL_SHADOW_FISSURE);
+            }
+
+            if (urand(0, 1))
+                DoScriptText(SAY_SPECIAL3_MANA_DET, m_creature);
+
+            m_uiShadowFissureTimer = urand (15000, 40000);
+        }
+        else
+            m_uiShadowFissureTimer -= uiDiff;
+
+        if (m_uiFrostBlastTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, m_bIsRegularMode ? 1 : 0))
+            {
+                m_creature->InterruptNonMeleeSpells(false);
+                DoCastSpellIfCan(pTarget, SPELL_FROST_BLAST);
+            }
+
+            if (urand(0, 1))
+                DoScriptText(SAY_FROST_BLAST, m_creature);
+
+            m_uiFrostBlastTimer = urand(45000, 50000);
+        }
+        else
+            m_uiFrostBlastTimer -= uiDiff;
+
+        //start phase 3 when we are 45% health
+        if (!m_bIsPhase3 && m_creature->GetHealth()*100 / m_creature->GetMaxHealth() < 45.0f)
+        {
+            m_bIsPhase3 = true;
+            DoScriptText(SAY_REQUEST_AID, m_creature);
+
+            //here Lich King should respond to KelThuzad but I don't know which creature to make talk
+            //so for now just make Kelthuzad says it.
+            DoScriptText(SAY_ANSWER_REQUEST, m_creature);
+        }
+
+        if (m_bIsPhase3 && m_uiGuardiansCount < m_uiGuardiansCountMax)
+        {
+            if (m_uiGuardiansTimer < uiDiff)
+            {
+                //Summon a Guardian of Icecrown in a random alcove
+                SummonGuardian();
+
+                //5 seconds until summoning next guardian
+                m_uiGuardiansTimer = 5000;
+            }
+            else
+                m_uiGuardiansTimer -= uiDiff;
+        }
+
+        DoMeleeAttackIfReady();
     }
 };
 
