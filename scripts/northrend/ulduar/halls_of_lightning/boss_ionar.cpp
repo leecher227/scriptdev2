@@ -83,7 +83,7 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
 
     void Reset()
     {
-        m_lSparkGUIDList.clear();
+        DespawnSpark();
 
         m_bIsSplitPhase = true;
         m_uiSplit_Timer = 25000;
@@ -188,6 +188,7 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
                     if (pSpark->GetMotionMaster()->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
                         pSpark->GetMotionMaster()->MovementExpired();
 
+                    pSpark->SetSpeedRate(MOVE_RUN, pSpark->GetCreatureInfo()->speed_run * 4);
                     pSpark->GetMotionMaster()->MovePoint(POINT_CALLBACK, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
                 }
             }
@@ -216,15 +217,12 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
         // Splitted
         if (m_creature->GetVisibility() == VISIBILITY_OFF)
         {
-            if (!m_creature->isInCombat())
-            {
-                Reset();
-                return;
-            }
-
             if (m_uiSplit_Timer < uiDiff)
             {
                 m_uiSplit_Timer = 2500;
@@ -259,9 +257,6 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
 
             return;
         }
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
 
         if (m_uiStaticOverload_Timer < uiDiff)
         {
@@ -365,6 +360,9 @@ struct MANGOS_DLL_DECL mob_spark_of_ionarAI : public ScriptedAI
                 m_creature->ForcedDespawn();
         }
     }
+
+    void UpdateAI(const uint32 uiDiff) { }
+
 };
 
 CreatureAI* GetAI_mob_spark_of_ionar(Creature* pCreature)

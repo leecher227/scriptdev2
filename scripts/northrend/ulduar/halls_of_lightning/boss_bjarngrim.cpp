@@ -58,10 +58,9 @@ enum
     SPELL_SLAM                              = 52026,
 
     //OTHER SPELLS
-    //SPELL_CHARGE_UP                         = 52098,      // only used when starting walk from one platform to the other
-    //SPELL_TEMPORARY_ELECTRICAL_CHARGE       = 52092,      // triggered part of above
+    SPELL_CHARGE_UP                         = 52098,      // only used when starting walk from one platform to the other
+    SPELL_TEMPORARY_ELECTRICAL_CHARGE       = 52092,      // triggered part of above
 
-    NPC_STORMFORGED_LIEUTENANT              = 29240,
     SPELL_ARC_WELD                          = 59085,
     SPELL_RENEW_STEEL_N                     = 52774,
     SPELL_RENEW_STEEL_H                     = 59160,
@@ -87,6 +86,14 @@ struct MANGOS_DLL_DECL boss_bjarngrimAI : public ScriptedAI
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         m_uiStance = STANCE_DEFENSIVE;
         memset(&m_auiStormforgedLieutenantGUID, 0, sizeof(m_auiStormforgedLieutenantGUID));
+
+        SpellEntry* TempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_RENEW_STEEL_H); // Use script target
+        if (TempSpell && TempSpell->EffectImplicitTargetB[0] != 38)
+        {
+               TempSpell->EffectImplicitTargetB[0] = 38;
+               TempSpell->EffectImplicitTargetB[1] = 0;
+        }
+
         Reset();
     }
 
@@ -136,13 +143,17 @@ struct MANGOS_DLL_DECL boss_bjarngrimAI : public ScriptedAI
         m_uiMortalStrike_Timer = 8000;
         m_uiSlam_Timer = 10000;
 
-        for(uint8 i = 0; i < 2; ++i)
+        if (m_pInstance)
         {
-            if (Creature* pStormforgedLieutenant = ((Creature*)Unit::GetUnit((*m_creature), m_auiStormforgedLieutenantGUID[i])))
-            {
-                if (!pStormforgedLieutenant->isAlive())
-                    pStormforgedLieutenant->Respawn();
-            }
+            m_auiStormforgedLieutenantGUID[0] = m_pInstance->GetData64(DATA_STORMFORGED_LT_1);
+            m_auiStormforgedLieutenantGUID[1] = m_pInstance->GetData64(DATA_STORMFORGED_LT_2);
+        }
+
+        for (uint8 i=0; i<2; ++i)
+        {
+            Creature* pMinion = (Creature*)Unit::GetUnit((*m_creature), m_auiStormforgedLieutenantGUID[i]);
+            if (pMinion && pMinion->isDead())
+                pMinion->Respawn();
         }
 
         if (m_uiStance != STANCE_DEFENSIVE)
@@ -206,6 +217,35 @@ struct MANGOS_DLL_DECL boss_bjarngrimAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
+        // Charge up
+        if(!m_creature->isInCombat())
+        {
+            if(m_uiCharge_Timer < uiDiff)
+            {
+                if (m_uiChargingStatus == 0)
+                {
+                    DoCast(m_creature, SPELL_CHARGE_UP);
+                    m_uiChargingStatus = 1;
+                    m_uiCharge_Timer = 5500;
+                }
+                else if (m_uiChargingStatus == 1)
+                {
+                    m_creature->InterruptNonMeleeSpells(true);
+                    DoCast(m_creature, SPELL_TEMPORARY_ELECTRICAL_CHARGE);
+                    m_uiChargingStatus = 2;
+                    m_uiCharge_Timer = 20000 + rand()%5000;
+                }
+                else if (m_uiChargingStatus == 2)
+                {
+                    if (m_creature->HasAura(SPELL_TEMPORARY_ELECTRICAL_CHARGE, EFFECT_INDEX_0))
+                        m_creature->RemoveAurasDueToSpell(SPELL_TEMPORARY_ELECTRICAL_CHARGE);
+                    m_uiChargingStatus = 0;
+                    m_uiCharge_Timer = 5000 + rand()%1000;
+                }
+            }else m_uiCharge_Timer -= uiDiff;
+            return;
+        }
+
         //Return since we have no target
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;

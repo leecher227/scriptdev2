@@ -42,6 +42,9 @@ struct MANGOS_DLL_DECL instance_halls_of_lightning : public ScriptedInstance
     uint64 m_uiIonarGUID;
     uint64 m_uiLokenGUID;
     uint64 m_uiVolkhanGUID;
+    uint64 m_uiStormforgedLt1GUID;
+    uint64 m_uiStormforgedLt2GUID;
+    uint8 m_uiStormforgedLt;
 
     uint64 m_uiVolkhanDoorGUID;
     uint64 m_uiIonarDoorGUID;
@@ -56,6 +59,9 @@ struct MANGOS_DLL_DECL instance_halls_of_lightning : public ScriptedInstance
         m_uiVolkhanGUID          = 0;
         m_uiIonarGUID            = 0;
         m_uiLokenGUID            = 0;
+        m_uiStormforgedLt1GUID   = 0;
+        m_uiStormforgedLt2GUID   = 0;
+        m_uiStormforgedLt        = 0;
 
         m_uiVolkhanDoorGUID      = 0;
         m_uiIonarDoorGUID        = 0;
@@ -78,6 +84,21 @@ struct MANGOS_DLL_DECL instance_halls_of_lightning : public ScriptedInstance
                 break;
             case NPC_LOKEN:
                 m_uiLokenGUID = pCreature->GetGUID();
+                break;
+            case NPC_STORMFORGED_LT:
+                ++m_uiStormforgedLt;
+                switch (m_uiStormforgedLt)
+                {
+                    case 1:
+                        m_uiStormforgedLt1GUID = pCreature->GetGUID();
+                        break;
+                    case 2:
+                        m_uiStormforgedLt2GUID = pCreature->GetGUID();
+                        break;
+                    case 3:
+                        m_uiStormforgedLt = 0;
+                        break;
+                }
                 break;
         }
     }
@@ -184,6 +205,10 @@ struct MANGOS_DLL_DECL instance_halls_of_lightning : public ScriptedInstance
                 return m_uiIonarGUID;
             case DATA_LOKEN:
                 return m_uiLokenGUID;
+            case DATA_STORMFORGED_LT_1:
+                return m_uiStormforgedLt1GUID;
+            case DATA_STORMFORGED_LT_2:
+                return m_uiStormforgedLt2GUID;
         }
         return 0;
     }

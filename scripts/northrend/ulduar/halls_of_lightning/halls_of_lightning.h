@@ -13,6 +13,8 @@ enum
     DATA_IONAR              = 2,
     DATA_LOKEN              = 3,
     DATA_VOLKHAN            = 4,
+    DATA_STORMFORGED_LT_1   = 5,
+    DATA_STORMFORGED_LT_2   = 6,
 
     TYPE_BJARNGRIM          = 10,
     TYPE_IONAR              = 11,
@@ -23,6 +25,7 @@ enum
     NPC_VOLKHAN             = 28587,
     NPC_IONAR               = 28546,
     NPC_LOKEN               = 28923,
+    NPC_STORMFORGED_LT      = 29240,
 
     GO_VOLKHAN_DOOR         = 191325,                       //_doors07
     GO_IONAR_DOOR           = 191326,                       //_doors05

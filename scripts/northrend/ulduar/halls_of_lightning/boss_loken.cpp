@@ -125,7 +125,7 @@ struct MANGOS_DLL_DECL boss_lokenAI : public ScriptedAI
         if (m_bIsAura)
         {
             // workaround for PULSING_SHOCKWAVE
-            /*if (m_uiPulsingShockwave_Timer < uiDiff)
+            if (m_uiPulsingShockwave_Timer < uiDiff)
             {
                 Map *map = m_creature->GetMap();
                 if (map->IsDungeon())
@@ -144,20 +144,20 @@ struct MANGOS_DLL_DECL boss_lokenAI : public ScriptedAI
                             if (m_fDist <= 1.0f) // Less than 1 yard
                                 dmg = (m_bIsRegularMode ? 800 : 850); // need to correct damage
                             else // Further from 1 yard
-                                dmg = round((m_bIsRegularMode ? 200 : 250) * m_fDist) + (m_bIsRegularMode ? 800 : 850); // need to correct damage
+                                dmg = uint32((m_bIsRegularMode ? 200 : 250) * m_fDist) + (m_bIsRegularMode ? 800 : 850); // need to correct damage
 
                             m_creature->CastCustomSpell(i->getSource(), (m_bIsRegularMode ? 52942 : 59837), &dmg, 0, 0, false);
                         }
                 }
                 m_uiPulsingShockwave_Timer = 2000;
-            }else m_uiPulsingShockwave_Timer -= uiDiff;*/
+            }else m_uiPulsingShockwave_Timer -= uiDiff;
         }
         else
         {
             if (m_uiResumePulsingShockwave_Timer < uiDiff)
             {
                 //breaks at movement, can we assume when it's time, this spell is casted and also must stop movement?
-                //m_creature->CastSpell(m_creature, SPELL_PULSING_SHOCKWAVE_AURA, true);
+                m_creature->CastSpell(m_creature, SPELL_PULSING_SHOCKWAVE_AURA, true);
 
                   //DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_PULSING_SHOCKWAVE_N : SPELL_PULSING_SHOCKWAVE_H); // need core support
                 m_bIsAura = true;
