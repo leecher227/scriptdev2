@@ -21,7 +21,9 @@ enum
     DATA_CAPERNIAN              = 10,
     DATA_SANGUINAR              = 11,
     DATA_TELONICUS              = 12,
-    DATA_THALADRED              = 13
+    DATA_THALADRED              = 13,
+
+    DATA_ALAR                   = 14
 };
 
 #endif

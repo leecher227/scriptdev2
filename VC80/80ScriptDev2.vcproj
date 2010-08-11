@@ -2631,6 +2631,10 @@
 							>
 						</File>
 						<File
+							RelativePath="..\scripts\outland\tempest_keep\the_eye\boss_alar.cpp"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\outland\tempest_keep\the_eye\instance_the_eye.cpp"
 							>
 						</File>

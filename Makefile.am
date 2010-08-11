@@ -513,6 +513,7 @@ scripts/outland/tempest_keep/botanica/boss_warp_splinter.cpp \
 scripts/outland/tempest_keep/the_eye/boss_astromancer.cpp \
 scripts/outland/tempest_keep/the_eye/boss_kaelthas.cpp \
 scripts/outland/tempest_keep/the_eye/boss_void_reaver.cpp \
+scripts/outland/tempest_keep/the_eye/boss_alar.cpp \
 scripts/outland/tempest_keep/the_eye/instance_the_eye.cpp \
 scripts/outland/tempest_keep/the_eye/the_eye.cpp \
 scripts/outland/tempest_keep/the_eye/the_eye.h \
