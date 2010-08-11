@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Terokkar_Forest
-SD%Complete: 80
-SDComment: Quest support: 9889, 10009, 10873, 10896, 10446/10447, 10887, 10922, 11096. Skettis->Ogri'la Flight
+SD%Complete: 85
+SDComment: Quest support: 9889, 10009, 10873, 10896, 10898, 10446/10447, 10887, 10922, 11096. Skettis->Ogri'la Flight
 SDCategory: Terokkar Forest
 EndScriptData */
 
@@ -28,6 +28,8 @@ mob_rotting_forest_rager
 mob_netherweb_victim
 npc_akuno
 npc_floon
+npc_skywing
+mob_luanga_the_imprisoner
 npc_letoll
 npc_mana_bomb_exp_trigger
 go_mana_bomb
@@ -443,6 +445,251 @@ bool GossipSelect_npc_floon(Player* pPlayer, Creature* pCreature, uint32 uiSende
         ((npc_floonAI*)pCreature->AI())->AttackStart(pPlayer);
     }
     return true;
+}
+
+/*######
+## npc_skywing
+######*/
+
+enum
+{
+    C_LUANGA_THE_IMPRISONER     = 18533,
+
+    Q_SKYWING                   = 10898,
+
+    S_CHANGE_FORM               = 37446,
+
+    SAY_START                   = -1002060,
+    SAY_PROGRESS1               = -1002061,
+    SAY_PROGRESS2               = -1002062,
+    SAY_PROGRESS3               = -1002063,
+    SAY_PROGRESS4               = -1002064,
+    SAY_IMPRISONER              = -1002065,
+    SAY_SKYWING_SAVED           = -1002066,
+    SAY_END                     = -1002067
+};
+
+const float LuangaSpawnPoint[]={-3515.33f, 4085.22f, 92.861f};
+
+struct MANGOS_DLL_DECL npc_skywingAI : public npc_escortAI
+{
+    npc_skywingAI(Creature* pCreature) : npc_escortAI(pCreature)
+    {
+        SetTimers();
+    }
+
+    uint16 SpawnTimer;
+    uint16 RPTimer;
+    uint8 Phase;
+
+    void SetTimers()
+    {
+        SpawnTimer=0;
+        RPTimer=0;
+        Phase=0;
+    }
+
+    void Reset()
+    {
+    }
+
+    void WaypointReached(uint32 id)
+    {
+        switch (id)
+        {
+        case 6:
+            DoScriptText(SAY_PROGRESS1,m_creature);
+            break;
+        case 34:
+            DoScriptText(SAY_PROGRESS2,m_creature);
+            break;
+        case 52:
+            DoScriptText(SAY_PROGRESS3,m_creature);
+            break;
+        case 65:
+            ((npc_escortAI*)m_creature->AI())->SetEscortPaused(true);
+            DoScriptText(SAY_PROGRESS4, m_creature);
+            SpawnTimer=1000;
+            break;
+        case 66:
+            DoScriptText(SAY_END,m_creature);
+            break;
+        case 68:
+            m_creature->RemoveAllAuras();
+            m_creature->setFaction(35);
+            break;            
+        default:
+            break;//6, 34, 52
+        }
+    }
+
+    void LuangaDead()
+    {
+        ((npc_escortAI*)m_creature->AI())->SetEscortPaused(false);
+        Phase=0;
+        RPTimer=5000;
+    }
+
+    void UpdateEscortAI(const uint32 diff)
+    {
+        if (SpawnTimer)
+        {
+            if (SpawnTimer<=diff)
+            {
+                if (Creature* Imprisoner = m_creature->SummonCreature(C_LUANGA_THE_IMPRISONER,LuangaSpawnPoint[0],LuangaSpawnPoint[1],LuangaSpawnPoint[2],0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,30000))
+                {
+                    DoScriptText(SAY_IMPRISONER,Imprisoner);
+                    Imprisoner->SetOwnerGUID(m_creature->GetGUID());
+                    Imprisoner->AI()->AttackStart(m_creature);
+                }
+                SpawnTimer=0;
+            }
+            else SpawnTimer-=diff;
+        }
+
+        if (RPTimer)
+        {
+            if (RPTimer<=diff)
+            {
+                Player* pPlayer = GetPlayerForEscort();
+
+                if (!pPlayer)
+                    return;
+                
+                switch(Phase)
+                {
+                case 0:
+                    m_creature->CastSpell(m_creature,S_CHANGE_FORM,true);
+                    Phase++;
+                    RPTimer=4000;
+                    break;
+                case 1:
+                    DoScriptText(SAY_SKYWING_SAVED,m_creature);
+                    m_creature->SetSpeedRate(MOVE_WALK, 3, true);
+                    pPlayer->GroupEventHappens(Q_SKYWING,m_creature);
+                    SetTimers();
+                    RPTimer=0;
+                    break;
+                }
+            }
+            else RPTimer-=diff;
+        }
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        DoMeleeAttackIfReady();
+    }    
+};
+
+bool QuestAccept_npc_skywing(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
+{
+    if (pQuest->GetQuestId() == Q_SKYWING)
+    {
+        if (npc_skywingAI* pEscortAI = dynamic_cast<npc_skywingAI*>(pCreature->AI()))
+            if (pPlayer->isGameMaster())
+                pEscortAI->Start(true, pPlayer->GetGUID(), pQuest, true);
+            else pEscortAI->Start(true, pPlayer->GetGUID(), pQuest, false,);
+        DoScriptText(SAY_START, pCreature);
+        pCreature->setFaction(231);
+    }
+    return true;
+}
+
+CreatureAI* GetAI_npc_skywing(Creature* pCreature)
+{
+    return new npc_skywingAI(pCreature);
+}
+
+/*######
+## mob_luanga_the_imprisoner
+######*/
+
+enum
+{
+    C_SKYWING               = 22424,
+
+    S_POWER_OF_KRAN_AISH    = 32924,
+    S_ARRAKOA_BLAST         = 32907,
+    S_LIGHTNING_CLOUD       = 6535,
+    S_CHAIN_LIGHTNING       = 12058,
+    S_SHOCK                 = 11824
+};
+
+struct MANGOS_DLL_DECL mob_luanga_the_imprisonerAI : public ScriptedAI
+{
+    mob_luanga_the_imprisonerAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+
+    uint16 BlastTimer;
+    uint16 ChainTimer;
+    uint16 CloudTimer;
+    uint16 ShockTimer;
+
+    void Reset()
+    {
+        BlastTimer=urand(5000,7000);//refresh7-11
+        CloudTimer=urand(2000,4000);//refresh40-45
+        ChainTimer=urand(8000,11000);//refresh 13-16
+        ShockTimer=urand(12000,14000);//refresh 13-16
+    }
+
+    void Aggro(Unit*)
+    {
+        m_creature->CastSpell(m_creature,S_POWER_OF_KRAN_AISH,false);
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (BlastTimer<diff)
+        {
+            m_creature->CastSpell(m_creature->getVictim(),S_ARRAKOA_BLAST,false);
+            BlastTimer=urand(7000,11000);
+        }
+        else BlastTimer-=diff;
+
+        if (CloudTimer<diff)
+        {
+            m_creature->CastSpell(m_creature,S_LIGHTNING_CLOUD,false);
+            CloudTimer=urand(40000,45000);
+        }
+        else CloudTimer-=diff;
+
+        if (ChainTimer<diff)
+        {
+            m_creature->CastSpell(m_creature->getVictim(),S_CHAIN_LIGHTNING,false);
+            ChainTimer=urand(13000,16000);
+        }
+        else ChainTimer-=diff;
+
+        if (ShockTimer<diff)
+        {
+            m_creature->CastSpell(m_creature->getVictim(),S_LIGHTNING_CLOUD,false);
+            ShockTimer=urand(40000,45000);
+        }
+        else ShockTimer-=diff;
+
+        DoMeleeAttackIfReady();
+    }
+
+    void JustDied(Unit* /*who*/)
+    {
+        Unit* Owner = Unit::GetUnit(*m_creature,m_creature->GetOwnerGUID());
+        if (Owner)
+            if (Owner->GetEntry()==C_SKYWING)
+                ((npc_skywingAI*)((Creature*)Owner)->AI())->LuangaDead();
+    }
+            
+};
+
+CreatureAI* GetAI_mob_luanga_the_imprisoner(Creature* pCreature)
+{
+    return new mob_luanga_the_imprisonerAI(pCreature);
 }
 
 /*######
@@ -938,4 +1185,14 @@ void AddSC_terokkar_forest()
     newscript->pGossipSelect = &GossipSelect_npc_slim;
     newscript->RegisterSelf();
 
+    newscript = new Script;
+	newscript->Name = "npc_skywing";
+	newscript->GetAI = &GetAI_npc_skywing;
+	newscript->pQuestAccept = &QuestAccept_npc_skywing;
+	newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_luanga_the_imprisoner";
+    newscript->GetAI = &GetAI_mob_luanga_the_imprisoner;
+    newscript->RegisterSelf();
 }
