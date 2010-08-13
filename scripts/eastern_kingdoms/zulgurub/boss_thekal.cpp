@@ -24,31 +24,32 @@ EndScriptData */
 #include "precompiled.h"
 #include "zulgurub.h"
 
-#define SAY_AGGRO               -1309009
-#define SAY_DEATH               -1309010
+enum
+{
+    SAY_AGGRO           = -1309009,
+    SAY_DEATH           = -1309010,
 
-#define SPELL_MORTALCLEAVE        22859
-#define SPELL_SILENCE             23207
-#define SPELL_FRENZY              23342
-#define SPELL_FORCEPUNCH          24189
-#define SPELL_CHARGE              24408
-#define SPELL_ENRAGE              23537
-#define SPELL_SUMMONTIGERS        24183
-#define SPELL_TIGER_FORM          24169
-#define SPELL_RESURRECT           24173                     //We will not use this spell.
+    SPELL_MORTALCLEAVE  = 22859,
+    SPELL_SILENCE       = 22666,
+    SPELL_FRENZY        = 8269,
+    SPELL_FORCEPUNCH    = 24189,
+    SPELL_CHARGE        = 24193,
+    SPELL_SUMMONTIGERS  = 24183,
+    SPELL_TIGER_FORM    = 24169,
 
-//Zealot Lor'Khan Spells
-#define SPELL_SHIELD              25020
-#define SPELL_BLOODLUST           24185
-#define SPELL_GREATERHEAL         24208
-#define SPELL_DISARM              22691
+    //Zealot Lor'Khan Spells
+    SPELL_SHIELD        = 20545,
+    SPELL_BLOODLUST     = 24185,
+    SPELL_GREATERHEAL   = 24208,
+    SPELL_DISARM        = 6713,
 
-//Zealot Lor'Khan Spells
-#define SPELL_SWEEPINGSTRIKES     18765
-#define SPELL_SINISTERSTRIKE      15667
-#define SPELL_GOUGE               24698
-#define SPELL_KICK                15614
-#define SPELL_BLIND               21060
+    //Zealot Lor'Khan Spells
+    SPELL_SWEEPINGSTRIKES = 18765,
+    SPELL_SINISTERSTRIKE  = 15581,
+    SPELL_GOUGE         = 12540,
+    SPELL_KICK          = 15614,
+    SPELL_BLIND         = 21060
+};
 
 struct MANGOS_DLL_DECL boss_thekalAI : public ScriptedAI
 {
@@ -60,43 +61,57 @@ struct MANGOS_DLL_DECL boss_thekalAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
 
-    uint32 MortalCleave_Timer;
-    uint32 Silence_Timer;
-    uint32 Frenzy_Timer;
-    uint32 ForcePunch_Timer;
-    uint32 Charge_Timer;
-    uint32 Enrage_Timer;
-    uint32 SummonTigers_Timer;
-    uint32 Check_Timer;
-    uint32 Resurrect_Timer;
+    uint32 m_uiMortalCleave_Timer;
+    uint32 m_uiSilence_Timer;
+    uint32 m_uiForcePunch_Timer;
+    uint32 m_uiCharge_Timer;
+    uint32 m_uiEnrage_Timer;
+    uint32 m_uiSummonTigers_Timer;
+    uint32 m_uiCheck_Timer;
+    uint32 m_uiResurrectBuddy_Timer;
 
-    bool Enraged;
-    bool PhaseTwo;
-    bool WasDead;
+    bool m_bIsEnraged;
+    bool m_bPhaseTwo;
+    bool m_bNeedToResurrect;
+    bool m_bIsFakeDead;
 
     void Reset()
     {
-        MortalCleave_Timer = 4000;
-        Silence_Timer = 9000;
-        Frenzy_Timer = 30000;
-        ForcePunch_Timer = 4000;
-        Charge_Timer = 12000;
-        Enrage_Timer = 32000;
-        SummonTigers_Timer = 25000;
-        Check_Timer = 10000;
-        Resurrect_Timer = 10000;
+        m_uiMortalCleave_Timer = 4000;
+        m_uiSilence_Timer = 9000;
+        m_uiForcePunch_Timer = 4000;
+        m_uiCharge_Timer = 12000;
+        m_uiEnrage_Timer = 32000;
+        m_uiSummonTigers_Timer = 25000;
+        m_uiCheck_Timer = 1000;
+        m_uiResurrectBuddy_Timer = 5000;
 
-        Enraged = false;
-        PhaseTwo = false;
-        WasDead = false;
+        m_bIsEnraged = false;
+        m_bPhaseTwo = false;
+        m_bNeedToResurrect = false;
+        m_bIsFakeDead = false;
+
+        m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
+        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+
+        if (m_pInstance)
+        {
+            if (Creature* pLorKhan = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_LORKHAN)))
+                if (pLorKhan->isDead())
+                    pLorKhan->Respawn();
+
+            if (Creature* pZath = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_ZATH)))
+                if (pZath->isDead())
+                    pZath->Respawn();
+        }
     }
 
-    void Aggro(Unit *who)
+    void Aggro(Unit *pWho)
     {
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
-    void JustDied(Unit* Killer)
+    void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
 
@@ -110,130 +125,158 @@ struct MANGOS_DLL_DECL boss_thekalAI : public ScriptedAI
             m_pInstance->SetData(TYPE_THEKAL, NOT_STARTED);
     }
 
-    void UpdateAI(const uint32 diff)
+    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    {
+        if (m_bPhaseTwo)
+            return;
+
+        if (m_creature->GetHealth() < uiDamage)
+        {
+            uiDamage = 0;
+            m_creature->SetHealth(0);
+            m_creature->RemoveAllAuras();
+            m_creature->GetMotionMaster()->Clear();
+            m_creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
+            m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+            m_bIsFakeDead = true;
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-        //Check_Timer for the death of LorKhan and Zath.
-        if (!WasDead && Check_Timer < diff)
+        
+        if (!m_bPhaseTwo)
         {
-            if (m_pInstance)
+            if (m_bNeedToResurrect)
             {
-                if (m_pInstance->GetData(TYPE_LORKHAN) == SPECIAL)
+                if (m_uiResurrectBuddy_Timer < uiDiff)
                 {
-                    //Resurrect LorKhan
-                    if (Unit *pLorKhan = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_LORKHAN)))
-                    {
-                        pLorKhan->SetStandState(UNIT_STAND_STATE_STAND);
-                        pLorKhan->setFaction(14);
-                        pLorKhan->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                        pLorKhan->SetHealth(int(pLorKhan->GetMaxHealth()*1.0));
+                    m_bNeedToResurrect = false;
 
-                        m_pInstance->SetData(TYPE_LORKHAN, DONE);
+                    bool bLorKhanIsDead = false;
+                    bool bZathIsDead = false;
+                    Creature* pLorKhan = NULL;
+                    Creature* pZath = NULL;
+
+                    if (m_pInstance)
+                    {
+                        pLorKhan = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_LORKHAN));
+                        pZath = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_ZATH));
+                    }
+
+                    if (pLorKhan && pLorKhan->isDead())
+                        bLorKhanIsDead = true;
+
+                    if (pZath && pZath->isDead())
+                        bZathIsDead = true;
+
+                    if (m_bIsFakeDead)
+                    {
+                        m_bIsFakeDead = false;
+                        m_creature->SetHealth(m_creature->GetMaxHealth());
+                        m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
+                        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                            m_creature->GetMotionMaster()->MoveChase(pTarget);
+                        if (bLorKhanIsDead && bZathIsDead)
+                        {
+                            DoCastSpellIfCan(m_creature, SPELL_TIGER_FORM);
+                            m_bPhaseTwo = true;
+                            return;
+                        }
+                    }
+
+                    if (bLorKhanIsDead)
+                    {
+                        pLorKhan->Respawn();
+                        pLorKhan->AI()->AttackStart(m_creature->getVictim());
+                    }
+
+                    if (bZathIsDead)
+                    {
+                        pZath->Respawn();
+                        pZath->AI()->AttackStart(m_creature->getVictim());
                     }
                 }
-
-                if (m_pInstance->GetData(TYPE_ZATH) == SPECIAL)
-                {
-                    //Resurrect Zath
-                    if (Unit *pZath = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_ZATH)))
-                    {
-                        pZath->SetStandState(UNIT_STAND_STATE_STAND);
-                        pZath->setFaction(14);
-                        pZath->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                        pZath->SetHealth(int(pZath->GetMaxHealth()*1.0));
-
-                        m_pInstance->SetData(TYPE_ZATH, DONE);
-                    }
-                }
+                else
+                    m_uiResurrectBuddy_Timer -= uiDiff;
             }
-            Check_Timer = 5000;
-        }else Check_Timer -= diff;
-
-        if (!PhaseTwo && MortalCleave_Timer < diff)
-        {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_MORTALCLEAVE);
-            MortalCleave_Timer = urand(15000, 20000);
-        }else MortalCleave_Timer -= diff;
-
-        if (!PhaseTwo && Silence_Timer < diff)
-        {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_SILENCE);
-            Silence_Timer = urand(20000, 25000);
-        }else Silence_Timer -= diff;
-
-        if (!PhaseTwo && !WasDead && m_creature->GetHealthPercent() < 5.0f)
-        {
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            m_creature->SetStandState(UNIT_STAND_STATE_SLEEP);
-            m_creature->AttackStop();
-
-            if (m_pInstance)
-                m_pInstance->SetData(TYPE_THEKAL, SPECIAL);
-
-            WasDead = true;
-        }
-
-        //Thekal will transform to Tiger if he died and was not resurrected after 10 seconds.
-        if (!PhaseTwo && WasDead)
-        {
-            if (Resurrect_Timer < diff)
+            else
             {
-                DoCastSpellIfCan(m_creature,SPELL_TIGER_FORM);
-                m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.00f);
-                m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                m_creature->SetHealth(int(m_creature->GetMaxHealth()*1.0));
-                const CreatureInfo *cinfo = m_creature->GetCreatureInfo();
-                m_creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, (cinfo->mindmg +((cinfo->mindmg/100) * 40)));
-                m_creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, (cinfo->maxdmg +((cinfo->maxdmg/100) * 40)));
-                m_creature->UpdateDamagePhysical(BASE_ATTACK);
-                DoResetThreat();
-                PhaseTwo = true;
-            }else Resurrect_Timer -= diff;
-        }
-
-        if (m_creature->GetHealthPercent() == 100.0f && WasDead)
-        {
-            WasDead = false;
-        }
-
-        if (PhaseTwo)
-        {
-            if (Charge_Timer < diff)
-            {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
+               if (m_uiCheck_Timer < uiDiff)
                 {
-                    DoCastSpellIfCan(target,SPELL_CHARGE);
-                    DoResetThreat();
-                    AttackStart(target);
+                    Creature* pLorKhan = NULL;
+                    Creature* pZath = NULL;
+
+                    if (m_pInstance)
+                    {
+                        pLorKhan = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_LORKHAN));
+                        pZath = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_ZATH));
+                    }
+
+                    if (m_bIsFakeDead || (pLorKhan && pLorKhan->isDead()) || (pZath && pZath->isDead()))
+                    {
+                        m_bNeedToResurrect = true;
+                        m_uiResurrectBuddy_Timer = 5000;
+                    }
+
+                    m_uiCheck_Timer = 1000;
                 }
-                Charge_Timer = urand(15000, 22000);
-            }else Charge_Timer -= diff;
+                else
+                    m_uiCheck_Timer -= uiDiff;
+            }
 
-            if (Frenzy_Timer < diff)
-            {
-                DoCastSpellIfCan(m_creature,SPELL_FRENZY);
-                Frenzy_Timer = 30000;
-            }else Frenzy_Timer -= diff;
+            if (m_bIsFakeDead)
+                return;
 
-            if (ForcePunch_Timer < diff)
+            if (m_uiMortalCleave_Timer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->getVictim(),SPELL_SILENCE);
-                ForcePunch_Timer = urand(16000, 21000);
-            }else ForcePunch_Timer -= diff;
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTALCLEAVE);
+                m_uiMortalCleave_Timer = urand(15000, 20000);
+            }
+            else
+                m_uiMortalCleave_Timer -= uiDiff;
 
-            if (SummonTigers_Timer < diff)
+            if (m_uiSilence_Timer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->getVictim(),SPELL_SUMMONTIGERS);
-                SummonTigers_Timer = urand(10000, 14000);
-            }else SummonTigers_Timer -= diff;
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_SILENCE);
+                m_uiSilence_Timer = urand(20000, 25000);
+            }
+            else
+                m_uiSilence_Timer -= uiDiff;
+        }
+        else
+        {
+            if (m_uiCharge_Timer < uiDiff)
+            {
+                DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_CHARGE);
+                m_uiCharge_Timer = urand(15000, 22000);
+            }
+            else
+                m_uiCharge_Timer -= uiDiff;
 
-            if (m_creature->GetHealthPercent() < 11.0f && !Enraged)
+            if (m_uiForcePunch_Timer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature, SPELL_ENRAGE);
-                Enraged = true;
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_FORCEPUNCH);
+                m_uiForcePunch_Timer = urand(16000, 21000);
+            }
+            else
+                m_uiForcePunch_Timer -= uiDiff;
+
+            if (m_uiSummonTigers_Timer < uiDiff)
+            {
+                DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUMMONTIGERS);
+                m_uiSummonTigers_Timer = urand(10000, 14000);
+            }
+            else
+                m_uiSummonTigers_Timer -= uiDiff;
+
+            if (m_creature->GetHealthPercent() < 10.0f && !m_bIsEnraged)
+            {
+                DoCastSpellIfCan(m_creature, SPELL_FRENZY);
+                m_bIsEnraged = true;
             }
         }
 
@@ -250,61 +293,53 @@ struct MANGOS_DLL_DECL mob_zealot_lorkhanAI : public ScriptedAI
         Reset();
     }
 
-    uint32 Shield_Timer;
-    uint32 BloodLust_Timer;
-    uint32 GreaterHeal_Timer;
-    uint32 Disarm_Timer;
-    uint32 Check_Timer;
-
-    bool FakeDeath;
-
     ScriptedInstance* m_pInstance;
+
+    uint32 m_uiShield_Timer;
+    uint32 m_uiBloodLust_Timer;
+    uint32 m_uiGreaterHeal_Timer;
+    uint32 m_uiDisarm_Timer;
 
     void Reset()
     {
-        Shield_Timer = 1000;
-        BloodLust_Timer = 16000;
-        GreaterHeal_Timer = 32000;
-        Disarm_Timer = 6000;
-        Check_Timer = 10000;
-
-        FakeDeath = false;
-
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_LORKHAN, NOT_STARTED);
-
-        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_uiShield_Timer = 1000;
+        m_uiBloodLust_Timer = 16000;
+        m_uiGreaterHeal_Timer = 32000;
+        m_uiDisarm_Timer = 6000;
     }
 
-    void UpdateAI (const uint32 diff)
+    void UpdateAI (const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         //Shield_Timer
-        if (Shield_Timer < diff)
+        if (m_uiShield_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature,SPELL_SHIELD);
-            Shield_Timer = 61000;
-        }else Shield_Timer -= diff;
+            DoCastSpellIfCan(m_creature, SPELL_SHIELD);
+            m_uiShield_Timer = 61000;
+        }
+        else
+            m_uiShield_Timer -= uiDiff;
 
         //BloodLust_Timer
-        if (BloodLust_Timer < diff)
+        if (m_uiBloodLust_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature,SPELL_BLOODLUST);
-            BloodLust_Timer = urand(20000, 28000);
-        }else BloodLust_Timer -= diff;
+            DoCastSpellIfCan(m_creature, SPELL_BLOODLUST);
+            m_uiBloodLust_Timer = urand(20000, 28000);
+        }
+        else
+            m_uiBloodLust_Timer -= uiDiff;
 
         //Casting Greaterheal to Thekal or Zath if they are in meele range.
-        if (GreaterHeal_Timer < diff)
+        if (m_uiGreaterHeal_Timer < uiDiff)
         {
             if (m_pInstance)
             {
-                Unit *pThekal = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_THEKAL));
-                Unit *pZath = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_ZATH));
+                Unit *pThekal = Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_THEKAL));
+                Unit *pZath = Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_ZATH));
 
-                switch(urand(0, 1))
+                switch (urand(0, 1))
                 {
                     case 0:
                         if (pThekal && m_creature->IsWithinDistInMap(pThekal, ATTACK_DISTANCE))
@@ -317,61 +352,19 @@ struct MANGOS_DLL_DECL mob_zealot_lorkhanAI : public ScriptedAI
                 }
             }
 
-            GreaterHeal_Timer = urand(15000, 20000);
-        }else GreaterHeal_Timer -= diff;
+            m_uiGreaterHeal_Timer = urand(15000, 20000);
+        }
+        else
+            m_uiGreaterHeal_Timer -= uiDiff;
 
         //Disarm_Timer
-        if (Disarm_Timer < diff)
+        if (m_uiDisarm_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_DISARM);
-            Disarm_Timer = urand(15000, 25000);
-        }else Disarm_Timer -= diff;
-
-        //Check_Timer for the death of LorKhan and Zath.
-        if (!FakeDeath && Check_Timer < diff)
-        {
-            if (m_pInstance)
-            {
-                if (m_pInstance->GetData(TYPE_THEKAL) == SPECIAL)
-                {
-                    //Resurrect Thekal
-                    if (Unit *pThekal = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_THEKAL)))
-                    {
-                        pThekal->SetStandState(UNIT_STAND_STATE_STAND);
-                        pThekal->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                        pThekal->setFaction(14);
-                        pThekal->SetHealth(int(pThekal->GetMaxHealth()*1.0));
-                    }
-                }
-
-                if (m_pInstance->GetData(TYPE_ZATH) == SPECIAL)
-                {
-                    //Resurrect Zath
-                    if (Unit *pZath = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_ZATH)))
-                    {
-                        pZath->SetStandState(UNIT_STAND_STATE_STAND);
-                        pZath->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                        pZath->setFaction(14);
-                        pZath->SetHealth(int(pZath->GetMaxHealth()*1.0));
-                    }
-                }
-            }
-
-            Check_Timer = 5000;
-        }else Check_Timer -= diff;
-
-        if (m_creature->GetHealthPercent() < 5.0f)
-        {
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            m_creature->SetStandState(UNIT_STAND_STATE_SLEEP);
-            m_creature->setFaction(35);
-            m_creature->AttackStop();
-
-            if (m_pInstance)
-                m_pInstance->SetData(TYPE_LORKHAN, SPECIAL);
-
-            FakeDeath = true;
+            DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISARM);
+            m_uiDisarm_Timer = urand(15000, 25000);
         }
+        else
+            m_uiDisarm_Timer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
@@ -386,124 +379,76 @@ struct MANGOS_DLL_DECL mob_zealot_zathAI : public ScriptedAI
         Reset();
     }
 
-    uint32 SweepingStrikes_Timer;
-    uint32 SinisterStrike_Timer;
-    uint32 Gouge_Timer;
-    uint32 Kick_Timer;
-    uint32 Blind_Timer;
-    uint32 Check_Timer;
-
-    bool FakeDeath;
-
     ScriptedInstance* m_pInstance;
+
+    uint32 m_uiSweepingStrikes_Timer;
+    uint32 m_uiSinisterStrike_Timer;
+    uint32 m_uiGouge_Timer;
+    uint32 m_uiKick_Timer;
+    uint32 m_uiBlind_Timer;
 
     void Reset()
     {
-        SweepingStrikes_Timer = 13000;
-        SinisterStrike_Timer = 8000;
-        Gouge_Timer = 25000;
-        Kick_Timer = 18000;
-        Blind_Timer = 5000;
-        Check_Timer = 10000;
-
-        FakeDeath = false;
-
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_ZATH, NOT_STARTED);
-
-        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_uiSweepingStrikes_Timer = 13000;
+        m_uiSinisterStrike_Timer = 8000;
+        m_uiGouge_Timer = 25000;
+        m_uiKick_Timer = 18000;
+        m_uiBlind_Timer = 5000;
     }
 
-    void UpdateAI (const uint32 diff)
+    void UpdateAI (const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         //SweepingStrikes_Timer
-        if (SweepingStrikes_Timer < diff)
+        if (m_uiSweepingStrikes_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_SWEEPINGSTRIKES);
-            SweepingStrikes_Timer = urand(22000, 26000);
-        }else SweepingStrikes_Timer -= diff;
+            DoCastSpellIfCan(m_creature->getVictim(), SPELL_SWEEPINGSTRIKES);
+            m_uiSweepingStrikes_Timer = urand(22000, 26000);
+        }
+        else
+            m_uiSweepingStrikes_Timer -= uiDiff;
 
         //SinisterStrike_Timer
-        if (SinisterStrike_Timer < diff)
+        if (m_uiSinisterStrike_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_SINISTERSTRIKE);
-            SinisterStrike_Timer = urand(8000, 16000);
-        }else SinisterStrike_Timer -= diff;
+            DoCastSpellIfCan(m_creature->getVictim(), SPELL_SINISTERSTRIKE);
+            m_uiSinisterStrike_Timer = urand(8000, 16000);
+        }
+        else
+            m_uiSinisterStrike_Timer -= uiDiff;
 
         //Gouge_Timer
-        if (Gouge_Timer < diff)
+        if (m_uiGouge_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_GOUGE);
+            DoCastSpellIfCan(m_creature->getVictim(), SPELL_GOUGE);
 
             if (m_creature->getThreatManager().getThreat(m_creature->getVictim()))
-                m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(),-100);
+                m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), -100);
 
-            Gouge_Timer = urand(17000, 27000);
-        }else Gouge_Timer -= diff;
+            m_uiGouge_Timer = urand(17000, 27000);
+        }
+        else
+            m_uiGouge_Timer -= uiDiff;
 
         //Kick_Timer
-        if (Kick_Timer < diff)
+        if (m_uiKick_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_KICK);
-            Kick_Timer = urand(15000, 25000);
-        }else Kick_Timer -= diff;
+            DoCastSpellIfCan(m_creature->getVictim(), SPELL_KICK);
+            m_uiKick_Timer = urand(15000, 25000);
+        }
+        else
+            m_uiKick_Timer -= uiDiff;
 
         //Blind_Timer
-        if (Blind_Timer < diff)
+        if (m_uiBlind_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(),SPELL_BLIND);
-            Blind_Timer = urand(10000, 20000);
-        }else Blind_Timer -= diff;
-
-        //Check_Timer for the death of LorKhan and Zath.
-        if (!FakeDeath && Check_Timer < diff)
-        {
-            if (m_pInstance)
-            {
-                if (m_pInstance->GetData(TYPE_LORKHAN) == SPECIAL)
-                {
-                    //Resurrect LorKhan
-                    if (Unit *pLorKhan = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_LORKHAN)))
-                    {
-                        pLorKhan->SetStandState(UNIT_STAND_STATE_STAND);
-                        pLorKhan->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                        pLorKhan->setFaction(14);
-                        pLorKhan->SetHealth(int(pLorKhan->GetMaxHealth()*1.0));
-                    }
-                }
-
-                if (m_pInstance->GetData(TYPE_THEKAL) == SPECIAL)
-                {
-                    //Resurrect Thekal
-                    if (Unit *pThekal = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_THEKAL)))
-                    {
-                        pThekal->SetStandState(UNIT_STAND_STATE_STAND);
-                        pThekal->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                        pThekal->setFaction(14);
-                        pThekal->SetHealth(int(pThekal->GetMaxHealth()*1.0));
-                    }
-                }
-            }
-
-            Check_Timer = 5000;
-        }else Check_Timer -= diff;
-
-        if (m_creature->GetHealthPercent() <= 5.0f)
-        {
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            m_creature->SetStandState(UNIT_STAND_STATE_SLEEP);
-            m_creature->setFaction(35);
-            m_creature->AttackStop();
-
-            if (m_pInstance)
-                m_pInstance->SetData(TYPE_ZATH, SPECIAL);
-
-            FakeDeath = true;
+            DoCastSpellIfCan(m_creature->getVictim(), SPELL_BLIND);
+            m_uiBlind_Timer = urand(10000, 20000);
         }
+        else
+            m_uiBlind_Timer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }

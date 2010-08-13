@@ -7,7 +7,7 @@
 
 enum
 {
-    MAX_ENCOUNTER           = 9,
+    MAX_ENCOUNTER           = 7,
 
     NPC_LORKHAN             = 11347,
     NPC_ZATH                = 11348,
@@ -21,15 +21,13 @@ enum
     TYPE_MARLI              = 4,
     TYPE_OHGAN              = 5,
     TYPE_THEKAL             = 6,
-    TYPE_ZATH               = 7,
-    TYPE_LORKHAN            = 8,
-    TYPE_HAKKAR             = 9,
+    TYPE_HAKKAR             = 7,
 
-    DATA_JINDO              = 10,
-    DATA_LORKHAN            = 11,
-    DATA_THEKAL             = 12,
-    DATA_ZATH               = 13,
-    DATA_HAKKAR             = 14
+    DATA_JINDO              = 8,
+    DATA_LORKHAN            = 9,
+    DATA_THEKAL             = 10,
+    DATA_ZATH               = 11,
+    DATA_HAKKAR             = 12
 };
 
 #endif

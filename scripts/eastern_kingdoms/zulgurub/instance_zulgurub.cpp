@@ -125,17 +125,11 @@ struct MANGOS_DLL_DECL instance_zulgurub : public ScriptedInstance
                 if (uiData == DONE)
                     LowerHakkarHitPoints();
                 break;
-            case TYPE_LORKHAN:
+            case TYPE_OHGAN:
                 m_auiEncounter[5] = uiData;
                 break;
-            case TYPE_ZATH:
-                m_auiEncounter[6] = uiData;
-                break;
-            case TYPE_OHGAN:
-                m_auiEncounter[7] = uiData;
-                break;
             case TYPE_HAKKAR:
-                m_auiEncounter[8] = uiData;
+                m_auiEncounter[6] = uiData;
                 break;
         }
 
@@ -146,7 +140,7 @@ struct MANGOS_DLL_DECL instance_zulgurub : public ScriptedInstance
             std::ostringstream saveStream;
             saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " "
                 << m_auiEncounter[3] << " " << m_auiEncounter[4] << " " << m_auiEncounter[5] << " "
-                << m_auiEncounter[6] << " " << m_auiEncounter[7] << " " << m_auiEncounter[8];
+                << m_auiEncounter[6];
 
             strInstData = saveStream.str();
 
@@ -172,8 +166,7 @@ struct MANGOS_DLL_DECL instance_zulgurub : public ScriptedInstance
 
         std::istringstream loadStream(chrIn);
         loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
-            >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7]
-            >> m_auiEncounter[8];
+            >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6];
 
         for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
         {
@@ -198,14 +191,10 @@ struct MANGOS_DLL_DECL instance_zulgurub : public ScriptedInstance
                 return m_auiEncounter[3];
             case TYPE_THEKAL:
                 return m_auiEncounter[4];
-            case TYPE_LORKHAN:
-                return m_auiEncounter[5];
-            case TYPE_ZATH:
-                return m_auiEncounter[6];
             case TYPE_OHGAN:
-                return m_auiEncounter[7];
+                return m_auiEncounter[5];
             case TYPE_HAKKAR:
-                return m_auiEncounter[8];
+                return m_auiEncounter[6];
         }
         return 0;
     }
