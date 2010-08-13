@@ -405,6 +405,13 @@
     <ClCompile Include="..\scripts\kalimdor\ungoro_crater.cpp" />
     <ClCompile Include="..\scripts\kalimdor\winterspring.cpp" />
     <ClCompile Include="..\scripts\kalimdor\blackfathom_deeps\instance_blackfathom_deeps.cpp" />
+    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_infinite_corruptor.cpp" />
+    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_lord_epoch.cpp" />
+    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_malganis.cpp" />
+    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_meathook.cpp" />
+    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\boss_salramm.cpp" />
+    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\culling_of_stratholmeAI.cpp" />
+    <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\trash_culling_of_stratholme.cpp" />
     <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\culling_of_stratholme.cpp" />
     <ClCompile Include="..\scripts\kalimdor\caverns_of_time\culling_of_stratholme\instance_culling_of_stratholme.cpp" />
     <ClCompile Include="..\scripts\kalimdor\caverns_of_time\dark_portal\boss_aeonus.cpp" />
