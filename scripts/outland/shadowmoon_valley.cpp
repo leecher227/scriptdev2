@@ -68,6 +68,8 @@ struct MANGOS_DLL_DECL mob_mature_netherwing_drakeAI : public ScriptedAI
     uint32 EatTimer;
     uint32 CastTimer;
 
+    GameObject* pMeat;
+
     void Reset()
     {
         uiPlayerGUID = 0;
@@ -77,6 +79,8 @@ struct MANGOS_DLL_DECL mob_mature_netherwing_drakeAI : public ScriptedAI
 
         EatTimer = 5000;
         CastTimer = 5000;
+
+        pMeat = NULL;
     }
 
     void SpellHit(Unit* pCaster, SpellEntry const* pSpell)
@@ -114,7 +118,7 @@ struct MANGOS_DLL_DECL mob_mature_netherwing_drakeAI : public ScriptedAI
                 {
                     if (Unit* pUnit = Unit::GetUnit(*m_creature, uiPlayerGUID))
                     {
-                        if (GameObject* pGo = pUnit->GetGameObject(SPELL_PLACE_CARCASS))
+                        if (pMeat = GetClosestGameObjectWithEntry(m_creature, 185155, 100.0f))
                         {
                             if (m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
                                 m_creature->GetMotionMaster()->MovementExpired();
@@ -122,14 +126,17 @@ struct MANGOS_DLL_DECL mob_mature_netherwing_drakeAI : public ScriptedAI
                             m_creature->GetMotionMaster()->MoveIdle();
                             m_creature->StopMoving();
 
-                            m_creature->GetMotionMaster()->MovePoint(POINT_ID, pGo->GetPositionX(), pGo->GetPositionY(), pGo->GetPositionZ());
+                            m_creature->GetMotionMaster()->MovePoint(POINT_ID, pMeat->GetPositionX(), pMeat->GetPositionY(), pMeat->GetPositionZ());
                         }
                     }
                     bCanEat = false;
                 }
                 else if (bIsEating)
                 {
-                    DoCastSpellIfCan(m_creature, SPELL_JUST_EATEN);
+                    if (pMeat)
+                        pMeat->Delete();
+                    pMeat = NULL;
+                    DoCast(m_creature, SPELL_JUST_EATEN);
                     DoScriptText(SAY_JUST_EATEN, m_creature);
 
                     if (Player* pPlr = (Player*)Unit::GetUnit((*m_creature), uiPlayerGUID))

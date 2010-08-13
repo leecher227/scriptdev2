@@ -589,7 +589,8 @@ bool QuestAccept_npc_skywing(Player* pPlayer, Creature* pCreature, const Quest* 
         if (npc_skywingAI* pEscortAI = dynamic_cast<npc_skywingAI*>(pCreature->AI()))
             if (pPlayer->isGameMaster())
                 pEscortAI->Start(true, pPlayer->GetGUID(), pQuest, true);
-            else pEscortAI->Start(true, pPlayer->GetGUID(), pQuest, false,);
+            else
+                pEscortAI->Start(true, pPlayer->GetGUID(), pQuest, false);
         DoScriptText(SAY_START, pCreature);
         pCreature->setFaction(231);
     }
