@@ -33,6 +33,7 @@ struct MANGOS_DLL_DECL instance_ahnkahet : public ScriptedInstance
 
     uint64 m_uiElderNadoxGUID;
     uint64 m_uiJedogaShadowseekerGUID;
+    uint64 m_uiTaldaramGUID;
     uint64 m_uiTaldaramDoorGUID;
     uint64 m_uiTaldaramVortexGUID;
     uint8 m_uiDevicesActivated;
@@ -43,6 +44,7 @@ struct MANGOS_DLL_DECL instance_ahnkahet : public ScriptedInstance
 
         m_uiElderNadoxGUID = 0;
         m_uiJedogaShadowseekerGUID = 0;
+        m_uiTaldaramGUID = 0;
         m_uiTaldaramDoorGUID = 0;
         m_uiTaldaramVortexGUID = 0;
         m_uiDevicesActivated = 0;
@@ -54,6 +56,7 @@ struct MANGOS_DLL_DECL instance_ahnkahet : public ScriptedInstance
         {
             case NPC_ELDER_NADOX:         m_uiElderNadoxGUID = pCreature->GetGUID();         break;
             case NPC_JEDOGA_SHADOWSEEKER: m_uiJedogaShadowseekerGUID = pCreature->GetGUID(); break;
+            case NPC_TALDARAM:            m_uiTaldaramGUID = pCreature->GetGUID(); break;
         }
     }
 
@@ -101,6 +104,12 @@ struct MANGOS_DLL_DECL instance_ahnkahet : public ScriptedInstance
                     {
                         m_auiEncounter[1] = uiData;
                         DoUseDoorOrButton(m_uiTaldaramVortexGUID);
+                        if (Creature* pCreature = instance->GetCreature(m_uiTaldaramGUID))
+                        {
+                            pCreature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                            pCreature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                            pCreature->RemoveSplineFlag(SPLINEFLAG_FLYING);
+                        }
                     }
                 }
                 if (uiData == DONE)
@@ -169,10 +178,16 @@ struct MANGOS_DLL_DECL instance_ahnkahet : public ScriptedInstance
     {
         switch(uiType)
         {
-            case TYPE_TALDARAM:
+            case TYPE_NADOX:
                 return m_auiEncounter[0];
-            case TYPE_JEDOGA:
+            case TYPE_TALDARAM:
                 return m_auiEncounter[1];
+            case TYPE_JEDOGA:
+                return m_auiEncounter[2];
+            case TYPE_VOLAZJ:
+                return m_auiEncounter[3];
+            case TYPE_AMANITAR:
+                return m_auiEncounter[4];
         }
         return 0;
     }
