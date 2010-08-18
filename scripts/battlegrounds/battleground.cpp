@@ -49,8 +49,11 @@ struct MANGOS_DLL_DECL npc_spirit_guideAI : public ScriptedAI
 {
     npc_spirit_guideAI(Creature* pCreature) : ScriptedAI(pCreature) {Reset();}
 
+    uint32 m_uiResTimer;
+
     void Reset()
     {
+        m_uiResTimer = 30000;
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -58,6 +61,14 @@ struct MANGOS_DLL_DECL npc_spirit_guideAI : public ScriptedAI
         // auto cast the whole time this spell
         if (!m_creature->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
             m_creature->CastSpell(m_creature, SPELL_SPIRIT_HEAL_CHANNEL, false);
+
+        if (m_uiResTimer <= uiDiff)
+        {
+            m_creature->CastSpell(m_creature, SPELL_SPIRIT_HEAL, true);
+            m_uiResTimer = 30000;
+        }
+        else
+            m_uiResTimer -= uiDiff;
     }
 
     void CorpseRemoved(uint32 &)
