@@ -209,7 +209,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho)
     {
-        if (!m_bIsIntroDone)
+        if (!m_bIsIntroDone && pWho && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster())
         {
             if (m_pInstance && m_pInstance->GetData(TYPE_SVALA) == IN_PROGRESS)
             {
