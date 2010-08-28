@@ -326,12 +326,6 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                 if (*itr)
                     m_lSparkPortalGUIDList.push_back((*itr)->GetGUID());
 
-        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-        {
-            m_creature->GetMotionMaster()->Clear();
-            m_creature->GetMotionMaster()->MoveChase(pTarget);
-        }
-
         if (m_pInstance)
             m_pInstance->SetData(TYPE_MALYGOS, IN_PROGRESS);
     }
@@ -497,8 +491,13 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
             m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            m_creature->SetInCombatWithZone();
             m_uiPhase = PHASE_FLOOR;
+            m_creature->SetInCombatWithZone();
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            {
+                m_creature->GetMotionMaster()->Clear();
+                m_creature->GetMotionMaster()->MoveChase(pTarget);
+            }
         }
         else if (uiPointId == POINT_ID_VORTEX_AIR)
         {
