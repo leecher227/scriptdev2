@@ -34,11 +34,9 @@ enum
 
     NPC_SKADI                       = 26693,
     NPC_GRAUF                       = 26893,
-    NPC_HARPOON_TRIGGER             = 19871,
-    NPC_HARPOONER                   = 26692,
-    NPC_WARRIOR                     = 26690,
-    NPC_SHAMAN                      = 26691,
-    NPC_WORLD_TRIGGER               = 22515,
+    NPC_YMIRJAR_HARPOONER           = 26692,
+    NPC_YMIRJAR_WARRIOR             = 26690,
+    NPC_YMIRJAR_WITCH_DOCTOR        = 26691,
     NPC_FLAME_TRIGGER               = 28351,
     ITEM_HARPOON                    = 37372,
     GO_HARPOON                      = 192539

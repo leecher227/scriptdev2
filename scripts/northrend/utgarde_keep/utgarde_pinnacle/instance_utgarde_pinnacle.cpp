@@ -47,7 +47,6 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
     uint64 m_uiTorgynGUID;
     uint64 m_uiYmironGUID;
 
-    uint64 m_uiGraufGUID;
     uint64 m_uiSkadiGUID;
     uint64 m_uiTriggerGUID;
 
@@ -72,31 +71,46 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
         m_uiTorgynGUID = 0;
         m_uiYmironGUID = 0;
 
-        m_uiGraufGUID = 0;
         m_uiSkadiGUID = 0;
-        m_uiTriggerGUID = 0;
     }
 
     void OnCreatureCreate(Creature* pCreature)
     {
-        switch(pCreature->GetEntry())
+        switch (pCreature->GetEntry())
         {
-            case NPC_RANULF: m_uiRanulfGUID = pCreature->GetGUID(); break;
-            case NPC_HALDOR: m_uiHaldorGUID = pCreature->GetGUID(); break;
-            case NPC_BJORN: m_uiBjornGUID = pCreature->GetGUID(); break;
-            case NPC_TORGYN: m_uiTorgynGUID = pCreature->GetGUID(); break;
-            case NPC_YMIRON: m_uiYmironGUID = pCreature->GetGUID(); break;
-            case NPC_GORTOK: m_uiGortokGUID = pCreature->GetGUID(); break;
-            case NPC_WORGEN: m_uiWorgenGUID = pCreature->GetGUID(); break;
-            case NPC_JORMUNGAR: m_uiJormungarGUID = pCreature->GetGUID(); break;
-            case NPC_FURLBORG: m_uiFurlborgGUID = pCreature->GetGUID(); break;
-            case NPC_RHINO: m_uiRhinoGUID = pCreature->GetGUID(); break;
-            case NPC_GRAUF: 
-                 if(m_uiGraufGUID != 0)
-                    return;
-                 m_uiGraufGUID = pCreature->GetGUID(); 
-                 break;
-            case NPC_SKADI: m_uiSkadiGUID = pCreature->GetGUID(); break;
+            case NPC_RANULF:
+                m_uiRanulfGUID = pCreature->GetGUID();
+                break;
+            case NPC_HALDOR:
+                m_uiHaldorGUID = pCreature->GetGUID();
+                break;
+            case NPC_BJORN:
+                m_uiBjornGUID = pCreature->GetGUID();
+                break;
+            case NPC_TORGYN:
+                m_uiTorgynGUID = pCreature->GetGUID();
+                break;
+            case NPC_YMIRON:
+                m_uiYmironGUID = pCreature->GetGUID();
+                break;
+            case NPC_GORTOK:
+                m_uiGortokGUID = pCreature->GetGUID();
+                break;
+            case NPC_WORGEN:
+                m_uiWorgenGUID = pCreature->GetGUID();
+                break;
+            case NPC_JORMUNGAR:
+                m_uiJormungarGUID = pCreature->GetGUID();
+                break;
+            case NPC_FURLBORG:
+                m_uiFurlborgGUID = pCreature->GetGUID(); 
+               break;
+            case NPC_RHINO:
+                m_uiRhinoGUID = pCreature->GetGUID();
+                break;
+            case NPC_SKADI:
+                m_uiSkadiGUID = pCreature->GetGUID();
+                break;
         }
     }
 
@@ -106,7 +120,6 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
         {
             case GO_DOOR_SKADI:
                 m_uiSkadiDoorGUID = pGo->GetGUID();
-
                 if (m_auiEncounter[2] == DONE)
                     pGo->SetGoState(GO_STATE_ACTIVE);
                 break;
@@ -131,7 +144,6 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
             case TYPE_SKADI:
                 if (uiData == DONE)
                     DoUseDoorOrButton(m_uiSkadiDoorGUID);
-
                 m_auiEncounter[2] = uiData;
                 break;
             case TYPE_YMIRON:
@@ -181,9 +193,6 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
             case NPC_STASIS_CONTROLLER:
                 m_uiOrbGUID = uiGuid;
                 break;
-            case NPC_WORLD_TRIGGER:
-                m_uiTriggerGUID = uiGuid;
-                break;
         }
     }
 
@@ -217,10 +226,6 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
                 return m_uiStasisGeneratorGUID;
             case NPC_SKADI:
                 return m_uiSkadiGUID;
-            case NPC_GRAUF:
-                return m_uiGraufGUID;
-            case NPC_WORLD_TRIGGER:
-                return m_uiTriggerGUID;
         }
         return 0;
     }

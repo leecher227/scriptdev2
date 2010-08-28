@@ -1,16 +1,18 @@
+-- Svala Sorrowgrave
 UPDATE creature_template SET ScriptName='npc_ritual_channeler' WHERE entry=27281;
-UPDATE gameobject_template SET ScriptName = 'go_skadi_harpoon_launcher' WHERE entry IN (192175, 192176, 192177);
-UPDATE gameobject_template SET ScriptName = 'go_skadi_harpoon' WHERE entry=192539;
-UPDATE creature_template SET ScriptName = 'npc_bjorn_sphere' WHERE entry = 27339;
-UPDATE creature_template SET ScriptName='boss_grauf' WHERE entry=26893;
-UPDATE creature_template SET ScriptName='npc_skadi_breath_trigger' WHERE entry=28351;
-UPDATE creature_template SET ScriptName='npc_skadi_summon' WHERE entry in(26692, 26690, 26691);
-UPDATE creature_template SET ScriptName='npc_gortok_orb' WHERE entry=26086; -- 26688
+-- Gortok Palehoof
 UPDATE gameobject_template SET ScriptName='go_gortok_generator' WHERE entry=188593;
+UPDATE creature_template SET ScriptName='npc_gortok_orb' WHERE entry=26086; -- 26688
 UPDATE creature_template SET ScriptName='npc_worgen' WHERE entry=26683;
 UPDATE creature_template SET ScriptName='npc_furlborg' WHERE entry=26684;
 UPDATE creature_template SET ScriptName='npc_jormungar' WHERE entry=26685;
 UPDATE creature_template SET ScriptName='npc_rhino' WHERE entry=26686;
+-- Skadi the Ruthless
+UPDATE gameobject_template SET ScriptName='go_skadi_harpoon_launcher' WHERE entry IN (192175, 192176, 192177);
+UPDATE gameobject_template SET ScriptName='go_skadi_harpoon' WHERE entry=192539;
+UPDATE creature_template SET ScriptName='boss_grauf' WHERE entry=26893;
+-- King Ymiron
+UPDATE creature_template SET ScriptName='npc_bjorn_sphere' WHERE entry = 27339;
 
 REPLACE INTO spell_script_target (entry, type, targetEntry) values
 (48277, 1, 27327),
@@ -25,7 +27,10 @@ REPLACE INTO spell_script_target (entry, type, targetEntry) values
 (48385, 1, 27339);
 
 -- vehicle data for Grauf
-UPDATE creature_template_addon SET vehicle_id=40 WHERE entry=26893;
+DELETE FROM creature_template_addon WHERE entry IN (26893, 30775);
+INSERT INTO creature_template_addon (entry, mount, bytes1, bytes2, emote, moveflags, vehicle_id, passengers, auras) VALUES
+(26893, 0, 0, 0, 0, 0, 40, NULL, NULL),
+(30775, 0, 0, 0, 0, 0, 40, NULL, NULL);
 DELETE FROM vehicle_seat_data WHERE seat=682;
 INSERT INTO vehicle_seat_data (seat, flags) VALUES
 (682, 1);
