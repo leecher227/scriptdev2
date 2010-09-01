@@ -46,6 +46,7 @@ npc_sayge               100%    Darkmoon event fortune teller, buff player based
 npc_tabard_vendor        50%    allow recovering quest related tabards, achievement related ones need core support
 npc_locksmith            75%    list of keys needs to be confirmed
 npc_experience_eliminator       Don't want to gain experience anymore
+npc_death_knight_gargoyle       AI for summoned gargoyle of deathknights
 EndContentData */
 
 
@@ -1868,6 +1869,133 @@ bool GossipSelect_npc_experience_eliminator(Player* pPlayer, Creature* pCreature
     return true;
 }
 
+/*########
+# mob_death_knight_gargoyle AI
+#########*/
+
+// UPDATE `creature_template` SET `ScriptName` = 'mob_death_knight_gargoyle' WHERE `entry` = '27829';
+
+enum GargoyleSpells
+{
+    SPELL_GARGOYLE_STRIKE = 51963      // Don't know if this is the correct spell, it does about 700-800 damage points
+};
+
+struct MANGOS_DLL_DECL npc_death_knight_gargoyle : public ScriptedAI
+{
+    npc_death_knight_gargoyle(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+    uint32 m_uiGargoyleStrikeTimer;
+    bool inCombat;
+    Unit *owner;
+
+
+    void Reset() 
+    {
+     owner = m_creature->GetOwner();
+     if (!owner) return;
+
+     m_creature->SetLevel(owner->getLevel());
+     m_creature->setFaction(owner->getFaction());
+
+     m_creature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
+     m_creature->SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
+     m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
+     m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
+     m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
+
+     inCombat = false;
+     m_uiGargoyleStrikeTimer = urand(3000, 5000);
+
+     float fPosX, fPosY, fPosZ;
+     owner->GetPosition(fPosX, fPosY, fPosZ);
+
+     m_creature->NearTeleportTo(fPosX, fPosY, fPosZ+10.0f, m_creature->GetAngle(owner));
+
+
+     if (owner && !m_creature->hasUnitState(UNIT_STAT_FOLLOW))
+        {
+            m_creature->GetMotionMaster()->Clear(false);
+            m_creature->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST + 3.0f, m_creature->GetAngle(owner));
+        }
+
+      if(owner->IsPvP())
+                 m_creature->SetPvP(true);
+      if(owner->IsFFAPvP())
+                 m_creature->SetFFAPvP(true);
+    }
+
+    void EnterEvadeMode()
+    {
+     if (m_creature->IsInEvadeMode() || !m_creature->isAlive())
+          return;
+
+        inCombat = false;
+
+        m_creature->AttackStop();
+        m_creature->CombatStop(true);
+        if (owner && !m_creature->hasUnitState(UNIT_STAT_FOLLOW))
+        {
+            m_creature->GetMotionMaster()->Clear(false);
+            m_creature->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST + 3.0f, m_creature->GetAngle(owner));
+        }
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+      if (!pWho) return;
+
+      if (m_creature->Attack(pWho, true))
+        {
+            m_creature->clearUnitState(UNIT_STAT_FOLLOW);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+            m_creature->AddThreat(pWho, 100.0f);
+            DoStartMovement(pWho, 10.0f);
+            SetCombatMovement(true);
+            inCombat = true;
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+
+        if (!owner || !owner->IsInWorld())
+        {
+            m_creature->ForcedDespawn();
+            return;
+        }
+
+        if (!m_creature->getVictim())
+            if (owner && owner->getVictim())
+                AttackStart(owner->getVictim());
+
+        if (m_creature->getVictim() && m_creature->getVictim() != owner->getVictim())
+                AttackStart(owner->getVictim());
+
+        if (inCombat && !m_creature->getVictim())
+        {
+            EnterEvadeMode();
+            return;
+        }
+
+        if (!inCombat) return;
+
+        if (m_uiGargoyleStrikeTimer <= uiDiff)
+        {
+            DoCastSpellIfCan(m_creature->getVictim(), SPELL_GARGOYLE_STRIKE);
+            m_uiGargoyleStrikeTimer = urand(3000, 5000);
+        }
+        else m_uiGargoyleStrikeTimer -= uiDiff;
+    }
+};
+
+CreatureAI* GetAI_npc_death_knight_gargoyle(Creature* pCreature)
+{
+    return new npc_death_knight_gargoyle(pCreature);
+}
+
 void AddSC_npcs_special()
 {
     Script* newscript;
@@ -1967,5 +2095,10 @@ void AddSC_npcs_special()
     newscript->Name = "npc_experience_eliminator";
     newscript->pGossipHello = &GossipHello_npc_experience_eliminator;
     newscript->pGossipSelect = &GossipSelect_npc_experience_eliminator;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_death_knight_gargoyle";
+    newscript->GetAI = &GetAI_npc_death_knight_gargoyle;
     newscript->RegisterSelf();
 }
