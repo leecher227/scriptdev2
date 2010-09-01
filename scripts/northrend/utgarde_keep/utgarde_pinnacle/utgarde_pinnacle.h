@@ -29,8 +29,8 @@ enum
     NPC_BJORN                       = 27303,
     NPC_TOR                         = 27309,
     NPC_YMIRON                      = 26861,
-    NPC_YMIRON_TRIGGER              = 22515,
     NPC_SPIRIT_SUMMONER             = 27392,
+    GO_DOOR_YMIRON                  = 192174,
 
     NPC_SKADI                       = 26693,
     NPC_GRAUF                       = 26893,
@@ -39,7 +39,7 @@ enum
     NPC_YMIRJAR_WITCH_DOCTOR        = 26691,
     NPC_FLAME_TRIGGER               = 28351,
     ITEM_HARPOON                    = 37372,
-    GO_HARPOON                      = 192539
+    GO_HARPOON                      = 192539,
 };
 
 #endif

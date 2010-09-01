@@ -173,14 +173,18 @@ struct MANGOS_DLL_DECL boss_ymironAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
-        if (m_uiPhase > 0 && m_pInstance)
+        if (m_pInstance)
         {
-            if (Creature* pDummyCaster = m_pInstance->instance->GetCreature(m_auiDummyCasterGUID[m_uiPhase-1]))
-                pDummyCaster->ForcedDespawn();
-            if (Creature* pAncestor = m_pInstance->instance->GetCreature(m_pInstance->GetData64(Ancestors[0][m_auiAncestorsOrder[m_uiPhase-1]])))
+            m_pInstance->SetData(TYPE_YMIRON, DONE);
+            if (m_uiPhase > 0)
             {
-                pAncestor->RemoveAllAuras();
-                pAncestor->CastSpell(pAncestor, SPELL_SPIRIT_DIES, false);
+                if (Creature* pDummyCaster = m_pInstance->instance->GetCreature(m_auiDummyCasterGUID[m_uiPhase-1]))
+                    pDummyCaster->ForcedDespawn();
+                if (Creature* pAncestor = m_pInstance->instance->GetCreature(m_pInstance->GetData64(Ancestors[0][m_auiAncestorsOrder[m_uiPhase-1]])))
+                {
+                    pAncestor->RemoveAllAuras();
+                    pAncestor->CastSpell(pAncestor, SPELL_SPIRIT_DIES, false);
+                }
             }
         }
     }

@@ -32,8 +32,6 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
     std::string strInstData;
 
     uint64 m_uiGortokGUID;
-
-    uint64 m_uiSkadiDoorGUID;
     uint64 m_uiStasisGeneratorGUID;
     uint64 m_uiOrbGUID;
     uint64 m_uiRhinoGUID;
@@ -46,18 +44,16 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
     uint64 m_uiBjornGUID;
     uint64 m_uiTorGUID;
     uint64 m_uiYmironGUID;
+    uint64 m_uiYmironDoorGUID;
 
     uint64 m_uiSkadiGUID;
-    uint64 m_uiTriggerGUID;
+    uint64 m_uiSkadiDoorGUID;
 
     void Initialize()
     {
         memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 
         m_uiGortokGUID = 0;
-
-        m_uiSkadiDoorGUID = 0;
-        m_auiEncounter[1] = NOT_STARTED;
         m_uiStasisGeneratorGUID = 0;
         m_uiOrbGUID = 0;
         m_uiRhinoGUID = 0;
@@ -70,8 +66,10 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
         m_uiBjornGUID = 0;
         m_uiTorGUID = 0;
         m_uiYmironGUID = 0;
+        m_uiYmironDoorGUID = 0;
 
         m_uiSkadiGUID = 0;
+        m_uiSkadiDoorGUID = 0;
     }
 
     void OnCreatureCreate(Creature* pCreature)
@@ -126,6 +124,11 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
             case GO_STASIS_GENERATOR:
                 m_uiStasisGeneratorGUID = pGo->GetGUID();
                 break;
+            case GO_DOOR_YMIRON:
+                m_uiYmironDoorGUID = pGo->GetGUID();
+                if (m_auiEncounter[3] == DONE)
+                    pGo->SetGoState(GO_STATE_ACTIVE);
+                break;
         }
     }
 
@@ -147,6 +150,8 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
                 m_auiEncounter[2] = uiData;
                 break;
             case TYPE_YMIRON:
+                if (uiData == DONE)
+                    DoUseDoorOrButton(m_uiYmironDoorGUID);
                 m_auiEncounter[3] = uiData;
                 break;
             default:

@@ -476,7 +476,9 @@ struct MANGOS_DLL_DECL boss_graufAI : public ScriptedAI
                     pSkadi->GetMotionMaster()->MoveChase(pTarget);
             }
         }
-        ((Vehicle*)m_creature)->Dismiss();
+        m_creature->GetMap()->CreatureRelocation(m_creature, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()-400.0f, 0);
+        m_creature->SendMonsterMove(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()-400.0f, SPLINETYPE_NORMAL , m_creature->GetSplineFlags(), 10000);
+        m_creature->ForcedDespawn(10000);
     }
 
     void AttackStart(Unit* who)
