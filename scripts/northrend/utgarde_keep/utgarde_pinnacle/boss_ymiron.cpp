@@ -144,7 +144,7 @@ struct MANGOS_DLL_DECL boss_ymironAI : public ScriptedAI
                 pDummyCaster->ForcedDespawn();
             m_auiDummyCasterGUID[i] = 0;
         }
-        srand(uint32(time));
+        srand((unsigned int)time(NULL));
     	for (uint8 i = 0; i < 4; ++i)
         {
             uint8 j = urand(0, 3);
