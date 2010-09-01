@@ -27,7 +27,7 @@ enum
     NPC_RANULF                      = 27308,
     NPC_HALDOR                      = 27307,
     NPC_BJORN                       = 27303,
-    NPC_TORGYN                      = 27309,
+    NPC_TOR                         = 27309,
     NPC_YMIRON                      = 26861,
     NPC_YMIRON_TRIGGER              = 22515,
     NPC_SPIRIT_SUMMONER             = 27392,

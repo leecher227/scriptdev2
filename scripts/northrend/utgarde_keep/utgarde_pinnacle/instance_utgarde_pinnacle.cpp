@@ -44,7 +44,7 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
     uint64 m_uiRanulfGUID;
     uint64 m_uiHaldorGUID;
     uint64 m_uiBjornGUID;
-    uint64 m_uiTorgynGUID;
+    uint64 m_uiTorGUID;
     uint64 m_uiYmironGUID;
 
     uint64 m_uiSkadiGUID;
@@ -68,7 +68,7 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
         m_uiRanulfGUID = 0;
         m_uiHaldorGUID = 0;
         m_uiBjornGUID = 0;
-        m_uiTorgynGUID = 0;
+        m_uiTorGUID = 0;
         m_uiYmironGUID = 0;
 
         m_uiSkadiGUID = 0;
@@ -87,8 +87,8 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
             case NPC_BJORN:
                 m_uiBjornGUID = pCreature->GetGUID();
                 break;
-            case NPC_TORGYN:
-                m_uiTorgynGUID = pCreature->GetGUID();
+            case NPC_TOR:
+                m_uiTorGUID = pCreature->GetGUID();
                 break;
             case NPC_YMIRON:
                 m_uiYmironGUID = pCreature->GetGUID();
@@ -206,8 +206,8 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
                 return m_uiHaldorGUID;
             case NPC_BJORN:
                 return m_uiBjornGUID;
-            case NPC_TORGYN:
-                return m_uiTorgynGUID;
+            case NPC_TOR:
+                return m_uiTorGUID;
             case NPC_YMIRON:
                 return m_uiYmironGUID;
             case NPC_STASIS_CONTROLLER:

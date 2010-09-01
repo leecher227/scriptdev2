@@ -13,6 +13,7 @@ UPDATE gameobject_template SET ScriptName='go_skadi_harpoon' WHERE entry=192539;
 UPDATE creature_template SET ScriptName='boss_grauf' WHERE entry=26893;
 -- King Ymiron
 UPDATE creature_template SET ScriptName='npc_bjorn_sphere' WHERE entry = 27339;
+UPDATE creature_template SET ScriptName='npc_avenging_spirit_summoner' WHERE entry = 27392;
 
 REPLACE INTO spell_script_target (entry, type, targetEntry) values
 (48277, 1, 27327),
