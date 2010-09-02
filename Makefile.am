@@ -401,6 +401,13 @@ scripts/northrend/nexus/nexus/boss_keristrasza.cpp \
 scripts/northrend/nexus/nexus/boss_ormorok.cpp \
 scripts/northrend/nexus/nexus/boss_telestra.cpp \
 scripts/northrend/nexus/nexus/nexus.h \
+scripts/northrend/nexus/oculus/boss_drakos.cpp \
+scripts/northrend/nexus/oculus/boss_eregos.cpp \
+scripts/northrend/nexus/oculus/boss_urom.cpp \
+scripts/northrend/nexus/oculus/boss_varos.cpp \
+scripts/northrend/nexus/oculus/instance_oculus.cpp \
+scripts/northrend/nexus/oculus/oculus.cpp \
+scripts/northrend/nexus/oculus/oculus.h \
 scripts/northrend/nexus/nexus/instance_nexus.cpp \
 scripts/northrend/nexus/eye_of_eternity/boss_malygos.cpp \
 scripts/northrend/nexus/eye_of_eternity/eye_of_eternity.h \
