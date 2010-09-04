@@ -3,11 +3,12 @@
 UPDATE creature_template SET ScriptName = 'mob_defense_turret' WHERE entry = 33142;
 */
 -- Ignis
-UPDATE creature_template SET scriptname='boss_ignis' WHERE entry=33118;
-UPDATE creature_template SET ScriptName = 'mob_iron_construct' WHERE entry = 33121;
-REPLACE INTO `spell_script_target` (`entry`, `type`, `targetEntry`) VALUES ('64474', '1', '33118');
-REPLACE INTO `spell_script_target` (`entry`, `type`, `targetEntry`) VALUES ('64475', '1', '33118');
-UPDATE creature_template SET 'mob_scorch_target' WHERE entry=33221;
+UPDATE creature_template SET ScriptName='boss_ignis' WHERE entry=33118;
+UPDATE creature_template SET ScriptName='mob_iron_construct' WHERE entry = 33121;
+UPDATE creature_template SET ScriptName='mob_scorch_target' WHERE entry=33221;
+REPLACE INTO spell_script_target (entry, type, targetEntry) VALUES
+(64474, 1, 33118),
+(64475, 1, 33118);
 /*
 -- Razorscale
 UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_razorscale' WHERE entry=33186;
