@@ -9,6 +9,20 @@ UPDATE creature_template SET ScriptName='mob_scorch_target' WHERE entry=33221;
 REPLACE INTO spell_script_target (entry, type, targetEntry) VALUES
 (64474, 1, 33118),
 (64475, 1, 33118);
+-- Vehicle data for Ignis
+UPDATE creature_template SET VehicleEntry=342 WHERE entry IN (33118, 33190);
+DELETE FROM creature_template_addon WHERE entry IN (33118, 33190);
+INSERT INTO creature_template_addon (entry, mount, bytes1, bytes2, emote, moveflags, vehicle_id, passengers, auras) VALUES
+(33118, 0, 0, 0, 0, 0, 342, NULL, NULL),
+(33190, 0, 0, 0, 0, 0, 342, NULL, NULL);
+DELETE FROM vehicle_seat_data WHERE seat IN (3064, 3206);
+INSERT INTO vehicle_seat_data (seat, flags) VALUES
+(3064, 1),
+(3206, 1);
+DELETE FROM vehicle_data WHERE entry=342;
+INSERT INTO vehicle_data (entry, flags, Spell1, Spell2, Spell3, Spell4, Spell5, Spell6, Spell7, Spell8, Spell9, Spell10, req_aura) VALUES
+(342, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 /*
 -- Razorscale
 UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_razorscale' WHERE entry=33186;
