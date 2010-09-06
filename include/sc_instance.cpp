@@ -67,7 +67,8 @@ void ScriptedInstance::DoCompleteAchievement(uint32 uiAchievmentId)
         for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
         {
             if (Player* pPlayer = itr->getSource())
-                pPlayer->CompletedAchievement(uiAchievmentId);
+                if (!pPlayer->isGameMaster())
+                    pPlayer->CompletedAchievement(uiAchievmentId);
         }
     }
     else
