@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "ulduar.h"
+#include "Vehicle.h"
 
 struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
 {
@@ -1246,11 +1247,29 @@ InstanceData* GetInstanceData_instance_ulduar(Map* pMap)
     return new instance_ulduar(pMap);
 }
 
+bool AreaTrigger_at_ulduar(Player* pPlayer, AreaTriggerEntry const* pAt)
+{
+    if (pAt->id == 5398)
+    {
+        uint64 uiVehicleGUID = pPlayer->GetVehicleGUID();
+
+        if (Vehicle* pVehicle = pPlayer->GetMap()->GetVehicle(uiVehicleGUID))
+            pVehicle->Dismiss();
+    }
+
+    return false;
+}
+
 void AddSC_instance_ulduar()
 {
-    Script *newscript;
-    newscript = new Script;
-    newscript->Name = "instance_ulduar";
-    newscript->GetInstanceData = &GetInstanceData_instance_ulduar;
-    newscript->RegisterSelf();
+    Script* pNewScript;
+    pNewScript = new Script;
+    pNewScript->Name = "instance_ulduar";
+    pNewScript->GetInstanceData = &GetInstanceData_instance_ulduar;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "at_ulduar";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_ulduar;
+    pNewScript->RegisterSelf();
 }

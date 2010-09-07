@@ -1,3 +1,8 @@
+-- Instance Ulduar
+UPDATE instance_template SET script='instance_ulduar' WHERE map=603;
+DELETE FROM areatrigger_scripts WHERE entry=5398;
+INSERT INTO areatrigger_scripts (entry, ScriptName) VALUES (5398, 'at_ulduar');
+
 -- Flame Leviathan
 /*UPDATE creature_template SET ScriptName = 'boss_flame_leviathan' WHERE entry = 33113;
 UPDATE creature_template SET ScriptName = 'mob_defense_turret' WHERE entry = 33142;
