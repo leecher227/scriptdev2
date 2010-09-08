@@ -99,7 +99,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetVisibility(VISIBILITY_ON);
 
-        if (m_pInstance)
+        if (m_pInstance && !m_bIsRegularMode)
         {
             for (uint8 i = 1; i <= 13; ++i)
                 if (m_pInstance->GetData(i) != DONE)
