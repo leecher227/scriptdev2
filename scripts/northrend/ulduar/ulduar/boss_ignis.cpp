@@ -114,6 +114,8 @@ struct MANGOS_DLL_DECL mob_scorch_targetAI : public ScriptedAI
         {
             if (m_uiScorchTimer < uiDiff)
             {
+                if (m_creature->GetDistance2d(524.15f, 277.0f) < 18 || m_creature->GetDistance2d(648.5f, 277.0f) < 18)
+                    m_creature->ForcedDespawn();
                 if (SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(m_bIsRegularMode ? AURA_SCORCH : AURA_SCORCH_H))
                 {
                     pTempSpell->Effect[1] = 0;
@@ -124,6 +126,7 @@ struct MANGOS_DLL_DECL mob_scorch_targetAI : public ScriptedAI
             else
                 m_uiScorchTimer -= uiDiff;   
         }
+
         if (m_uiHeatTimer < uiDiff)
         {
             if (SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_HEAT))
@@ -165,8 +168,8 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
 
-    uint32 m_uiDeath_Timer;
-    uint32 m_uiMoltenTimer;
+    uint32 m_uiFreezeTimer;
+    uint32 m_uiDeathTimer;
     uint32 m_uiBrittleTimer;
     bool m_bIsBrittle;
     bool m_bIsShatter;
@@ -182,6 +185,7 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
         m_bIsBrittle        = false;
         m_bIsMolten         = false;
         m_bIsFreezed        = false;
+        m_uiFreezeTimer     = 500;
         m_uiWaterCheckTimer = 1000;
         m_uiHeatCheckTimer  = 1000;
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -236,7 +240,7 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
                 if (uiCurrTime-m_uiLastBrittleTime <= 5000)
                     m_bAchievShatteredCompleted = true;
                 m_uiLastBrittleTime = getMSTime();
-                m_uiDeath_Timer = 500;
+                m_uiDeathTimer = 500;
             }
         }
     }
@@ -247,8 +251,13 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
         {
             if (!m_bIsFreezed)
             {
-                m_bIsFreezed = true;
-                DoCast(m_creature, SPELL_FREEZE_ANIM);
+                if (m_uiFreezeTimer < uiDiff)
+                {
+                    DoCast(m_creature, SPELL_FREEZE_ANIM);
+                    m_bIsFreezed = true;
+                }
+                else
+                    m_uiFreezeTimer -= uiDiff;   
             }
             return;
         }
@@ -256,10 +265,10 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
         // death after casted shatter
         if (m_bIsShatter)
         {
-            if (m_uiDeath_Timer < uiDiff)
+            if (m_uiDeathTimer < uiDiff)
                 m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
             else
-                m_uiDeath_Timer -= uiDiff;   
+                m_uiDeathTimer -= uiDiff;   
 
             return;
         }
@@ -276,13 +285,6 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
                     m_bIsBrittle = true;
                     m_bIsMolten = false;
                 }
-                /* GENERATION_NEXT VERSION (should work with Vmaps3)
-                if (m_creature->IsInWater())
-                {
-                    DoCast(m_creature, SPELL_BRITTLE);
-                    m_bIsBrittle = true;
-                    m_bIsMolten = false;
-                }*/
                 m_uiWaterCheckTimer = 1000;
             }
             else
@@ -328,7 +330,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    std::list<uint64> m_lIronConstructGUIDList;
+    std::list<uint64> m_lConstructsGUIDList;
 
     uint32 m_uiFlame_Jets_Timer;
     uint32 m_uiSlag_Pot_Timer;
@@ -337,6 +339,10 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
     uint32 m_uiSummon_Timer;
     uint32 m_uiPotDmgCount;
     uint32 m_uiEnrageTimer;
+    uint32 m_uiConstructsDetectTimer;
+    bool m_bConstructsDetected;
+    uint32 m_uiDelayTimer;
+    bool m_bDelay;
 
     uint64 m_uiPotTargetGUID;
     std::list<Creature*> lConstructs;
@@ -346,31 +352,23 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
     void Reset()
     {
-        m_uiFlame_Jets_Timer    = urand(20000, 22000);
+        m_uiFlame_Jets_Timer    = urand(19000, 22000);
+        m_uiDelayTimer          = 0;
+        m_bDelay                = false;
         m_uiSlag_Pot_Timer      = 15000;
         m_uiSlag_Pot_Dmg_Timer  = 0;
-        m_uiScorch_Timer        = 25000;
+        m_uiScorch_Timer        = urand(25000, 28000);
         m_uiSummon_Timer        = 10000;
         m_uiEnrageTimer         = 600000;   // 10 MIN
         m_uiPotDmgCount         = 0;
         m_uiPotTargetGUID       = 0;
-        m_lIronConstructGUIDList.clear();
         m_bHasSlagPotCasted     = false;
-
+        m_uiConstructsDetectTimer = 1000;
+        m_bConstructsDetected   = false;
         m_uiEncounterTimer      = 0;
         m_uiLastBrittleTime     = 0;
         m_bAchievShatteredCompleted = false;
-
-        // respawn constructs
-        GetCreatureListWithEntryInGrid(lConstructs, m_creature, MOB_IRON_CONSTRUCT, 200.0f);
-        if (!lConstructs.empty())
-        {
-            for (std::list<Creature*>::iterator iter = lConstructs.begin(); iter != lConstructs.end(); ++iter)
-            {
-                if ((*iter) && (*iter)->isDead())
-                    (*iter)->Respawn();
-            }
-        }
+        m_lConstructsGUIDList.clear();
     }
 
     void JustReachedHome()
@@ -398,6 +396,9 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
+        DoScriptText(SAY_DEATH, m_creature);
+
+        std::list<Creature*> lConstructs;
         GetCreatureListWithEntryInGrid(lConstructs, m_creature, MOB_IRON_CONSTRUCT, 200.0f);
         if (!lConstructs.empty())
         {
@@ -408,13 +409,19 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
             }
         }
 
-        DoScriptText(SAY_DEATH, m_creature);
-
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_IGNIS, DONE);
-
         if (m_pInstance)
         {
+            m_pInstance->SetData(TYPE_IGNIS, DONE);
+
+            Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
+            if (!lPlayers.isEmpty())
+            {
+                for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                {
+                    if (Player* pPlayer = itr->getSource())
+                        pPlayer->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FIRE, false);
+                }
+            }
             if (m_uiEncounterTimer < 240000)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_STOKIN_THE_FURNACE : ACHIEV_STOKIN_THE_FURNACE_H);
             if (m_bAchievShatteredCompleted)
@@ -422,34 +429,71 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         }
     }
 
-    Creature* SelectRandomConstruct(float fRange)
+    Creature* SelectRandomConstruct()
     {
-        std::list<Creature* > lConstructList;
-        GetCreatureListWithEntryInGrid(lConstructList, m_creature, MOB_IRON_CONSTRUCT, fRange);
-
-        if (lConstructList.empty()){
-            m_uiSummon_Timer = 5000;
-            return NULL;
-        }
-
-        std::list<Creature* >::iterator iter = lConstructList.begin();
-        advance(iter, urand(0, lConstructList.size()-1));
-
-        if ((*iter)->isAlive())
-            return *iter;
-        else
+        if (m_lConstructsGUIDList.empty())
         {
-            m_uiSummon_Timer = 500;
+            m_uiSummon_Timer = 600000;
             return NULL;
         }
+
+        std::list<uint64>::iterator iter = m_lConstructsGUIDList.begin();
+        advance(iter, urand(0, m_lConstructsGUIDList.size()-1));
+        m_lConstructsGUIDList.erase(iter);
+        if (m_lConstructsGUIDList.empty())
+            m_uiSummon_Timer = 600000;
+        if (m_pInstance)
+            return m_pInstance->instance->GetCreature(*iter);
+        else
+            return NULL;
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        {
+            if (!m_bConstructsDetected)
+            {
+                if (m_uiConstructsDetectTimer < uiDiff)
+                {
+                    std::list<Creature*> lConstructs;
+                    GetCreatureListWithEntryInGrid(lConstructs, m_creature, MOB_IRON_CONSTRUCT, 200.0f);
+                    if (!lConstructs.empty())
+                    {
+                        for (std::list<Creature*>::iterator iter = lConstructs.begin(); iter != lConstructs.end(); ++iter)
+                        {
+                            if (*iter)
+                            {
+                                if ((*iter)->isDead())
+                                    (*iter)->Respawn();
+                                m_lConstructsGUIDList.push_back((*iter)->GetGUID());
+                            }
+                        }
+                        m_bConstructsDetected = true;
+                    }
+                    m_uiConstructsDetectTimer = 1000;
+                }
+                else
+                    m_uiConstructsDetectTimer -= uiDiff;   
+            }
             return;
+        }
 
         m_uiEncounterTimer += uiDiff;
+
+        if (m_bDelay)
+            if (m_uiDelayTimer < uiDiff)
+            {
+                SetCombatMovement(true);
+                Unit* pTarget = m_creature->getVictim();
+                if (!pTarget)
+                    pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+                if (pTarget)
+                    m_creature->GetMotionMaster()->MoveChase(pTarget);
+                m_bDelay = false;
+            }
+            else
+                m_uiDelayTimer -= uiDiff;
 
         // enrage
         if (m_uiEnrageTimer < uiDiff)
@@ -465,7 +509,13 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         {
             DoScriptText(EMOTE_FLAMEJETS, m_creature);
             DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_JETS : SPELL_FLAME_JETS_H);
-            m_uiFlame_Jets_Timer = urand(20000, 22000);
+            m_creature->GetMotionMaster()->MovementExpired();
+            m_creature->GetMotionMaster()->Clear();
+            m_creature->StopMoving();
+            SetCombatMovement(false);
+            m_uiDelayTimer = 5000;
+            m_bDelay = true;
+            m_uiFlame_Jets_Timer = urand(19000, 22000);
         }
         else
             m_uiFlame_Jets_Timer -= uiDiff;
@@ -477,10 +527,11 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
                 DoCast(pTarget, m_bIsRegularMode ? SPELL_SLAG_POT : SPELL_SLAG_POT_H);
+                pTarget->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FIRE, true);
                 m_uiPotTargetGUID = pTarget->GetGUID();
                 if (m_creature->CreateVehicleKit(342))
-                    if (VehicleKit* Kit = m_creature->GetVehicleKit())
-                        pTarget->EnterVehicle(Kit, 1);
+                    if (VehicleKit* pKit = m_creature->GetVehicleKit())
+                        pTarget->EnterVehicle(pKit, 1);
             }
             m_uiSlag_Pot_Timer      = 15000;
             m_uiSlag_Pot_Dmg_Timer  = 1000;
@@ -498,14 +549,20 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
                 if (Unit* pPotTarget = Unit::GetUnit(*m_creature, m_uiPotTargetGUID))
                 {
                     if (m_uiPotDmgCount < 10)
-                        DoCast(pPotTarget, m_bIsRegularMode ? SPELL_SLAG_POT_DMG : SPELL_SLAG_POT_DMG_H);
+                    {
+                        pPotTarget->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FIRE, false);
+                        m_creature->CastSpell(pPotTarget, m_bIsRegularMode ? SPELL_SLAG_POT_DMG : SPELL_SLAG_POT_DMG_H, true);
+                        pPotTarget->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FIRE, true);
+                    }
                     else
                     {
                         if (pPotTarget->isAlive())
                         {
+                            pPotTarget->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FIRE, false);
                             pPotTarget->CastSpell(pPotTarget, SPELL_HASTE, false);
                             pPotTarget->ExitVehicle();
-                            ((Player*)pPotTarget)->CompletedAchievement(m_bIsRegularMode ? ACHIEV_HOT_POCKET : ACHIEV_HOT_POCKET_H);
+                            if (pPotTarget->GetTypeId() == TYPEID_PLAYER)
+                                ((Player*)pPotTarget)->CompletedAchievement(m_bIsRegularMode ? ACHIEV_HOT_POCKET : ACHIEV_HOT_POCKET_H);
                         }
                         m_bHasSlagPotCasted = false;
                     }
@@ -522,7 +579,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         {
             DoScriptText(SAY_SUMMON, m_creature);
 
-            if (Creature* pConstruct = SelectRandomConstruct(200.0f))
+            if (Creature* pConstruct = SelectRandomConstruct())
             {
                 pConstruct->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 pConstruct->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -530,7 +587,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
                 pConstruct->SetInCombatWithZone();
             }
 
-            m_uiSummon_Timer = 40000;
+            m_uiSummon_Timer = m_bIsRegularMode ? 40000 : 30000;
 
             m_creature->InterruptNonMeleeSpells(true);
             DoCast(m_creature, BUFF_STRENGHT_OF_CREATOR);
@@ -547,7 +604,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
             DoCast(m_creature, m_bIsRegularMode ? SPELL_SCORCH : SPELL_SCORCH_H);
             m_creature->SummonCreature(MOB_SCORCH_TARGET, m_creature->getVictim()->GetPositionX(), m_creature->getVictim()->GetPositionY(), m_creature->getVictim()->GetPositionZ(), 0, TEMPSUMMON_DEAD_DESPAWN, 55000);
-            m_uiScorch_Timer = 25000;
+            m_uiScorch_Timer = urand(25000, 28000);
         }
         else
             m_uiScorch_Timer -= uiDiff;
