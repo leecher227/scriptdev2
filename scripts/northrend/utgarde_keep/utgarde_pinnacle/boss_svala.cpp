@@ -71,7 +71,7 @@ enum
     SPELL_SWIRL_SWORD           = 48331, //Visual Effect, need script target 27327
 
     //Summons
-    SPELL_PARALYZE              = 48278, //Fix me. Need lightning effect on target.
+    SPELL_PARALYZE              = 48278,
     SPELL_SHADOWS_IN_THE_DARK   = 59407,
 
     MODEL_ID_INVISIBLE          = 11686,
@@ -196,6 +196,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
 
         pVictim = NULL;
         m_creature->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, uint32(37146));
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
         if (m_creature->isAlive() && m_pInstance && m_pInstance->GetData(TYPE_SVALA) > IN_PROGRESS)
         {
@@ -231,7 +232,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
 
     void AttackStart(Unit* pWho)
     {
-        if(m_uiPhase != NORMAL) return;
+        if (m_uiPhase != NORMAL) return;
  
         ScriptedAI::AttackStart(pWho);
     }
@@ -354,6 +355,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
                         break;
                     case 2:
                         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+                        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         pArthas->CastSpell(m_creature, SPELL_TRANSFORMING_CHANNEL, false);
                         m_creature->CastSpell(m_creature, SPELL_TRANSFORMING_FLOATING, false);
                         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
@@ -392,7 +394,7 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
                 if (m_uiSinsterStrikeTimer <= uiDiff)
                 {
                     DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SINISTER_STRIKE : SPELL_SINISTER_STRIKE_H);
-                    m_uiSinsterStrikeTimer = urand(5000,9000);
+                    m_uiSinsterStrikeTimer = urand(5000, 9000);
                 }
                 else
                     m_uiSinsterStrikeTimer -= uiDiff;
@@ -451,19 +453,19 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
                             if (pVictim)
                             {
                                 DoTeleportPlayer(pVictim, 296.632f, -346.075f, 90.63f, 4.6f);
-                                for(uint8 i = 0; i < 3; ++i)
-                                    if(Creature* pSummon = m_creature->SummonCreature(NPC_RITUAL_CHANNELER, RitualChannelerPos[i].x,RitualChannelerPos[i].y,RitualChannelerPos[i].z, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 27000))
+                                for (uint8 i = 0; i < 3; ++i)
+                                    if (Creature* pSummon = m_creature->SummonCreature(NPC_RITUAL_CHANNELER, RitualChannelerPos[i].x,RitualChannelerPos[i].y,RitualChannelerPos[i].z, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 27000))
                                         ((npc_ritual_channelerAI*)pSummon->AI())->SetVictim(pVictim);
                                 m_creature->SetFacingToObject(pVictim);
                             }
                             m_creature->addUnitState(UNIT_STAT_STUNNED | UNIT_STAT_ROOT);
                             m_uiSacrificeTimer = 100;
-                            m_uiRitualStage++;
+                            ++m_uiRitualStage;
                             break;
                         case 2:
                             m_creature->NearTeleportTo(296.632f, -346.075f, 90.63f + 17.0f, 0);
                             m_uiSacrificeTimer = 100;
-                            m_uiRitualStage++;
+                            ++m_uiRitualStage;
                             break;
                         case 3:
                             if (Creature* pRitualTarget = m_creature->SummonCreature(NPC_RITUAL_TARGET, 296.632f, -346.075f, 90.63f, 1.568f, TEMPSUMMON_TIMED_DESPAWN, 30000))
@@ -472,12 +474,12 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
                                 m_creature->CastSpell(pRitualTarget, SPELL_SWIRL_SWORD, true);
                             }
                             m_uiSacrificeTimer = 100;
-                            m_uiRitualStage++;
+                            ++m_uiRitualStage;
                             break;
                         case 4:
                             m_creature->CastSpell(m_creature, SPELL_RITUAL_OF_SWORD_RS, true);
                             m_uiSacrificeTimer = 26000;
-                            m_uiRitualStage++;
+                            ++m_uiRitualStage;
                             break;
                         case 5:
                             m_uiPhase = NORMAL;
