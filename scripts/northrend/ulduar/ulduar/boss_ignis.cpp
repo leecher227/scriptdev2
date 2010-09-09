@@ -513,7 +513,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
             m_creature->GetMotionMaster()->Clear();
             m_creature->StopMoving();
             SetCombatMovement(false);
-            m_uiDelayTimer = 5000;
+            m_uiDelayTimer = 6000;
             m_bDelay = true;
             m_uiFlame_Jets_Timer = urand(19000, 22000);
         }
@@ -595,19 +595,22 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         else
             m_uiSummon_Timer -= uiDiff;
 
-        if (m_uiScorch_Timer < uiDiff)
+        if (!m_bDelay)
         {
-            if (urand(0, 1))
-                DoScriptText(SAY_SCORCH1, m_creature);
-            else
-                DoScriptText(SAY_SCORCH2, m_creature);
+            if (m_uiScorch_Timer < uiDiff)
+            {
+                if (urand(0, 1))
+                    DoScriptText(SAY_SCORCH1, m_creature);
+                else
+                    DoScriptText(SAY_SCORCH2, m_creature);
 
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_SCORCH : SPELL_SCORCH_H);
-            m_creature->SummonCreature(MOB_SCORCH_TARGET, m_creature->getVictim()->GetPositionX(), m_creature->getVictim()->GetPositionY(), m_creature->getVictim()->GetPositionZ(), 0, TEMPSUMMON_DEAD_DESPAWN, 55000);
-            m_uiScorch_Timer = urand(25000, 28000);
+                DoCast(m_creature, m_bIsRegularMode ? SPELL_SCORCH : SPELL_SCORCH_H);
+                m_creature->SummonCreature(MOB_SCORCH_TARGET, m_creature->getVictim()->GetPositionX(), m_creature->getVictim()->GetPositionY(), m_creature->getVictim()->GetPositionZ(), 0, TEMPSUMMON_DEAD_DESPAWN, 55000);
+                m_uiScorch_Timer = urand(25000, 28000);
+            }
+            else
+                m_uiScorch_Timer -= uiDiff;
         }
-        else
-            m_uiScorch_Timer -= uiDiff;
 
         DoMeleeAttackIfReady();
 
