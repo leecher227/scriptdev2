@@ -13,10 +13,10 @@
 
 enum
 {
-  GOSSIP_TEXTID_CHROMI1            = 12939,
-  GOSSIP_TEXTID_CHROMI2            = 12949,
-  GOSSIP_TEXTID_CHROMI3            = 12950,
-  GOSSIP_TEXTID_CHROMI4            = 12952
+    GOSSIP_TEXTID_CHROMI1           = 12939,
+    GOSSIP_TEXTID_CHROMI2           = 12949,
+    GOSSIP_TEXTID_CHROMI3           = 12950,
+    GOSSIP_TEXTID_CHROMI4           = 12952
 };
 
 bool GossipHello_npc_chromi_start(Player* pPlayer, Creature* pCreature)
@@ -37,16 +37,14 @@ bool GossipSelect_npc_chromi_start(Player* pPlayer, Creature* pCreature, uint32 
 {
     if (uiAction == GOSSIP_ACTION_INFO_DEF+1) 
     { 
-       pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMI2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2); 
-
-       pPlayer->SEND_GOSSIP_MENU(GOSSIP_TEXTID_CHROMI2, pCreature->GetGUID()); 
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMI2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2); 
+        pPlayer->SEND_GOSSIP_MENU(GOSSIP_TEXTID_CHROMI2, pCreature->GetGUID()); 
     } 
 
     if (uiAction == GOSSIP_ACTION_INFO_DEF+2) 
     { 
-       pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMI3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+3); 
-       
-       pPlayer->SEND_GOSSIP_MENU(GOSSIP_TEXTID_CHROMI3, pCreature->GetGUID()); 
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMI3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+3); 
+        pPlayer->SEND_GOSSIP_MENU(GOSSIP_TEXTID_CHROMI3, pCreature->GetGUID()); 
     } 
 
     if (uiAction == GOSSIP_ACTION_INFO_DEF+3) 
@@ -64,7 +62,6 @@ bool GossipSelect_npc_chromi_start(Player* pPlayer, Creature* pCreature, uint32 
  
         pPlayer->SEND_GOSSIP_MENU(GOSSIP_TEXTID_CHROMI4, pCreature->GetGUID()); 
     } 
-
     return true; 
 }
 
@@ -103,22 +100,22 @@ struct MANGOS_DLL_DECL npc_chromi_startAI : public ScriptedAI
 
 enum
 {
-   SAY_MIKE01                = -1557270,
-   SAY_FORRESTER02           = -1557271,
-   SAY_JAMES03               = -1557272,
-   SAY_SIABI04               = -1557273,
-   SAY_MIKE05                = -1557274,
-   SAY_CORICKS06             = -1557275,
-   SAY_GRIAN07               = -1557276,
-   SAY_CORICKS08             = -1557277,
-   SAY_JAMES09               = -1557278,
-   SAY_FORRESTER10           = -1557279,
+    SAY_MIKE01              = -1557270,
+    SAY_FORRESTER02         = -1557271,
+    SAY_JAMES03             = -1557272,
+    SAY_SIABI04             = -1557273,
+    SAY_MIKE05              = -1557274,
+    SAY_CORICKS06           = -1557275,
+    SAY_GRIAN07             = -1557276,
+    SAY_CORICKS08           = -1557277,
+    SAY_JAMES09             = -1557278,
+    SAY_FORRESTER10         = -1557279,
 
-   EMOTE_SHOT                = 5,
-   EMOTE_TALK                = 1,
-   EMOTE_POINT               = 25,
-   EMOTE_NO                  = 274,
-   EMOTE_LAUGH               = 11
+    EMOTE_SHOT              = 5,
+    EMOTE_TALK              = 1,
+    EMOTE_POINT             = 25,
+    EMOTE_NO                = 274,
+    EMOTE_LAUGH             = 11
 };
 
 struct MANGOS_DLL_DECL npc_mikeAI : public ScriptedAI
@@ -143,26 +140,25 @@ struct MANGOS_DLL_DECL npc_mikeAI : public ScriptedAI
 
     void Reset()
     {
-       if(m_uiPhase != 2)
-       {
-          m_uiStep = 0;
-          m_uiStepTimer = 100;
-          m_uiPhase = 0;
-       }
+        if (m_uiPhase != 2)
+        {
+            m_uiStep = 0;
+            m_uiStepTimer = 100;
+            m_uiPhase = 0;
+        }
     }
 
     void MoveInLineOfSight(Unit* who)
     {
-      if (!who)
-          return;
+        if (!who)
+            return;
 
-      if(!m_pInstance) return;
-
-           if (who->GetTypeId() == TYPEID_PLAYER && m_creature->GetDistance2d(who) <= 15 && who->GetPositionZ() > 99.50f && m_uiPhase == 0)
-           {
-             m_creature->SetUInt64Value(UNIT_FIELD_TARGET, who->GetGUID());
-             m_uiPhase = 1;
-           }
+        if (m_pInstance)
+            if (who->GetTypeId() == TYPEID_PLAYER && m_creature->GetDistance2d(who) <= 15 && who->GetPositionZ() > 99.50f && m_uiPhase == 0)
+            {
+                m_creature->SetUInt64Value(UNIT_FIELD_TARGET, who->GetGUID());
+                m_uiPhase = 1;
+            }
     }
 
     void TavernEvent()
@@ -262,7 +258,7 @@ struct MANGOS_DLL_DECL npc_mikeAI : public ScriptedAI
             if(m_uiStepTimer < uiDiff)
             {
                TavernEvent();
-               m_uiStep++;
+               ++m_uiStep;
             }
             else m_uiStepTimer -= uiDiff;
        }
@@ -393,17 +389,17 @@ struct MANGOS_DLL_DECL npc_rogerAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-       if(m_uiPhase == 1)
-       {
-            if(m_uiStepTimer < uiDiff)
+        if (m_uiPhase == 1)
+        {
+            if (m_uiStepTimer < uiDiff)
             {
-               FirstCrateEvent();
-               m_uiStep++;
+                FirstCrateEvent();
+                ++m_uiStep;
             }
-            else m_uiStepTimer -= uiDiff;
-       }
-
-       return;
+            else
+                m_uiStepTimer -= uiDiff;
+        }
+        return;
     }
 };
 
@@ -439,22 +435,22 @@ struct MANGOS_DLL_DECL npc_moriganAI : public ScriptedAI
 
     void Reset()
     {
-       if(m_uiPhase != 2)
-       {
-          m_uiStep = 0;
-          m_uiStepTimer = 100;
-          m_uiPhase = 0;
-       }
+        if (m_uiPhase != 2)
+        {
+            m_uiStep = 0;
+            m_uiStepTimer = 100;
+            m_uiPhase = 0;
+        }
     }
 
     void StartMorigan()
     {
-      m_uiPhase = 1;
+        m_uiPhase = 1;
     }
 
     void SecondCrateEvent()
     {
-        switch(m_uiStep)
+        switch (m_uiStep)
         {
            case 0:
               DoScriptText(SAY_MORIGAN01, m_creature);
@@ -544,17 +540,17 @@ struct MANGOS_DLL_DECL npc_moriganAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-       if(m_uiPhase == 1)
-       {
-            if(m_uiStepTimer < uiDiff)
+        if (m_uiPhase == 1)
+        {
+            if (m_uiStepTimer < uiDiff)
             {
-               SecondCrateEvent();
-               m_uiStep++;
+                SecondCrateEvent();
+                ++m_uiStep;
             }
-            else m_uiStepTimer -= uiDiff;
-       }
-
-       return;
+            else
+                m_uiStepTimer -= uiDiff;
+        }
+        return;
     }
 };
      
@@ -589,17 +585,17 @@ struct MANGOS_DLL_DECL npc_jenaAI : public ScriptedAI
 
     void Reset()
     {
-       if(m_uiPhase != 2)
-       {
-          m_uiStep = 0;
-          m_uiStepTimer = 100;
-          m_uiPhase = 0;
-       }
+        if (m_uiPhase != 2)
+        {
+            m_uiStep = 0;
+            m_uiStepTimer = 100;
+            m_uiPhase = 0;
+        }
     }
 
     void StartJena()
     {
-      m_uiPhase = 1;
+        m_uiPhase = 1;
     }
 
     void ThirdCrateEvent()
@@ -730,17 +726,17 @@ struct MANGOS_DLL_DECL npc_jenaAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-       if(m_uiPhase == 1)
-       {
-            if(m_uiStepTimer < uiDiff)
+        if (m_uiPhase == 1)
+        {
+            if (m_uiStepTimer < uiDiff)
             {
-               ThirdCrateEvent();
-               m_uiStep++;
+                ThirdCrateEvent();
+                ++m_uiStep;
             }
-            else m_uiStepTimer -= uiDiff;
-       }
-
-       return;
+            else
+                m_uiStepTimer -= uiDiff;
+        }
+        return;
     }
 };
 
@@ -920,17 +916,17 @@ struct MANGOS_DLL_DECL npc_malcolmAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-       if(m_uiPhase == 1)
-       {
-            if(m_uiStepTimer < uiDiff)
+        if (m_uiPhase == 1)
+        {
+            if (m_uiStepTimer < uiDiff)
             {
-               FourCrateEvent();
-               m_uiStep++;
+                FourCrateEvent();
+                ++m_uiStep;
             }
-            else m_uiStepTimer -= uiDiff;
-       }
-
-       return;
+            else
+                m_uiStepTimer -= uiDiff;
+        }
+        return;
     }
 };
 
@@ -986,7 +982,7 @@ struct MANGOS_DLL_DECL npc_bartleby_csAI : public ScriptedAI
 
     void StartBartleby()
     {
-      m_uiPhase = 3;
+        m_uiPhase = 3;
     }
 
     void FifthCrateEvent()
@@ -1066,26 +1062,27 @@ struct MANGOS_DLL_DECL npc_bartleby_csAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-       if(m_uiPhase == 3)
-       {
-            if(m_uiStepTimer < uiDiff)
+        if (m_uiPhase == 3)
+        {
+            if (m_uiStepTimer < uiDiff)
             {
-               FifthCrateEvent();
-               m_uiStep++;
+                FifthCrateEvent();
+                ++m_uiStep;
             }
-            else m_uiStepTimer -= uiDiff;
-       }
+            else
+                m_uiStepTimer -= uiDiff;
+        }
 
-       if(m_uiPhase == 1)
-       {
-            if(m_uiStepTimer < uiDiff)
+        if (m_uiPhase == 1)
+        {
+            if (m_uiStepTimer < uiDiff)
             {
                SpeechEvent();
-               m_uiStep++;
+               ++m_uiStep;
             }
-            else m_uiStepTimer -= uiDiff;
-       }
-
+            else
+                m_uiStepTimer -= uiDiff;
+        }
        return;
     }
 };
@@ -1109,66 +1106,47 @@ struct MANGOS_DLL_DECL npc_stratholme_cratesAI : public ScriptedAI
     
     ScriptedInstance* m_pInstance;
 
-    bool Active;
+    bool m_bIsActive;
 
     void Reset()
     {
+        m_bIsActive = false;
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
-       if(!m_pInstance) return;
+        if (!m_pInstance)
+            return;
 
-       if(m_creature->HasAura(SPELL_LIGHT) && Active != true)
-       {    
-            if(Creature* pRoger = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ROGER)))
-            { 
-               if(m_creature->GetDistance2d(pRoger->GetPositionX(), pRoger->GetPositionY()) < 50.0f)
-               {
+        if (m_creature->HasAura(SPELL_LIGHT) && !m_bIsActive)
+        {    
+            if (Creature* pRoger = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_ROGER)))
+                if (m_creature->GetDistance2d(pRoger->GetPositionX(), pRoger->GetPositionY()) < 50.0f)
                    ((npc_rogerAI*)pRoger->AI())->StartRoger();
-               }
-            }
 
-            if(Creature* pMorigan = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_MORIGAN)))
-            { 
-               if(m_creature->GetDistance2d(pMorigan->GetPositionX(), pMorigan->GetPositionY()) < 50.0f)
-               {
-                  ((npc_moriganAI*)pMorigan->AI())->StartMorigan();
-               }
-            }
+            if (Creature* pMorigan = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_MORIGAN)))
+                if (m_creature->GetDistance2d(pMorigan->GetPositionX(), pMorigan->GetPositionY()) < 50.0f)
+                    ((npc_moriganAI*)pMorigan->AI())->StartMorigan();
 
-            if(Creature* pJena = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_JENA)))
-            { 
-               if(m_creature->GetDistance2d(pJena->GetPositionX(), pJena->GetPositionY()) < 50.0f)
-               {
-                   ((npc_jenaAI*)pJena->AI())->StartJena();
-               }
-            }
+            if (Creature* pJena = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_JENA)))
+                if (m_creature->GetDistance2d(pJena->GetPositionX(), pJena->GetPositionY()) < 50.0f)
+                    ((npc_jenaAI*)pJena->AI())->StartJena();
 
-            if(Creature* pMalcolm = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_MALCOLM)))
-            { 
-               if(m_creature->GetDistance2d(pMalcolm->GetPositionX(), pMalcolm->GetPositionY()) < 50.0f)
-               {
-                   ((npc_malcolmAI*)pMalcolm->AI())->StartMalcolm();
-               }
-            }
+            if (Creature* pMalcolm = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_MALCOLM)))
+                if (m_creature->GetDistance2d(pMalcolm->GetPositionX(), pMalcolm->GetPositionY()) < 50.0f)
+                    ((npc_malcolmAI*)pMalcolm->AI())->StartMalcolm();
 
-            if(Creature* pBartleby = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_BARTLEBY)))
-            { 
-               if(m_creature->GetDistance2d(pBartleby->GetPositionX(), pBartleby->GetPositionY()) < 50.0f)
-               {
-                   ((npc_bartleby_csAI*)pBartleby->AI())->StartBartleby();
-               }
-            }
+            if (Creature* pBartleby = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_BARTLEBY)))
+                if (m_creature->GetDistance2d(pBartleby->GetPositionX(), pBartleby->GetPositionY()) < 50.0f)
+                    ((npc_bartleby_csAI*)pBartleby->AI())->StartBartleby();
 
             m_pInstance->SetData(TYPE_CRATES_COUNT, 1);
-            if(GameObject* pLight = GetClosestGameObjectWithEntry(m_creature, GO_CRATE_LIGHT, 5.0f))
+            
+            if (GameObject* pLight = GetClosestGameObjectWithEntry(m_creature, GO_CRATE_LIGHT, 5.0f))
                pLight->SetPhaseMask(0, true);
-            //m_creature->SetPhaseMask(0, true);
-            Active = true;
-       }
-
-       return;
+            
+            m_bIsActive = true;
+        }
     }
 };
 
@@ -1214,47 +1192,47 @@ CreatureAI* GetAI_npc_stratholme_crates(Creature* pCreature)
 
 void AddSC_culling_of_stratholmeAI()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "npc_chromi_start";
-    newscript->pGossipHello =  &GossipHello_npc_chromi_start;
-    newscript->pGossipSelect = &GossipSelect_npc_chromi_start;
-    newscript->GetAI = &GetAI_npc_chromi_start;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_chromi_start";
+    pNewScript->pGossipHello =  &GossipHello_npc_chromi_start;
+    pNewScript->pGossipSelect = &GossipSelect_npc_chromi_start;
+    pNewScript->GetAI = &GetAI_npc_chromi_start;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_mike";
-    newscript->GetAI = &GetAI_npc_mike;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_mike";
+    pNewScript->GetAI = &GetAI_npc_mike;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_roger";
-    newscript->GetAI = &GetAI_npc_roger;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_roger";
+    pNewScript->GetAI = &GetAI_npc_roger;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_morigan";
-    newscript->GetAI = &GetAI_npc_morigan;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_morigan";
+    pNewScript->GetAI = &GetAI_npc_morigan;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_jena";
-    newscript->GetAI = &GetAI_npc_jena;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_jena";
+    pNewScript->GetAI = &GetAI_npc_jena;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_malcolm";
-    newscript->GetAI = &GetAI_npc_malcolm;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_malcolm";
+    pNewScript->GetAI = &GetAI_npc_malcolm;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_bartleby_cs";
-    newscript->GetAI = &GetAI_npc_bartleby_cs;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_bartleby_cs";
+    pNewScript->GetAI = &GetAI_npc_bartleby_cs;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_stratholme_crates";
-    newscript->GetAI = &GetAI_npc_stratholme_crates;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_stratholme_crates";
+    pNewScript->GetAI = &GetAI_npc_stratholme_crates;
+    pNewScript->RegisterSelf();
 }
