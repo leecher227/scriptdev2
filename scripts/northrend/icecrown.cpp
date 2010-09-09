@@ -112,13 +112,43 @@ bool GossipSelect_npc_arete(Player* pPlayer, Creature* pCreature, uint32 uiSende
 
 enum
 {
-    TITLE_CRUSADER    = 123
+    TITLE_CRUSADER              = 123,
+
+    FACTION_ARGENT_CRUSADE      = 1106,
+    
+    //Horde
+    FACTION_ORGRIMMAR           = 76,
+    FACTION_DARKSPEAR_TROLLS    = 530,
+    FACTION_UNDERCITY           = 68,
+    FACTION_THUNDER_BLUFF       = 81,
+    FACTION_SILVERMOON_CITY     = 911,
+
+    //Alliance
+    FACTION_STORMWIND           = 72,
+    FACTION_IRONFORGE           = 47,
+    FACTION_GNOMEREGAN          = 54,
+    FACTION_DARNASSUS           = 69,
+    FACTION_EXODAR              = 930,
 };
 
 bool GossipHello_npc_dame_evniki_kapsalis(Player* pPlayer, Creature* pCreature)
 {
-    if (pPlayer->HasTitle(TITLE_CRUSADER))
+    if (pPlayer->GetReputationRank(FACTION_ARGENT_CRUSADE) >= REP_EXALTED &&
+        ((pPlayer->GetTeam() == HORDE &&
+        pPlayer->GetReputationRank(FACTION_ORGRIMMAR) >= REP_EXALTED &&
+        pPlayer->GetReputationRank(FACTION_DARKSPEAR_TROLLS) >= REP_EXALTED &&
+        pPlayer->GetReputationRank(FACTION_UNDERCITY) >= REP_EXALTED &&
+        pPlayer->GetReputationRank(FACTION_THUNDER_BLUFF) >= REP_EXALTED &&
+        pPlayer->GetReputationRank(FACTION_SILVERMOON_CITY) >= REP_EXALTED) ||
+        (pPlayer->GetTeam() == ALLIANCE &&
+        pPlayer->GetReputationRank(FACTION_STORMWIND) >= REP_EXALTED &&
+        pPlayer->GetReputationRank(FACTION_IRONFORGE) >= REP_EXALTED &&
+        pPlayer->GetReputationRank(FACTION_GNOMEREGAN) >= REP_EXALTED &&
+        pPlayer->GetReputationRank(FACTION_DARNASSUS) >= REP_EXALTED &&
+        pPlayer->GetReputationRank(FACTION_EXODAR) >= REP_EXALTED)))
+    {
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_VENDOR, GOSSIP_TEXT_BROWSE_GOODS, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_TRADE);
+    }
 
     pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
     return true;
