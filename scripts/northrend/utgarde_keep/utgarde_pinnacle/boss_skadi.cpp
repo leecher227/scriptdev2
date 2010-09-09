@@ -128,7 +128,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
         m_bIsBreathAttack = false;
         m_bIsSkadiMove = false;
         m_bIsFirstPhase = true;
-        m_bSummonHarpooner = false;
+        m_bSummonHarpooner = true;
         m_bCanLaunchHarpoon = false;
     
         m_uiIntroCount = 0;
@@ -275,7 +275,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
 
         ++m_uiWpCount;
         
-        if(m_uiWpCount > 6)
+        if (m_uiWpCount > 6)
            m_uiWpCount = 0;
 
     }
@@ -317,8 +317,10 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                         {
                             case 0:
                                 m_creature->EnterVehicle(pGrauf, 0, true);
-                                for (uint8 i = 0; i < 10; ++i)
+                                for (uint8 i = 0; i < 7; ++i)
                                     m_creature->SummonCreature(NPC_YMIRJAR_WARRIOR, SUMMON_X+urand(0, 6), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
+                                for (uint8 i = 0; i < 3; ++i)
+                                    m_creature->SummonCreature(NPC_YMIRJAR_HARPOONER, SUMMON_X+urand(0, 6), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
                                 m_uiIntroTimer = 3000;
                                 break;
                             case 1:
@@ -473,7 +475,11 @@ struct MANGOS_DLL_DECL boss_graufAI : public ScriptedAI
                 ((boss_skadiAI*)pSkadi->AI())->m_uiGraufGUID = 0;
                 ((boss_skadiAI*)pSkadi->AI())->m_bCanLaunchHarpoon = false;
                 if (Unit* pTarget = pSkadi->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                {
+                    pSkadi->GetMotionMaster()->MovementExpired();
+                    pSkadi->GetMotionMaster()->Clear();
                     pSkadi->GetMotionMaster()->MoveChase(pTarget);
+                }
             }
         }
         m_creature->GetMap()->CreatureRelocation(m_creature, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()-400.0f, 0);

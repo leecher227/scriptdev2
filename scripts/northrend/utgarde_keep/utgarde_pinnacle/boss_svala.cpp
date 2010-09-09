@@ -355,7 +355,6 @@ struct MANGOS_DLL_DECL boss_svalaAI : public ScriptedAI
                         break;
                     case 2:
                         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-                        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         pArthas->CastSpell(m_creature, SPELL_TRANSFORMING_CHANNEL, false);
                         m_creature->CastSpell(m_creature, SPELL_TRANSFORMING_FLOATING, false);
                         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
