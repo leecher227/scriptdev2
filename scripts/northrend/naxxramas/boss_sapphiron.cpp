@@ -36,6 +36,7 @@ enum
     SPELL_TAIL_SWEEP        = 55697,
     SPELL_TAIL_SWEEP_H      = 55696,
     SPELL_ICEBOLT           = 28522,
+    SPELL_ICE_BLOCK_VISUAL  = 62766, //hack
     SPELL_FROST_BREATH      = 28524,
     SPELL_FROST_BREATH_BALL = 30101,
     SPELL_LIFE_DRAIN        = 28542,
@@ -154,7 +155,10 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
             Map::PlayerList const &PlayerList = map->GetPlayers();
             if (!PlayerList.isEmpty())
                 for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+                {
                     itr->getSource()->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FROST, false);
+                    itr->getSource()->RemoveAurasDueToSpell(SPELL_ICE_BLOCK_VISUAL);
+                }
         }
     }
 
@@ -180,7 +184,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
             {
                 if (target && target->isAlive() && target->HasAura(SPELL_ICEBOLT))
                 {
-                    target->CastSpell(target, 62766, true);
+                    target->CastSpell(target, SPELL_ICE_BLOCK_VISUAL, true);
                     IceBlockTargets.push_back(target);
                 }
                 if (Icebolt_Count == (m_bIsRegularMode ? 2 : 3))
@@ -197,7 +201,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
             {
                 if (target && target->GetTypeId() == TYPEID_PLAYER && target->HasAura(SPELL_ICEBOLT))
                 {
-                    target->RemoveAurasDueToSpell(62766);
+                    target->RemoveAurasDueToSpell(SPELL_ICE_BLOCK_VISUAL);
                     target->RemoveAurasDueToSpell(SPELL_ICEBOLT);
                 }
                 break;
@@ -213,7 +217,7 @@ struct MANGOS_DLL_DECL boss_sapphironAI : public ScriptedAI
 	    	|| obj1->GetPositionY() < std::min(obj2->GetPositionY(), obj3->GetPositionY()))
 		    return false;
 
-        if(!size)
+        if (!size)
             size = obj1->GetObjectBoundingRadius() / 2;
 
 	    float angle = obj2->GetAngle(obj1) - obj2->GetAngle(obj3);
