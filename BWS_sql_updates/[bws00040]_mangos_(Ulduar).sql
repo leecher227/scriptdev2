@@ -28,22 +28,20 @@ DELETE FROM vehicle_data WHERE entry=342;
 INSERT INTO vehicle_data (entry, flags, Spell1, Spell2, Spell3, Spell4, Spell5, Spell6, Spell7, Spell8, Spell9, Spell10, req_aura) VALUES
 (342, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-/*
 -- Razorscale
-UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_razorscale' WHERE entry=33186;
--- original x=587.547, y= -174.927, z = 391.517; make the boss fly before encounter starts
-UPDATE creature SET position_x = 590.346741, position_y = -226.947647, position_z = 442.897583 WHERE id = 33186;
-UPDATE gameobject_template SET flags= 6553648, ScriptName='go_broken_harpoon' WHERE entry = 194565;
+-- UPDATE gameobject_template SET flags= 6553648, ScriptName='go_broken_harpoon' WHERE entry = 194565;
 -- only 2 harpoons for 10 man
-UPDATE gameobject SET spawnMask = 2 WHERE guid IN (73595, 73592);
+-- UPDATE gameobject SET spawnMask = 2 WHERE guid IN (73595, 73592);
 -- mole machines & adds
-UPDATE creature_template SET ScriptName = 'mob_mole_machine' WHERE entry = 33245;
-UPDATE creature_template SET ScriptName = 'mob_dark_rune_watcher' WHERE entry = 33453;
-UPDATE creature_template SET ScriptName = 'mob_dark_rune_sentinel' WHERE entry = 33846;
-UPDATE creature_template SET ScriptName = 'mob_dark_rune_guardian' WHERE entry = 33388;
-UPDATE creature_template SET ScriptName = 'npc_expedition_commander' WHERE entry = 33210;
-UPDATE creature_template SET ScriptName = 'mob_devouring_flame_target' WHERE entry IN (34189, 34188);
+UPDATE gameobject_template SET ScriptName='go_broken_harpoon' WHERE entry=194565;
+UPDATE creature_template SET ScriptName='mob_mole_machine' WHERE entry=33245;
+UPDATE creature_template SET ScriptName='mob_dark_rune_watcher' WHERE entry=33453;
+UPDATE creature_template SET ScriptName='mob_dark_rune_sentinel' WHERE entry=33846;
+UPDATE creature_template SET ScriptName='mob_dark_rune_guardian' WHERE entry=33388;
+UPDATE creature_template SET ScriptName='npc_expedition_commander' WHERE entry=33210;
+UPDATE creature_template SET ScriptName='mob_devouring_flame_target' WHERE entry IN (34189, 34188);
 
+/*
 -- XT002
 UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_xt002' WHERE entry=33293;
 UPDATE creature_template SET ScriptName = 'mob_pummeler' WHERE entry = 33344;

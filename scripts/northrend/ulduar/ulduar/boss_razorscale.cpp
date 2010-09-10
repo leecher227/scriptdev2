@@ -102,11 +102,11 @@ struct LocationsXY
 
 static LocationsXY PositionLoc[]=
 {
-    {621.633301f, -228.671371f, 391.180328f},//right
-    {564.140198f, -222.049149f, 391.517212f},//left
-    {591.629761f, -209.629761f, 392.629761f},//middle
-    {587.629761f, -179.022522f, 391.625061f},//ground
-    {587.629761f, -179.022522f, 435.415070f},//air
+    {621.633301f, -228.671371f, 391.180328f},               //right
+    {564.140198f, -222.049149f, 391.517212f},               //left
+    {591.629761f, -209.629761f, 392.629761f},               //middle
+    {587.629761f, -179.022522f, 391.625061f},               //ground
+    {587.629761f, -179.022522f, 435.415070f},               //air
 };
 
 #define HOME_X                      587.546997f
@@ -115,7 +115,7 @@ static LocationsXY PositionLoc[]=
 #define GOSSIP_START     "Bring Razorscale down!"
 
 //expedition commander
-// start the event
+//start the event
 struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
 {
     npc_expedition_commanderAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -152,20 +152,12 @@ struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
 
     void GetRazorDown()
     {
-        if (Creature* pTemp = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_RAZORSCALE)))
-        {
+        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RAZORSCALE)))
             pTemp->SetInCombatWithZone();
-            if(Unit* pPlayer = Unit::GetUnit(*m_creature, m_uiPlayerGUID))
-            {
-                pTemp->AddThreat(pPlayer,0.0f);
-                pTemp->AI()->AttackStart(pPlayer);
-            }
-        }
     }
 
     void BeginRazorscaleEvent(Player* pPlayer)
     {
-        m_uiPlayerGUID      = pPlayer->GetGUID();
         m_bIsIntro          = true;
         m_uiSpeech_Timer    = 3000;
         m_uiIntro_Phase     = 0;
@@ -173,39 +165,41 @@ struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_bIsIntro)
+        if (m_bIsIntro)
         {
-            if(m_uiSpeech_Timer < uiDiff)
+            if (m_uiSpeech_Timer < uiDiff)
             {
-                switch(m_uiIntro_Phase)
+                switch (m_uiIntro_Phase)
                 {
-                case 0:
-                    if(Creature* pEngineer = GetClosestCreatureWithEntry(m_creature, NPC_EXP_ENGINEER, 50.0f))
-                        DoScriptText(SAY_AGGRO1, pEngineer);
-                            GetRazorDown();
-                    ++m_uiIntro_Phase;
-                    m_uiSpeech_Timer = 5000;
-                    break;
-                case 1:
-                    DoScriptText(SAY_AGGRO2, m_creature);
-                    ++m_uiIntro_Phase;
-                    m_uiSpeech_Timer = 7000;
-                    break;
-                case 2:
-                    if(Creature* pEngineer = GetClosestCreatureWithEntry(m_creature, NPC_EXP_ENGINEER, 50.0f))
-                        DoScriptText(SAY_AGGRO3, pEngineer);
-                    ++m_uiIntro_Phase;
-                    m_uiSpeech_Timer = 5000;
-                    break;
-                case 3:
-                    m_bIsIntro = false;
-                    ++m_uiIntro_Phase;
-                    m_uiSpeech_Timer = 10000;
-                    break;
-                default:
-                    m_uiSpeech_Timer = 100000;
+                    case 0:
+                        if (Creature* pEngineer = GetClosestCreatureWithEntry(m_creature, NPC_EXP_ENGINEER, 50.0f))
+                            DoScriptText(SAY_AGGRO1, pEngineer);
+                        GetRazorDown();
+                        ++m_uiIntro_Phase;
+                        m_uiSpeech_Timer = 5000;
+                        break;
+                    case 1:
+                        DoScriptText(SAY_AGGRO2, m_creature);
+                        ++m_uiIntro_Phase;
+                        m_uiSpeech_Timer = 7000;
+                        break;
+                    case 2:
+                        if(Creature* pEngineer = GetClosestCreatureWithEntry(m_creature, NPC_EXP_ENGINEER, 50.0f))
+                            DoScriptText(SAY_AGGRO3, pEngineer);
+                        ++m_uiIntro_Phase;
+                        m_uiSpeech_Timer = 5000;
+                        break;
+                    case 3:
+                        m_bIsIntro = false;
+                        ++m_uiIntro_Phase;
+                        m_uiSpeech_Timer = 10000;
+                        break;
+                    default:
+                        m_uiSpeech_Timer = 100000;
                 }
-            }else m_uiSpeech_Timer -= uiDiff;
+            }
+            else
+                m_uiSpeech_Timer -= uiDiff;
         }
     }
 };
@@ -217,9 +211,9 @@ CreatureAI* GetAI_npc_expedition_commander(Creature* pCreature)
 
 bool GossipHello_npc_expedition_commander(Player* pPlayer, Creature* pCreature)
 {
-    ScriptedInstance* pInstance = (ScriptedInstance *) pCreature->GetInstanceData();
+    ScriptedInstance* pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
 
-    if(pInstance->GetData(TYPE_RAZORSCALE) != DONE)
+    if (pInstance->GetData(TYPE_RAZORSCALE) != DONE)
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
 
     pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
@@ -268,8 +262,9 @@ struct MANGOS_DLL_DECL mob_devouring_flame_targetAI : public ScriptedAI
             return;
 
         if (m_uiDeath_Timer < uiDiff)
-            m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-        else m_uiDeath_Timer -= uiDiff;
+            m_creature->ForcedDespawn();
+        else
+            m_uiDeath_Timer -= uiDiff;
     }
 };
 
@@ -309,13 +304,15 @@ struct MANGOS_DLL_DECL mob_dark_rune_watcherAI : public ScriptedAI
             {
                 case 0:
 					DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_LIGHTNING_BOLT : SPELL_LIGHTNING_BOLT_H);
-				break;
+				    break;
 				case 1:
 					DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CHAIN_LIGHTNING : SPELL_CHAIN_LIGHTNING_H);
-				break;
+				    break;
 			}
             m_uiSpell_Timer = urand(5000, 10000);
-        }else m_uiSpell_Timer -= diff;        
+        }
+        else
+            m_uiSpell_Timer -= diff;        
 		
 		DoMeleeAttackIfReady();
 	}
@@ -357,13 +354,17 @@ struct MANGOS_DLL_DECL mob_dark_rune_sentinelAI : public ScriptedAI
         {
 			DoCast(m_creature, SPELL_WHIRLWIND);
             m_uiWhirl_Timer = urand(10000, 15000);
-        }else m_uiWhirl_Timer -= diff;
+        }
+        else
+            m_uiWhirl_Timer -= diff;
 
 		if (m_uiShout_Timer < diff)
         {
 			DoCast(m_creature, m_bIsRegularMode ? SPELL_BATTLE_SHOUT : SPELL_BATTLE_SHOUT_H);
             m_uiShout_Timer = 30000;
-        }else m_uiShout_Timer -= diff;
+        }
+        else
+            m_uiShout_Timer -= diff;
 		
 		DoMeleeAttackIfReady();
 	}
@@ -403,7 +404,9 @@ struct MANGOS_DLL_DECL mob_dark_rune_guardianAI : public ScriptedAI
         {
 			DoCast(m_creature->getVictim(), SPELL_STORMSTRIKE);
             m_uiStormstrike_Timer = urand(7000, 13000);
-        }else m_uiStormstrike_Timer -= diff;
+        }
+        else
+            m_uiStormstrike_Timer -= diff;
 		
 		DoMeleeAttackIfReady();
 	}
@@ -421,7 +424,7 @@ struct MANGOS_DLL_DECL mob_mole_machineAI : public ScriptedAI
     mob_mole_machineAI(Creature* pCreature) : ScriptedAI(pCreature) 
 	{
 		m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        pCreature->SetDisplayId(11686);     // make invisible
+        pCreature->SetDisplayId(11686);
         SetCombatMovement(false);
         Reset();
 	}
@@ -443,7 +446,7 @@ struct MANGOS_DLL_DECL mob_mole_machineAI : public ScriptedAI
 		if (m_uiSummonTimer < diff)
         {
 			// summon 2 dwarfes
-            if(!m_bIsSentinel)
+            if (!m_bIsSentinel)
             {
                 if (Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_WATCHER, m_creature->GetPositionX() + 5, m_creature->GetPositionY() + 5, m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
                 {
@@ -466,7 +469,9 @@ struct MANGOS_DLL_DECL mob_mole_machineAI : public ScriptedAI
                 }
             }
             m_uiSummonTimer = 60000;
-        }else m_uiSummonTimer -= diff;
+        }
+        else
+            m_uiSummonTimer -= diff;
 	}
 };
 
@@ -493,11 +498,11 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 	uint32 m_uiFlame_Buffet_Timer;
 	uint32 m_uiFuse_Armor_Timer;
 	uint32 m_uiFlame_Breath_Timer;
-	uint32 m_uiWave1_spawn;     //right side, 1 of each
-	uint32 m_uiWave2_spawn;     //left side, 1 of each
-	uint32 m_uiWave3_spawn;     // big guy
+	uint32 m_uiWave1_spawn;                                 //right side, 1 of each
+	uint32 m_uiWave2_spawn;                                 //left side, 1 of each
+	uint32 m_uiWave3_spawn;                                 //big guy
 	uint32 m_uiBerserk_Timer;
-	uint32 m_uiGrounded_Timer;  // 8 secs after ground fase is over, adds come
+	uint32 m_uiGrounded_Timer;                              //8 secs after ground fase is over, adds come
 	uint32 m_uiGround_Cast;
 	uint32 m_uiGround_Knockback;
     uint32 m_uiRepairHarpoonTimer;
@@ -517,8 +522,8 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
     void Reset()
     {
-		m_uiFireball_Timer  = 10000;    // 10 secs for the first, fckin spam after that ~2secs
-		m_uiDevouring_Flame_Timer = 18000; // 18 secs first, 12 seconds after
+		m_uiFireball_Timer  = 10000;                        //10 secs for the first, fckin spam after that ~2secs
+		m_uiDevouring_Flame_Timer = 18000;                  //18 secs first, 12 seconds after
 		m_uiWave1_spawn     = urand(5000, 10000);    
 		m_uiWave2_spawn     = urand(5000, 10000);  
 		m_uiWave3_spawn     = urand(5000, 10000);
@@ -527,7 +532,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         m_uiRepairHarpoonTimer = 53000;
         m_uiHarpoonsRepaired = 0;
         m_uiMaxHarpoons     = m_bIsRegularMode ? 2 : 4;
-        for(int i = 0; i < m_uiMaxHarpoons; i++)
+        for (uint8 i = 0; i < m_uiMaxHarpoons; i++)
             m_uiHarpoonsGUID[i] = 0;
 		m_bAirphase         = false;
 		m_bIsGrounded       = false;
@@ -537,7 +542,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         m_uiHarpoonsUsed    = 0;
         lHarpoons.clear();
         
-        if(m_creature->GetPositionZ() < 435.0f)
+        if (m_creature->GetPositionZ() < 435.0f)
         {
             m_creature->GetMap()->CreatureRelocation(m_creature, PositionLoc[4].x, PositionLoc[4].y, PositionLoc[4].z, 0.0f);
 		    m_creature->SendMonsterMove(PositionLoc[4].x, PositionLoc[4].y, PositionLoc[4].z, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), 1);
@@ -572,13 +577,13 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         GetGameObjectListWithEntryInGrid(lHarpoons, m_creature, GO_BROKEN_HARPOON, 200.0f);
         if (!lHarpoons.empty())
         {
-            int i = 0;
-            for(std::list<GameObject*>::iterator iter = lHarpoons.begin(); iter != lHarpoons.end(); ++iter)
+            uint8 i = 0;
+            for (std::list<GameObject*>::iterator iter = lHarpoons.begin(); iter != lHarpoons.end(); ++iter)
             {
-                if ((*iter))
+                if (*iter)
                 {
                     m_uiHarpoonsGUID[i] = (*iter)->GetGUID();
-                    i += 1;
+                    ++i;
                 }          
             }
         }
@@ -603,9 +608,9 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         // reset harpoons
         if (!lHarpoons.empty())
         {
-            for(std::list<GameObject*>::iterator iter = lHarpoons.begin(); iter != lHarpoons.end(); ++iter)
+            for (std::list<GameObject*>::iterator iter = lHarpoons.begin(); iter != lHarpoons.end(); ++iter)
             {
-                if ((*iter))
+                if (*iter)
                 {
                     (*iter)->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
                     //(*iter)->SetUInt32Value(GAMEOBJECT_DISPLAYID, 8631);
@@ -621,7 +626,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
         // AIR PHASE
         // air position check (sometimes it falls to the ground like a rock
-        if(m_creature->GetPositionZ() < 430.0f && m_bAirphase && !m_bIsGrounded)
+        if (m_creature->GetPositionZ() < 430.0f && m_bAirphase && !m_bIsGrounded)
         {
             m_creature->GetMap()->CreatureRelocation(m_creature, PositionLoc[4].x, PositionLoc[4].y, PositionLoc[4].z, 0.0f);
 		    m_creature->SendMonsterMove(PositionLoc[4].x, PositionLoc[4].y, PositionLoc[4].z, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), 1);
@@ -630,30 +635,34 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         // air spells
 		if (m_uiFireball_Timer < uiDiff && m_bAirphase && !m_bIsGrounded)
         {
-			if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-				DoCast(target, m_bIsRegularMode ? SPELL_FIREBALL : SPELL_FIREBALL_H);
+			if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+				DoCast(pTarget, m_bIsRegularMode ? SPELL_FIREBALL : SPELL_FIREBALL_H);
             m_uiFireball_Timer = 2000;
-        }else m_uiFireball_Timer -= uiDiff;   
+        }
+        else
+            m_uiFireball_Timer -= uiDiff;   
 
 		if (m_uiDevouring_Flame_Timer < uiDiff && !m_bIsGrounded)
         {
             if (m_bAirphase)
             {
-			    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-				    DoCast(target, DEVOURING_FLAME_VISUAL);
+			    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+				    DoCast(pTarget, DEVOURING_FLAME_VISUAL);
             }
             else
             {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
-				    DoCast(target, DEVOURING_FLAME_VISUAL);
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
+				    DoCast(pTarget, DEVOURING_FLAME_VISUAL);
             }
             m_uiDevouring_Flame_Timer = 12000;
-        }else m_uiDevouring_Flame_Timer -= uiDiff;  
+        }
+        else
+            m_uiDevouring_Flame_Timer -= uiDiff;  
 
         // repair harpoons
         if (m_uiRepairHarpoonTimer < uiDiff && m_bAirphase && !m_bIsGrounded && m_uiHarpoonsRepaired <= m_uiMaxHarpoons)
         {
-            if(GameObject* pHarpoon = m_pInstance->instance->GetGameObject(m_uiHarpoonsGUID[m_uiHarpoonsRepaired]))
+            if (GameObject* pHarpoon = m_pInstance->instance->GetGameObject(m_uiHarpoonsGUID[m_uiHarpoonsRepaired]))
             {
                 pHarpoon->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
                 //pHarpoon->SetUInt32Value(GAMEOBJECT_DISPLAYID, 8245);
@@ -662,47 +671,52 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             DoScriptText(EMOTE_HARPOON, m_creature);
             m_uiRepairHarpoonTimer = 20000;
         }
-        else m_uiRepairHarpoonTimer -= uiDiff;
+        else
+            m_uiRepairHarpoonTimer -= uiDiff;
 
         // ground adds
 		if (m_uiWave1_spawn < uiDiff && m_bAirphase && !m_bIsGrounded)
         {
             m_creature->SummonCreature(NPC_MOLE_MACHINE, PositionLoc[0].x, PositionLoc[0].y, PositionLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
             m_uiWave1_spawn = urand(40000, 50000);
-        }else m_uiWave1_spawn -= uiDiff;
+        }
+        else
+            m_uiWave1_spawn -= uiDiff;
 
 		if (m_uiWave2_spawn < uiDiff && m_bAirphase && !m_bIsGrounded)
         {
 			m_creature->SummonCreature(NPC_MOLE_MACHINE, PositionLoc[1].x, PositionLoc[1].y, PositionLoc[1].z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
             m_uiWave2_spawn = urand(40000, 50000);
-        }else m_uiWave2_spawn -= uiDiff;
+        }
+        else
+            m_uiWave2_spawn -= uiDiff;
 
 		if (m_uiWave3_spawn < uiDiff && m_bAirphase && !m_bIsGrounded)
         {
-			switch(urand(0, 2)) //33% chance of spawning
+			switch (urand(0, 2)) //33% chance of spawning
             {
-                case 0:
-				break;
 				case 1:
-					if(Creature* pTemp = m_creature->SummonCreature(NPC_MOLE_MACHINE, PositionLoc[2].x, PositionLoc[2].y, PositionLoc[2].z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000))
+					if (Creature* pTemp = m_creature->SummonCreature(NPC_MOLE_MACHINE, PositionLoc[2].x, PositionLoc[2].y, PositionLoc[2].z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000))
                         ((mob_mole_machineAI*)pTemp->AI())->m_bIsSentinel = true;
-				break;
-				case 2:
-				break;
+				    break;
 			}
             m_uiWave3_spawn = urand(40000, 50000);
-        }else m_uiWave3_spawn -= uiDiff;
+        }
+        else
+            m_uiWave3_spawn -= uiDiff;
 
         // berserk
 		if (m_uiBerserk_Timer < uiDiff && !m_bHasBerserk)
         {
 			DoCast(m_creature, SPELL_BERSERK);
             m_bHasBerserk = true;
-        }else m_uiBerserk_Timer -= uiDiff;
+        }
+        else
+            m_uiBerserk_Timer -= uiDiff;
 
 		if (m_uiHarpoonsUsed == m_uiMaxHarpoons && m_bAirphase)
         {
-            if(Creature* pCommander = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_COMMANDER)))
+            if (Creature* pCommander = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_COMMANDER)))
                 DoScriptText(SAY_GROUND, pCommander);
 			m_creature->GetMap()->CreatureRelocation(m_creature, PositionLoc[3].x, PositionLoc[3].y, PositionLoc[3].z, 1.5);
             m_creature->SendMonsterMove(PositionLoc[3].x, PositionLoc[3].y, PositionLoc[3].z, SPLINETYPE_FACINGSPOT, m_creature->GetSplineFlags(), 1);
@@ -715,13 +729,17 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             // make boss land
             m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 0);
             m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
-        }else m_uiTimetoground -= uiDiff;
+        }
+        else
+            m_uiTimetoground -= uiDiff;
 
 		if (m_uiStun_Timer < uiDiff && m_bIsGrounded)
 		{
 			DoCast(m_creature, SPELL_STUN);
 			m_uiStun_Timer = 60000;
-		}else m_uiStun_Timer -= uiDiff;
+		}
+        else
+            m_uiStun_Timer -= uiDiff;
 
 		if (m_uiGround_Cast < uiDiff && m_bIsGrounded)
 		{
@@ -732,7 +750,9 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_BREATH : SPELL_FLAME_BREATH_H);
             m_uiGround_Cast         = 15000;
             m_uiGround_Knockback    = 7000;
-		}else m_uiGround_Cast -= uiDiff;
+		}
+        else
+            m_uiGround_Cast -= uiDiff;
 
 		if (m_uiGround_Knockback < uiDiff && m_bIsGrounded)
 		{
@@ -740,7 +760,9 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             DoCast(m_creature, SPELL_WING_BUFFET);
             m_uiGround_Knockback = 15000;
             m_uiGrounded_Timer  = 3000; 
-		}else m_uiGround_Knockback -= uiDiff;
+		}
+        else
+            m_uiGround_Knockback -= uiDiff;
 
 		if (m_uiGrounded_Timer < uiDiff && m_bIsGrounded)
 		{
@@ -760,8 +782,10 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
             m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
             // achiev counter
-            m_uiFlyNo += 1;
-        }else m_uiGrounded_Timer -= uiDiff;
+            ++m_uiFlyNo;
+        }
+        else
+            m_uiGrounded_Timer -= uiDiff;
 
         // make boss land at 50% hp
         if (m_bAirphase && m_creature->GetHealthPercent() < 50)
@@ -783,7 +807,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 0);
             m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
             m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-         }
+        }
 
         // LAND PHASE
         // knockback at the beginning at the land phase
@@ -792,27 +816,35 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             m_creature->CastStop();
             DoCast(m_creature, SPELL_WING_BUFFET);
             m_bKnockback = true;
-        }else m_uiGround_Knockback -= uiDiff;
+        }
+        else
+            m_uiGround_Knockback -= uiDiff;
 
         if (m_uiFuse_Armor_Timer < uiDiff && !m_bAirphase)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
                DoCast(pTarget, SPELL_FUSE_ARMOR);
             m_uiFuse_Armor_Timer = 13000;
-        } else m_uiFuse_Armor_Timer -= uiDiff;
+        }
+        else
+            m_uiFuse_Armor_Timer -= uiDiff;
 
 		if (m_uiFlame_Buffet_Timer < uiDiff && !m_bAirphase)
 		{
 			DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_BUFFET : SPELL_FLAME_BUFFET_H);
 			m_uiFlame_Buffet_Timer = 13000;
-		}else m_uiFlame_Buffet_Timer -= uiDiff;
+		}
+        else
+            m_uiFlame_Buffet_Timer -= uiDiff;
 
 		if (m_uiFlame_Breath_Timer < uiDiff && !m_bAirphase)
 		{
             DoScriptText(EMOTE_DEEP_BREATH, m_creature);
 			DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_BREATH : SPELL_FLAME_BREATH_H);
 			m_uiFlame_Breath_Timer = 14000;
-		}else m_uiFlame_Breath_Timer -= uiDiff;
+		}
+        else
+            m_uiFlame_Breath_Timer -= uiDiff;
 
 		if (!m_bAirphase && !m_bIsGrounded)
 			DoMeleeAttackIfReady();
