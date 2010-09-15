@@ -7,6 +7,7 @@ INSERT INTO areatrigger_scripts (entry, ScriptName) VALUES (5398, 'at_ulduar');
 /*UPDATE creature_template SET ScriptName = 'boss_flame_leviathan' WHERE entry = 33113;
 UPDATE creature_template SET ScriptName = 'mob_defense_turret' WHERE entry = 33142;
 */
+
 -- Ignis
 UPDATE creature_template SET ScriptName='boss_ignis' WHERE entry=33118;
 UPDATE creature_template SET ScriptName='mob_iron_construct' WHERE entry = 33121;
@@ -29,16 +30,28 @@ INSERT INTO vehicle_data (entry, flags, Spell1, Spell2, Spell3, Spell4, Spell5, 
 (342, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- Razorscale
--- UPDATE gameobject_template SET flags= 6553648, ScriptName='go_broken_harpoon' WHERE entry = 194565;
--- only 2 harpoons for 10 man
--- UPDATE gameobject SET spawnMask = 2 WHERE guid IN (73595, 73592);
--- mole machines & adds
-UPDATE gameobject_template SET ScriptName='go_broken_harpoon' WHERE entry=194565;
+-- CUSTOM spawn repaired harpoon guns
+delete from gameobject where id=194543;
+insert into gameobject (id, map, spawnMask, phaseMask, position_x, position_y, position_z, orientation, rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state) values
+(194543, 603, 3, 2, 571.947, -136.012, 391.517, 4.7328, 0, 0, 0, 1, 180, 255, 1),
+(194543, 603, 3, 2, 589.923, -133.622, 391.897, 4.7328, 0, 0, 0, 1, 180, 255, 1),
+(194543, 603, 2, 2, 558.646, -140.129, 391.517, 4.7328, 0, 0, 0, 1, 180, 255, 1),
+(194543, 603, 2, 2, 606.747, -136.945, 391.353, 4.7328, 0, 0, 0, 1, 180, 255, 1);
+
+-- CUSTOM set flag for repaired harpoon gun to make impossible use more than once
+update gameobject_template set flags=flags|16 where entry=194543;
+
+-- CUSTOM remove harpoons dummy
+delete from creature where id=33282;
+
+UPDATE gameobject_template SET ScriptName='go_razorscale_harpoon_launcher' WHERE entry=194543;
+UPDATE creature_template SET ScriptName='boss_razorscale' WHERE entry=33186;
 UPDATE creature_template SET ScriptName='mob_mole_machine' WHERE entry=33245;
 UPDATE creature_template SET ScriptName='mob_dark_rune_watcher' WHERE entry=33453;
 UPDATE creature_template SET ScriptName='mob_dark_rune_sentinel' WHERE entry=33846;
 UPDATE creature_template SET ScriptName='mob_dark_rune_guardian' WHERE entry=33388;
 UPDATE creature_template SET ScriptName='npc_expedition_commander' WHERE entry=33210;
+UPDATE creature_template SET ScriptName='npc_expedition_npc' WHERE entry in (33287, 33816, 33259);
 UPDATE creature_template SET ScriptName='mob_devouring_flame_target' WHERE entry IN (34189, 34188);
 
 /*

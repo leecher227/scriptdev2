@@ -149,7 +149,6 @@ enum
     GO_SHIELD_WALL              = 194416,
     GO_LEVIATHAN_GATE           = 194630,
     GO_XT002_GATE               = 194631,
-    GO_BROKEN_HARPOON           = 194565,
     // archivum
     GO_KOLOGARN_BRIDGE          = 194232,
     GO_SHATTERED_DOOR           = 194553,

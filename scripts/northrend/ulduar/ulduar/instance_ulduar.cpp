@@ -87,7 +87,6 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     uint64 m_uiShieldWallGUID;
     uint64 m_uiLeviathanGateGUID;
     uint64 m_uiXT002GateGUID;
-    uint64 m_uiBrokenHarpoonGUID;
     // Archivum
     uint64 m_uiIronCouncilDoorGUID;
     uint64 m_uiArchivumDoorGUID;
@@ -209,7 +208,6 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         m_uiShieldWallGUID      = 0;
         m_uiLeviathanGateGUID   = 0;
         m_uiXT002GateGUID       = 0;
-        m_uiBrokenHarpoonGUID   = 0;
         // Archivum
         m_uiIronCouncilDoorGUID = 0;
         m_uiArchivumDoorGUID    = 0;
@@ -407,10 +405,6 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             if(m_auiEncounter[1] == DONE && m_auiEncounter[2] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             m_uiXT002GateGUID = pGo->GetGUID();
-            break;
-        case GO_BROKEN_HARPOON:
-            m_uiBrokenHarpoonGUID = pGo->GetGUID();
-            pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
             break;
 
             // Archivum
@@ -1082,7 +1076,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     }
 
     // TODO: implement all hard mode loot here!
-    bool CheckConditionCriteriaMeet(Player const* source, uint32 map_id, uint32 instance_condition_id)
+/*    bool CheckConditionCriteriaMeet(Player const* source, uint32 map_id, uint32 instance_condition_id)
     {
         if (map_id != instance->GetId())
             return false;
@@ -1091,7 +1085,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
            case TYPE_XT002_HARD:
                break;
         }
-    }
+    }*/
 
     uint32 GetData(uint32 uiType)
     {
