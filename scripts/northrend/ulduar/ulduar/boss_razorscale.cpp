@@ -612,6 +612,18 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
                 else
                     (*iter)->Respawn();
             }
+        GetCreatureListWithEntryInGrid(lExp, m_creature, MOB_DARK_RUNE_WATCHER, 200.0f);
+        if (!lExp.empty())
+            for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
+                (*iter)->ForcedDespawn();
+        GetCreatureListWithEntryInGrid(lExp, m_creature, MOB_DARK_RUNE_SENTINEL, 200.0f);
+        if (!lExp.empty())
+            for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
+                (*iter)->ForcedDespawn();
+        GetCreatureListWithEntryInGrid(lExp, m_creature, MOB_DARK_RUNE_GUARDIAN, 200.0f);
+        if (!lExp.empty())
+            for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
+                (*iter)->ForcedDespawn();
 
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
         m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
