@@ -158,8 +158,9 @@ struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
 
     void GetRazorDown()
     {
-        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RAZORSCALE)))
-            pTemp->SetInCombatWithZone();
+        if (m_pInstance)
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RAZORSCALE)))
+                pTemp->SetInCombatWithZone();
 
         std::list<Creature*> lExp;
         GetCreatureListWithEntryInGrid(lExp, m_creature, NPC_DEFENDER, 50.0f);
@@ -171,6 +172,7 @@ struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
                     (*iter)->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
                     (*iter)->GetMotionMaster()->MovePoint(0, (*iter)->GetPositionX(), (*iter)->GetPositionY()-40.0f, (*iter)->GetPositionZ());
                 }
+        lExp.clear();
         GetCreatureListWithEntryInGrid(lExp, m_creature, NPC_TRAPPER, 50.0f);
         if (!lExp.empty())
             for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
@@ -595,15 +597,22 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(lExp, m_creature, NPC_DEFENDER, 200.0f);
         if (!lExp.empty())
             for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
-                (*iter)->Respawn();
+                if ((*iter)->isAlive())
+                    (*iter)->GetMotionMaster()->MoveTargetedHome();
+                else
+                    (*iter)->Respawn();
+        lExp.clear();
         GetCreatureListWithEntryInGrid(lExp, m_creature, NPC_TRAPPER, 200.0f);
         if (!lExp.empty())
             for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
-                (*iter)->Respawn();
+                if ((*iter)->isAlive())
+                    (*iter)->GetMotionMaster()->MoveTargetedHome();
+                else
+                    (*iter)->Respawn();
+        lExp.clear();
         GetCreatureListWithEntryInGrid(lExp, m_creature, NPC_ENGINEER, 200.0f);
         if (!lExp.empty())
             for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
-            {
                 if ((*iter)->isAlive())
                 {
                     (*iter)->GetMotionMaster()->MoveTargetedHome();
@@ -611,15 +620,17 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
                 }
                 else
                     (*iter)->Respawn();
-            }
+        lExp.clear();
         GetCreatureListWithEntryInGrid(lExp, m_creature, MOB_DARK_RUNE_WATCHER, 200.0f);
         if (!lExp.empty())
             for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
                 (*iter)->ForcedDespawn();
+        lExp.clear();
         GetCreatureListWithEntryInGrid(lExp, m_creature, MOB_DARK_RUNE_SENTINEL, 200.0f);
         if (!lExp.empty())
             for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
                 (*iter)->ForcedDespawn();
+        lExp.clear();
         GetCreatureListWithEntryInGrid(lExp, m_creature, MOB_DARK_RUNE_GUARDIAN, 200.0f);
         if (!lExp.empty())
             for (std::list<Creature*>::iterator iter = lExp.begin(); iter != lExp.end(); ++iter)
@@ -688,12 +699,13 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
     void BreakHarpoons(bool bBurn)
     {
-        if (!m_pInstance)
-            return;
-
         for (uint8 i = 0; i < m_uiMaxHarpoons; ++i)
         {
-            if (GameObject* pBrokenHarpoon = m_pInstance->instance->GetGameObject(m_uiBrokenHarpoonsGUID[i]))
+            GameObject* pBrokenHarpoon = NULL;
+            pBrokenHarpoon = m_creature->GetMap()->GetGameObject(m_uiBrokenHarpoonsGUID[i]);
+            if (!pBrokenHarpoon && m_pInstance)
+                pBrokenHarpoon = m_pInstance->instance->GetGameObject(m_uiBrokenHarpoonsGUID[i]);
+            if (pBrokenHarpoon)
             {
                 pBrokenHarpoon->SetPhaseMask(1, true);
                 if (Creature* pHarpoonDummy = GetClosestCreatureWithEntry(pBrokenHarpoon, NPC_HARPOON_DUMMY, 5.0f))
@@ -701,7 +713,11 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
                 if (bBurn)
                     pBrokenHarpoon->SummonCreature(NPC_FLAME_TARGET, pBrokenHarpoon->GetPositionX(), pBrokenHarpoon->GetPositionY(), pBrokenHarpoon->GetPositionZ(), 0, TEMPSUMMON_DEAD_DESPAWN, 0);
             }
-            if (GameObject* pRepairedHarpoon = m_pInstance->instance->GetGameObject(m_uiRepairedHarpoonsGUID[i]))
+            GameObject* pRepairedHarpoon = NULL;
+            pRepairedHarpoon = m_creature->GetMap()->GetGameObject(m_uiRepairedHarpoonsGUID[i]);
+            if (!pRepairedHarpoon && m_pInstance)
+                pRepairedHarpoon = m_pInstance->instance->GetGameObject(m_uiRepairedHarpoonsGUID[i]);
+            if (pRepairedHarpoon)
                 pRepairedHarpoon->SetPhaseMask(2, true);
         }
     }
@@ -717,7 +733,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             GetCreatureListWithEntryInGrid(lEngineers, m_creature, NPC_ENGINEER, 200.0f);
             if (!lEngineers.empty())
                 for (std::list<Creature*>::iterator iter = lEngineers.begin(); iter != lEngineers.end(); ++iter)
-                    if (GameObject* pBrokenHarpoon = m_pInstance->instance->GetGameObject(m_uiBrokenHarpoonsGUID[m_uiHarpoonsRepaired]))
+                    if (GameObject* pBrokenHarpoon = m_creature->GetMap()->GetGameObject(m_uiBrokenHarpoonsGUID[m_uiHarpoonsRepaired]))
                         if ((*iter)->isAlive())
                         {
                             (*iter)->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
@@ -765,7 +781,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
                         (*iter)->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
                         if (m_uiHarpoonsRepaired < m_uiMaxHarpoons)
                         {
-                            if (GameObject* pBrokenHarpoon = m_pInstance->instance->GetGameObject(m_uiBrokenHarpoonsGUID[m_uiHarpoonsRepaired]))
+                            if (GameObject* pBrokenHarpoon = m_creature->GetMap()->GetGameObject(m_uiBrokenHarpoonsGUID[m_uiHarpoonsRepaired]))
                                 (*iter)->GetMotionMaster()->MovePoint(0, pBrokenHarpoon->GetPositionX()-2.0f+urand(4, 5), pBrokenHarpoon->GetPositionY()-2.0f+urand(4, 5), pBrokenHarpoon->GetPositionZ());
                             (*iter)->HandleEmoteState(EMOTE_STATE_WORK);
                         }
@@ -780,12 +796,12 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             }
             if (bEngineerAlive)
             {
-                if (GameObject* pRepairedHarpoon = m_pInstance->instance->GetGameObject(m_uiRepairedHarpoonsGUID[m_uiHarpoonsRepaired-1]))
+                if (GameObject* pRepairedHarpoon = m_creature->GetMap()->GetGameObject(m_uiRepairedHarpoonsGUID[m_uiHarpoonsRepaired-1]))
                 {
                     pRepairedHarpoon->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
                     pRepairedHarpoon->SetPhaseMask(1, true);
                 }
-                if (GameObject* pBrokenHarpoon = m_pInstance->instance->GetGameObject(m_uiBrokenHarpoonsGUID[m_uiHarpoonsRepaired-1]))
+                if (GameObject* pBrokenHarpoon = m_creature->GetMap()->GetGameObject(m_uiBrokenHarpoonsGUID[m_uiHarpoonsRepaired-1]))
                     pBrokenHarpoon->SetPhaseMask(2, true);
                 DoScriptText(EMOTE_HARPOON, m_creature);
             }
@@ -836,8 +852,9 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
         if (m_uiHarpoonsUsed == m_uiMaxHarpoons && m_bAirPhase)
         {
-            if (Creature* pCommander = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_COMMANDER)))
-                DoScriptText(SAY_GROUND, pCommander);
+            if (m_pInstance)
+                if (Creature* pCommander = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_COMMANDER)))
+                    DoScriptText(SAY_GROUND, pCommander);
             m_creature->GetMap()->CreatureRelocation(m_creature, PositionLoc[3].x, PositionLoc[3].y, PositionLoc[3].z, 1.5);
             m_creature->SendMonsterMove(PositionLoc[3].x, PositionLoc[3].y, PositionLoc[3].z, SPLINETYPE_FACINGSPOT, m_creature->GetSplineFlags(), 4000);
             // timers
@@ -861,8 +878,9 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
         if (m_uiGround_Cast < uiDiff && m_bIsGrounded)
         {
-            if (Creature* pCommander = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_COMMANDER)))
-                m_creature->SetUInt64Value(UNIT_FIELD_TARGET, pCommander->GetGUID());
+            if (m_pInstance)
+                if (Creature* pCommander = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_COMMANDER)))
+                    m_creature->SetUInt64Value(UNIT_FIELD_TARGET, pCommander->GetGUID());
             m_creature->RemoveAurasDueToSpell(SPELL_STUN);
             DoScriptText(EMOTE_DEEP_BREATH, m_creature);
             DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_BREATH : SPELL_FLAME_BREATH_H);
@@ -922,6 +940,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             m_uiFlame_Breath_Timer      = 6000;  //every 14
             m_uiWingBuffetTimer         = urand(25000, 30000);
             SetCombatMovement(true);
+            BreakHarpoons(true);
 
             // make boss land
             m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
