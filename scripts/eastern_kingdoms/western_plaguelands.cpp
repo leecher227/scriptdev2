@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Western_Plaguelands
-SD%Complete: 95
-SDComment: Quest support: 5097,5098,5216,5219,5222,5225,5229,5231,5233,5235. To obtain Vitreous Focuser (could use more spesifics about gossip items)
+SD%Complete: 90
+SDComment: Quest support: 5216,5219,5222,5225,5229,5231,5233,5235. To obtain Vitreous Focuser (could use more spesifics about gossip items)
 SDCategory: Western Plaguelands
 EndScriptData */
 
@@ -25,7 +25,6 @@ EndScriptData */
 npcs_dithers_and_arbington
 npc_myranda_hag
 npc_the_scourge_cauldron
-npc_andorhal_towerAI
 EndContentData */
 
 #include "precompiled.h"
@@ -197,54 +196,6 @@ CreatureAI* GetAI_npc_the_scourge_cauldron(Creature* pCreature)
 }
 
 /*######
-# npc_andorhal_towerAI
-######*/
-
-enum
-{
-	GO_BEACON_TORCH_ENTRY	=	176093,
-	QUEST_ALL_ALONG_THE_WATCHTOWERS_A	=	5097,
-	QUEST_ALL_ALONG_THE_WATCHTOWERS_H	=	5098
-};
-
-struct MANGOS_DLL_DECL npc_andorhal_towerAI : public ScriptedAI
-{
-	npc_andorhal_towerAI(Creature* pCreature) : ScriptedAI(pCreature)
-	{
-		Reset();
-	}
-
-	Player* pPlayer;
-
-	void Reset()
-	{
-		pPlayer = NULL;
-	}
-
-	void MoveInLineOfSight(Unit* pWho) 
-	{
-		if(pWho->GetTypeId() != TYPEID_PLAYER)
-			return;
-
-		pPlayer = (Player*)pWho;
-
-		if(pPlayer 
-			&& pPlayer->GetQuestStatus(pPlayer->GetTeam() == HORDE ? QUEST_ALL_ALONG_THE_WATCHTOWERS_H : QUEST_ALL_ALONG_THE_WATCHTOWERS_A) == QUEST_STATUS_INCOMPLETE)
-		{
-			if(GetClosestGameObjectWithEntry(m_creature, GO_BEACON_TORCH_ENTRY, 15.0f))
-			{
-				pPlayer->KilledMonsterCredit(m_creature->GetEntry(), m_creature->GetGUID());
-			}
-		}
-	}
-};
-
-CreatureAI* GetAI_npc_andorhal_tower(Creature* pCreature)
-{
-	return new npc_andorhal_towerAI(pCreature);
-}
-
-/*######
 ##
 ######*/
 
@@ -268,9 +219,4 @@ void AddSC_western_plaguelands()
     newscript->Name = "npc_the_scourge_cauldron";
     newscript->GetAI = &GetAI_npc_the_scourge_cauldron;
     newscript->RegisterSelf();
-
-    newscript = new Script;
-	newscript->Name = "npc_andorhal_tower";
-	newscript->GetAI = &GetAI_npc_andorhal_tower;
-	newscript->RegisterSelf();
 }
