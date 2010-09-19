@@ -472,7 +472,7 @@ bool AreaTrigger(Player* pPlayer, AreaTriggerEntry const* atEntry)
     return tmpscript->pAreaTrigger(pPlayer, atEntry);
 }
 
-/*MANGOS_DLL_EXPORT
+MANGOS_DLL_EXPORT
 bool ProcessEventId(uint32 uiEventId, Object* pSource, Object* pTarget, bool bIsStart)
 {
     Script *tmpscript = m_scripts[GetEventIdScriptId(uiEventId)];
@@ -481,7 +481,7 @@ bool ProcessEventId(uint32 uiEventId, Object* pSource, Object* pTarget, bool bIs
 
     // bIsStart may be false, when event is from taxi node events (arrival=false, departure=true)
     return tmpscript->pProcessEventId(uiEventId, pSource, pTarget, bIsStart);
-}*/
+}
 
 MANGOS_DLL_EXPORT
 CreatureAI* GetAI(Creature* pCreature)
