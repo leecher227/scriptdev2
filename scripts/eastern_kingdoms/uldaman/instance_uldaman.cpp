@@ -30,7 +30,8 @@ instance_uldaman::instance_uldaman(Map* pMap) : ScriptedInstance(pMap),
     m_uiTempleDoorLowerGUID(0),
     m_uiAncientVaultGUID(0),
     m_uiPlayerGUID(0),
-    m_uiStoneKeepersFallen(0)
+    m_uiStoneKeepersFallen(0),
+    m_uiKeeperCooldown(5000)
 {
     Initialize();
 }
@@ -39,7 +40,7 @@ void instance_uldaman::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
     m_lWardens.clear();
-    m_lKeeperList.clear();
+    m_mKeeperMap.clear();
 }
 
 void instance_uldaman::OnObjectCreate(GameObject* pGo)
@@ -70,17 +71,18 @@ void instance_uldaman::OnCreatureCreate(Creature* pCreature)
 {
     switch(pCreature->GetEntry())
     {
-        case MOB_HALLSHAPER:
-        case MOB_CUSTODIAN:
-        case MOB_GUARDIAN:
-        case MOB_VAULT_WARDER:
+        case NPC_HALLSHAPER:
+        case NPC_CUSTODIAN:
+        case NPC_GUARDIAN:
+        case NPC_VAULT_WARDER:
             m_lWardens.push_back(pCreature->GetGUID());
             pCreature->CastSpell(pCreature, SPELL_STONED, true);
             pCreature->SetNoCallAssistance(true);           // no assistance
             break;
         case NPC_STONE_KEEPER:
-            m_lKeeperList.push_back(pCreature->GetGUID());
+            m_mKeeperMap[pCreature->GetGUID()] = pCreature->isAlive();
             pCreature->CastSpell(pCreature, SPELL_STONED, true);
+            pCreature->SetNoCallAssistance(true);           // no assistance
             break;
         default:
             break;
@@ -92,16 +94,10 @@ void instance_uldaman::SetData(uint32 uiType, uint32 uiData)
     switch(uiType)
     {
         case TYPE_ALTAR_EVENT:
-            if (uiData == SPECIAL)
+            if (uiData == DONE)
             {
-                ++m_uiStoneKeepersFallen;
-
-                if (m_uiStoneKeepersFallen > 3)
-                {
-                    uiData = DONE;
-                    DoUseDoorOrButton(m_uiTempleDoorUpperGUID);
-                    DoUseDoorOrButton(m_uiTempleDoorLowerGUID);
-                }
+                DoUseDoorOrButton(m_uiTempleDoorUpperGUID);
+                DoUseDoorOrButton(m_uiTempleDoorLowerGUID);
 
                 m_auiEncounter[0] = uiData;
             }
@@ -213,6 +209,24 @@ void instance_uldaman::StartEvent(uint32 uiEventId, Player* pPlayer)
         m_auiEncounter[1] = SPECIAL;
 }
 
+void instance_uldaman::DoResetKeeperEvent()
+{
+    m_auiEncounter[0] = NOT_STARTED;
+    m_uiStoneKeepersFallen = 0;
+
+    for (std::map<uint64, bool>::iterator itr = m_mKeeperMap.begin(); itr != m_mKeeperMap.end(); ++itr)
+    {
+        if (Creature* pKeeper = instance->GetCreature(itr->first))
+        {
+            pKeeper->setDeathState(JUST_DIED);
+            pKeeper->Respawn();
+            pKeeper->CastSpell(pKeeper, SPELL_STONED, true);
+            pKeeper->SetNoCallAssistance(true);
+            itr->second = true;
+        }
+    }
+}
+
 Creature* instance_uldaman::GetClosestDwarfNotInCombat(Creature* pSearcher, uint32 uiPhase)
 {
     std::list<Creature*> lTemp;
@@ -226,15 +240,15 @@ Creature* instance_uldaman::GetClosestDwarfNotInCombat(Creature* pSearcher, uint
             switch(uiPhase)
             {
                 case PHASE_ARCHA_1:
-                    if (pTemp->GetEntry() != MOB_CUSTODIAN && pTemp->GetEntry() != MOB_HALLSHAPER)
+                    if (pTemp->GetEntry() != NPC_CUSTODIAN && pTemp->GetEntry() != NPC_HALLSHAPER)
                         continue;
                     break;
                 case PHASE_ARCHA_2:
-                    if (pTemp->GetEntry() != MOB_GUARDIAN)
+                    if (pTemp->GetEntry() != NPC_GUARDIAN)
                         continue;
                     break;
                 case PHASE_ARCHA_3:
-                    if (pTemp->GetEntry() != MOB_VAULT_WARDER)
+                    if (pTemp->GetEntry() != NPC_VAULT_WARDER)
                         continue;
                     break;
             }
@@ -254,27 +268,53 @@ void instance_uldaman::Update(uint32 uiDiff)
 {
     if (m_auiEncounter[0] == IN_PROGRESS)
     {
-        if (!m_lKeeperList.empty())
+        if (m_uiKeeperCooldown >= uiDiff)
+            m_uiKeeperCooldown -= uiDiff;
+        else
         {
-            for(std::list<uint64>::iterator itr = m_lKeeperList.begin(); itr != m_lKeeperList.end(); ++itr)
+            m_uiKeeperCooldown = 5000;
+
+            if (!m_mKeeperMap.empty())
             {
-                Creature* pKeeper = instance->GetCreature(*itr);
-
-                if (pKeeper && pKeeper->isAlive())
+                for(std::map<uint64, bool>::iterator itr = m_mKeeperMap.begin(); itr != m_mKeeperMap.end(); ++itr)
                 {
-                    Unit* pTarget = Unit::GetUnit(*pKeeper, m_uiPlayerGUID);
+                    // died earlier
+                    if (!itr->second)
+                        continue;
 
-                    pKeeper->RemoveAurasDueToSpell(SPELL_STONED);
-
-                    if (pTarget && pTarget->isAlive())
+                    if (Creature* pKeeper = instance->GetCreature(itr->first))
                     {
-                        pKeeper->SetInCombatWith(pTarget);
-                        pKeeper->AddThreat(pTarget);
+                        if (pKeeper->isAlive() && !pKeeper->getVictim())
+                        {
+                            if (Player* pPlayer = pKeeper->GetMap()->GetPlayer(m_uiPlayerGUID))
+                            {
+                                // we should use group instead, event starter can be dead while group is still fighting
+                                if (pPlayer->isAlive() && !pPlayer->isInCombat())
+                                {
+                                    pKeeper->RemoveAurasDueToSpell(SPELL_STONED);
+                                    pKeeper->SetInCombatWith(pPlayer);
+                                    pKeeper->AddThreat(pPlayer);
+                                }
+                                else
+                                {
+                                    if (!pPlayer->isAlive())
+                                        DoResetKeeperEvent();
+                                }
+                            }
+
+                            break;
+                        }
+                        else if (!pKeeper->isAlive())
+                        {
+                            itr->second = pKeeper->isAlive();
+                            ++m_uiStoneKeepersFallen;
+                        }
                     }
                 }
-            }
 
-            m_auiEncounter[0] = SPECIAL;
+                if (m_uiStoneKeepersFallen == m_mKeeperMap.size())
+                    SetData(TYPE_ALTAR_EVENT, DONE);
+            }
         }
     }
 }

@@ -227,7 +227,7 @@ struct MANGOS_DLL_DECL boss_vezaxAI : public ScriptedAI
 
         m_bHasSimphon = false;
         Map *map = m_creature->GetMap();
-        Unit* pTarget = Unit::GetUnit(*m_creature, m_uiTargetGUID);
+        Unit* pTarget = m_creature->GetMap()->GetUnit(m_uiTargetGUID);
         if (map->IsDungeon())
         {
             Map::PlayerList const &PlayerList = map->GetPlayers();

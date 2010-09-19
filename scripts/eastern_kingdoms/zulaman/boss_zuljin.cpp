@@ -229,13 +229,13 @@ struct MANGOS_DLL_DECL boss_zuljinAI : public ScriptedAI
 
     void JustDied(Unit* Killer)    
     {
-        if(pInstance)
+        if (pInstance)
             pInstance->SetData(DATA_ZULJINEVENT, DONE);
 
         DoScriptText(SAY_DEATH, m_creature);
         DespawnSummons(CREATURE_COLUMN_OF_FIRE);
 
-        if(Unit *Temp = Unit::GetUnit(*m_creature, SpiritGUID[3]))
+        if (Unit* Temp = m_creature->GetMap()->GetUnit(SpiritGUID[3]))
             Temp->SetUInt32Value(UNIT_FIELD_BYTES_1, UNIT_STAND_STATE_DEAD);
     }
 
@@ -304,7 +304,7 @@ struct MANGOS_DLL_DECL boss_zuljinAI : public ScriptedAI
         for(uint8 i = 0; i < 4; ++i)
         {
             if (SpiritGUID[i])
-                if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, SpiritGUID[i]))
+                if (Creature* pTemp = m_creature->GetMap()->GetCreature(SpiritGUID[i]))
                     pTemp->ForcedDespawn();
             SpiritGUID[i] = 0;
         }
@@ -337,14 +337,14 @@ struct MANGOS_DLL_DECL boss_zuljinAI : public ScriptedAI
             m_creature->RemoveAurasDueToSpell(Transform[Phase].unaura);
             DoCast(m_creature, Transform[Phase].spell);
             DoScriptText(Transform[Phase].id, m_creature);
-            if(Phase > 0)
+            if (Phase > 0)
             {
-                if(Unit *Temp = Unit::GetUnit(*m_creature, SpiritGUID[Phase - 1]))
-                    Temp->SetUInt32Value(UNIT_FIELD_BYTES_1,UNIT_STAND_STATE_DEAD);
+                if (Unit* pTemp = m_creature->GetMap()->GetUnit(SpiritGUID[Phase - 1]))
+                    pTemp->SetUInt32Value(UNIT_FIELD_BYTES_1,UNIT_STAND_STATE_DEAD);
             }
-            if(Unit *Temp = Unit::GetUnit(*m_creature, SpiritGUID[NextPhase - 1]))
-                Temp->CastSpell(m_creature, SPELL_SIPHON_SOUL, false); // should m cast on temp
-            if(NextPhase == 2)
+            if (Unit* pTemp = m_creature->GetMap()->GetUnit(SpiritGUID[NextPhase - 1]))
+                pTemp->CastSpell(m_creature, SPELL_SIPHON_SOUL, false); // should m cast on temp
+            if (NextPhase == 2)
             {
                 m_creature->GetMotionMaster()->Clear();
                 m_creature->CastSpell(m_creature, SPELL_ENERGY_STORM, true); // enemy aura
@@ -458,34 +458,42 @@ struct MANGOS_DLL_DECL boss_zuljinAI : public ScriptedAI
                     if(Claw_Loop_Timer < diff)
                     {
                         Unit* target = m_creature->getVictim();
-                        if(!target || !target->isTargetableForAttack()) target = Unit::GetUnit(*m_creature, TankGUID);
-                        if(!target || !target->isTargetableForAttack()) target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-                        if(target)
+                        if (!target || !target->isTargetableForAttack())
+                            target = m_creature->GetMap()->GetUnit(TankGUID);
+                        if (!target || !target->isTargetableForAttack())
+                            target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+                        if (target)
                         {
                             AttackStart(target);
-                            if(m_creature->IsWithinDistInMap(target, ATTACK_DISTANCE))
+                            if (m_creature->IsWithinDistInMap(target, ATTACK_DISTANCE))
                             {
                                 m_creature->CastSpell(target, SPELL_CLAW_RAGE_DAMAGE, true);
                                 Claw_Counter++;
-                                if(Claw_Counter == 12)
+                                if (Claw_Counter == 12)
                                 {
                                     Claw_Rage_Timer = 15000 + rand()%5000;
                                     m_creature->SetSpeedRate(MOVE_RUN, 1.2f);
-                                    AttackStart(Unit::GetUnit(*m_creature, TankGUID));
+                                    AttackStart(m_creature->GetMap()->GetUnit(TankGUID));
                                     TankGUID = 0;
                                     return;
                                 }
                                 else
                                     Claw_Loop_Timer = 500;
                             }
-                        }else EnterEvadeMode(); // if(target)
-                    }else Claw_Loop_Timer -= diff;
+                        }
+                        else
+                            EnterEvadeMode(); // if(target)
+                    }
+                    else
+                        Claw_Loop_Timer -= diff;
                 } //if(TankGUID)
-            }else Claw_Rage_Timer -= diff;
+            }
+            else
+                Claw_Rage_Timer -= diff;
 
-            if(Lynx_Rush_Timer <= diff)
+            if (Lynx_Rush_Timer <= diff)
             {
-                if(!TankGUID)
+                if (!TankGUID)
                 {
                     if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     {
@@ -496,33 +504,37 @@ struct MANGOS_DLL_DECL boss_zuljinAI : public ScriptedAI
                         Claw_Counter = 0;
                     }
                 }
-                else if(!Lynx_Rush_Timer)
+                else if (!Lynx_Rush_Timer)
                 {
                     Unit* target = m_creature->getVictim();
-                    if(!target || !target->isTargetableForAttack())
+                    if (!target || !target->isTargetableForAttack())
                     {
                         target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
                         AttackStart(target);
                     }
-                    if(target)
+                    if (target)
                     {
-                        if(m_creature->IsWithinDistInMap(target, ATTACK_DISTANCE))
+                        if (m_creature->IsWithinDistInMap(target, ATTACK_DISTANCE))
                         {
                             m_creature->CastSpell(target, SPELL_LYNX_RUSH_DAMAGE, true);
                             Claw_Counter++;
-                            if(Claw_Counter == 9)
+                            if (Claw_Counter == 9)
                             {
                                 Lynx_Rush_Timer = 15000 + rand()%5000;
                                 m_creature->SetSpeedRate(MOVE_RUN, 1.2f);
-                                AttackStart(Unit::GetUnit(*m_creature, TankGUID));
+                                AttackStart(m_creature->GetMap()->GetUnit(TankGUID));
                                 TankGUID = 0;
                             }
                             else
                                 AttackStart(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0));
                         }
-                    }else EnterEvadeMode(); // if(target)
+                    }
+                    else
+                        EnterEvadeMode(); // if(target)
                 } //if(TankGUID)
-            }else Lynx_Rush_Timer -= diff;
+            }
+            else
+                Lynx_Rush_Timer -= diff;
 
             break;
         case 4:

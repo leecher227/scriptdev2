@@ -1,22 +1,22 @@
-/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 /* ScriptData
 SDName: boss_ignis
-SD%Complete:
+SD%Complete: 0%
 SDComment:
 SDCategory: Ulduar
 EndScriptData */
@@ -212,16 +212,11 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
             {
                 if (pTemp->HasAura(BUFF_STRENGHT_OF_CREATOR))
                 {
-                    if (Aura* pTempAura = pTemp->GetAura(BUFF_STRENGHT_OF_CREATOR, EFFECT_INDEX_0))
-                        if (pTempAura->modStackAmount(-1))
-                            pTemp->RemoveAurasDueToSpell(BUFF_STRENGHT_OF_CREATOR);
-                    /* GENERATION_NEXT VERSION
-                    if (SpellAuraHolder* strenght = pTemp->GetSpellAuraHolder(BUFF_STRENGHT_OF_CREATOR))
+                    if (SpellAuraHolder* pStrenghtAura = pTemp->GetSpellAuraHolder(BUFF_STRENGHT_OF_CREATOR))
                     {
-                        if (strenght->ModStackAmount(-1))
+                        if (pStrenghtAura->ModStackAmount(-1))
                             pTemp->RemoveAurasDueToSpell(BUFF_STRENGHT_OF_CREATOR);
                     }
-                    */
                 }
             }
         }
@@ -546,7 +541,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         {
             if (m_uiSlag_Pot_Dmg_Timer < uiDiff)
             {
-                if (Unit* pPotTarget = Unit::GetUnit(*m_creature, m_uiPotTargetGUID))
+                if (Unit* pPotTarget = m_creature->GetMap()->GetUnit(m_uiPotTargetGUID))
                 {
                     if (m_uiPotDmgCount < 10)
                     {
@@ -643,3 +638,4 @@ void AddSC_boss_ignis()
     NewScript->GetAI = &GetAI_mob_iron_construct;
     NewScript->RegisterSelf();
 }
+

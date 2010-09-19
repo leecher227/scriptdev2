@@ -127,7 +127,7 @@ struct MANGOS_DLL_DECL boss_anomalusAI : public ScriptedAI
         {
             Unit* Rift;
             if (ChaoticRiftGUID)
-                Rift = Unit::GetUnit((*m_creature), ChaoticRiftGUID);
+                Rift = m_creature->GetMap()->GetUnit(ChaoticRiftGUID);
             if (Rift && Rift->isDead())
             {
                 m_creature->RemoveAurasDueToSpell(SPELL_RIFT_SHIELD);
@@ -257,7 +257,7 @@ struct MANGOS_DLL_DECL mob_chaotic_riftAI : public Scripted_NoMovementAI
         {
             if (m_pInstance)
             {
-                Unit* pAnomalus = Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ANOMALUS));
+                Unit* pAnomalus = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_ANOMALUS));
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     if (pAnomalus && pAnomalus->HasAura(SPELL_RIFT_SHIELD))
                         DoCast(pTarget, SPELL_CHARGED_CHAOTIC_ENERGY_BURST);
@@ -275,7 +275,7 @@ struct MANGOS_DLL_DECL mob_chaotic_riftAI : public Scripted_NoMovementAI
                     pWraith->AI()->AttackStart(pTarget);
             if (m_pInstance)
             {
-                Unit* pAnomalus = Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ANOMALUS));
+                Unit* pAnomalus = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_ANOMALUS));
                 if (pAnomalus && pAnomalus->HasAura(SPELL_RIFT_SHIELD))
                     SUMMON_CRAZED_MANA_WRAITH_Timer = 5000;
                 else

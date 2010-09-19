@@ -74,14 +74,14 @@ struct MANGOS_DLL_DECL mob_webwrapAI : public ScriptedAI
         if (victim)
         {
             victimGUID = victim;
-            if (Unit* pVictim = Unit::GetUnit((*m_creature), victimGUID))
+            if (Unit* pVictim = m_creature->GetMap()->GetUnit(victimGUID))
                 pVictim->CastSpell(pVictim, SPELL_WEBWRAP, true);
         }
     }
 
     void JustDied(Unit* Killer)
     {
-        if (Unit* pVictim = Unit::GetUnit((*m_creature), victimGUID))
+        if (Unit* pVictim = m_creature->GetMap()->GetUnit(victimGUID))
             pVictim->RemoveAurasDueToSpell(SPELL_WEBWRAP);
     }
 };
@@ -161,7 +161,7 @@ struct MANGOS_DLL_DECL boss_maexxnaAI : public ScriptedAI
                 bTank = false;
                 continue;
             }
-            Unit* pTemp = Unit::GetUnit((*m_creature),(*i)->getUnitGuid());
+            Unit* pTemp = m_creature->GetMap()->GetUnit((*i)->getUnitGuid());
             if (pTemp && (pTemp->GetTypeId() == TYPEID_PLAYER) && !pTemp->HasAura(SPELL_WEBWRAP))
                 lTargets.push_back(pTemp);
         }

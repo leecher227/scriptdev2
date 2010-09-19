@@ -142,7 +142,7 @@ struct MANGOS_DLL_DECL boss_ormorokAI : public ScriptedAI
             ThreatList const& lThreatList = m_creature->getThreatManager().getThreatList();
             for (ThreatList::const_iterator i = lThreatList.begin(); i != lThreatList.end(); ++i)
             {
-                Unit* pTemp = Unit::GetUnit(*m_creature, (*i)->getUnitGuid());
+                Unit* pTemp = m_creature->GetMap()->GetUnit((*i)->getUnitGuid());
                 if (pTemp && pTemp->GetTypeId() == TYPEID_PLAYER && pTemp->getClass() == uiHealer)
                 {
                     pTarget = pTemp;

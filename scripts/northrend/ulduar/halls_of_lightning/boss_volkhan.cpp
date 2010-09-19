@@ -139,7 +139,7 @@ struct MANGOS_DLL_DECL boss_volkhanAI : public ScriptedAI
             return;
 
         for (std::list<uint64>::iterator itr = m_lGolemGUIDList.begin(); itr != m_lGolemGUIDList.end(); ++itr)
-            if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                 pTemp->ForcedDespawn();
 
         m_lGolemGUIDList.clear();
@@ -150,8 +150,8 @@ struct MANGOS_DLL_DECL boss_volkhanAI : public ScriptedAI
         if (m_lGolemGUIDList.empty())
             return;
 
-        for(std::list<uint64>::iterator itr = m_lGolemGUIDList.begin(); itr != m_lGolemGUIDList.end(); ++itr)
-            if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+        for (std::list<uint64>::iterator itr = m_lGolemGUIDList.begin(); itr != m_lGolemGUIDList.end(); ++itr)
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                 if (pTemp->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE)) // only Shatters frozen golems
                 {
                     pTemp->CastSpell(pTemp, m_bIsRegularMode ? SPELL_SHATTER_N : SPELL_SHATTER_H, true);
@@ -208,11 +208,11 @@ struct MANGOS_DLL_DECL boss_volkhanAI : public ScriptedAI
         if (m_bIsStriking)
             return;
 
-        if(m_uiShatteringStomp_Timer < uiDiff)
+        if (m_uiShatteringStomp_Timer < uiDiff)
         {
-            for(std::list<uint64>::iterator itr = m_lGolemGUIDList.begin(); itr != m_lGolemGUIDList.end(); ++itr)
+            for (std::list<uint64>::iterator itr = m_lGolemGUIDList.begin(); itr != m_lGolemGUIDList.end(); ++itr)
             {
-                if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+                if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                 {
                     if (pTemp->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
                     {

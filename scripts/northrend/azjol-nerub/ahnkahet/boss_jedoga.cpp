@@ -411,7 +411,7 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
             else if (m_uiSubPhase == SUBPHASE_CALL_VOLUNTEER)
             {
                 m_uiVolunteerGUID = SelectRandomVolunteer(100.0f);
-                if (Creature* pVolunteer = ((Creature*)Unit::GetUnit(*m_creature, m_uiVolunteerGUID)))
+                if (Creature* pVolunteer = m_creature->GetMap()->GetCreature(m_uiVolunteerGUID))
                 {
                     switch(urand(0, 1))
                     {
@@ -434,7 +434,7 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
                 if (m_uiCheckTimer <= uiDiff)
                 {
                     m_bVolunteerDied = true;
-                    if (Creature* pVolunteer = ((Creature*)Unit::GetUnit(*m_creature, m_uiVolunteerGUID)))
+                    if (Creature* pVolunteer = m_creature->GetMap()->GetCreature(m_uiVolunteerGUID))
                         if (pVolunteer->isAlive())
                         {
                             m_bVolunteerDied = false;
@@ -462,7 +462,7 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
                 if (!m_bVolunteerDied)
                 {
                     DoCast(m_creature, SPELL_GIFT_OF_THE_HERALD);
-                    if (Creature* pVolunteer = ((Creature*)Unit::GetUnit(*m_creature, m_uiVolunteerGUID)))
+                    if (Creature* pVolunteer = m_creature->GetMap()->GetCreature(m_uiVolunteerGUID))
                     {
                         m_creature->SetHealth(m_creature->GetHealth() + pVolunteer->GetHealth());
                         pVolunteer->DealDamage(pVolunteer, pVolunteer->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);

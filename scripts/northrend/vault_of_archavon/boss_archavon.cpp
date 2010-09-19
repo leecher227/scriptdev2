@@ -212,7 +212,7 @@ struct MANGOS_DLL_DECL boss_archavonAI : public ScriptedAI
             std::list<Unit*> lTargets;
             for (ThreatList::const_iterator i = lThreatList.begin(); i != lThreatList.end(); ++i)
             {
-                Unit* pTemp = Unit::GetUnit(*m_creature, (*i)->getUnitGuid());
+                Unit* pTemp = m_creature->GetMap()->GetUnit((*i)->getUnitGuid());
                 if (pTemp && pTemp->GetTypeId() == TYPEID_PLAYER && !m_creature->IsWithinDist(pTemp, 10.0f) && m_creature->IsWithinDist(pTemp, 80.0f))
                     lTargets.push_back(pTemp);
             }

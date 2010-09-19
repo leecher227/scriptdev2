@@ -442,7 +442,7 @@ bool GossipSelect_npc_floon(Player* pPlayer, Creature* pCreature, uint32 uiSende
         pPlayer->CLOSE_GOSSIP_MENU();
         pCreature->setFaction(FACTION_HOSTILE_FL);
         DoScriptText(SAY_FLOON_ATTACK, pCreature, pPlayer);
-        ((npc_floonAI*)pCreature->AI())->AttackStart(pPlayer);
+        pCreature->AI()->AttackStart(pPlayer);
     }
     return true;
 }
@@ -680,7 +680,7 @@ struct MANGOS_DLL_DECL mob_luanga_the_imprisonerAI : public ScriptedAI
 
     void JustDied(Unit* /*who*/)
     {
-        Unit* Owner = Unit::GetUnit(*m_creature,m_creature->GetOwnerGUID());
+        Unit* Owner = m_creature->GetMap()->GetUnit(m_creature->GetOwnerGUID());
         if (Owner)
             if (Owner->GetEntry()==C_SKYWING)
                 ((npc_skywingAI*)((Creature*)Owner)->AI())->LuangaDead();
@@ -1016,7 +1016,7 @@ struct MANGOS_DLL_DECL npc_mana_bomb_exp_triggerAI : public ScriptedAI
 
         m_bIsActivated = true;
 
-        pPlayer->KilledMonsterCredit(NPC_MANA_BOMB_KILL_TRIGGER, 0);
+        pPlayer->KilledMonsterCredit(NPC_MANA_BOMB_KILL_TRIGGER);
 
         pManaBomb = pGo;
     }

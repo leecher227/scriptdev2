@@ -116,10 +116,10 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            if (Creature* pStalagg = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_STALAGG))))
+            if (Creature* pStalagg = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STALAGG)))
                 pStalagg->Respawn();
 
-            if (Creature* pFeugen = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_FEUGEN))))
+            if (Creature* pFeugen = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_FEUGEN)))
                 pFeugen->Respawn();
         }
     }
@@ -184,8 +184,8 @@ struct MANGOS_DLL_DECL boss_thaddiusAI : public ScriptedAI
 
                 if (m_pInstance)
                 {
-                    Creature* pStalagg = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_STALAGG)));
-                    Creature* pFeugen = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_FEUGEN)));
+                    Creature* pStalagg = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STALAGG));
+                    Creature* pFeugen = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_FEUGEN));
                     if (pStalagg && pFeugen && pStalagg->isDead() && pFeugen->isDead())
                     {
                         ActivationPrepare = true;
@@ -438,7 +438,7 @@ struct MANGOS_DLL_DECL mob_stalaggAI : public ScriptedAI
         MagneticPull_Timer = 20000;
 
         if (m_pInstance)
-            if (Creature* pFeugen = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_FEUGEN))))
+            if (Creature* pFeugen = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_FEUGEN)))
             {
                 if (pFeugen->isDead())
                     pFeugen->Respawn();
@@ -453,7 +453,7 @@ struct MANGOS_DLL_DECL mob_stalaggAI : public ScriptedAI
         DoScriptText(SAY_STAL_AGGRO, m_creature);
 
         if (m_pInstance)
-            if (Creature* pFeugen = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_FEUGEN))))
+            if (Creature* pFeugen = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_FEUGEN)))
                 pFeugen->AI()->AttackStart(pWho);
     }
 
@@ -475,7 +475,7 @@ struct MANGOS_DLL_DECL mob_stalaggAI : public ScriptedAI
         if (DeathCheck_Timer < uiDiff)
         {
             if (m_pInstance)
-                if (Creature* pFeugen = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_FEUGEN))))
+                if (Creature* pFeugen = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_FEUGEN)))
                     if (pFeugen->isDead())
                         if (m_bResurrectionNeeded)
                         {
@@ -504,7 +504,7 @@ struct MANGOS_DLL_DECL mob_stalaggAI : public ScriptedAI
         if (MagneticPull_Timer < uiDiff)
         {
             if (m_pInstance)
-                if (Creature* pFeugen = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_FEUGEN))))
+                if (Creature* pFeugen = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_FEUGEN)))
                 {
                     Unit* pFeugenTarget = pFeugen->getVictim();
                     Unit* pStalaggTarget = m_creature->getVictim();
@@ -571,7 +571,7 @@ struct MANGOS_DLL_DECL mob_feugenAI : public ScriptedAI
         Punish_Timer = 1000;
 
         if (m_pInstance)
-            if (Creature* pStalagg = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_STALAGG))))
+            if (Creature* pStalagg = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STALAGG)))
             {
                 if (pStalagg->isDead())
                     pStalagg->Respawn();
@@ -586,7 +586,7 @@ struct MANGOS_DLL_DECL mob_feugenAI : public ScriptedAI
         DoScriptText(SAY_FEUG_AGGRO, m_creature);
 
         if (m_pInstance)
-            if (Creature* pStalagg = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_STALAGG))))
+            if (Creature* pStalagg = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STALAGG)))
                 pStalagg->AI()->AttackStart(pWho);
     }
 
@@ -608,7 +608,7 @@ struct MANGOS_DLL_DECL mob_feugenAI : public ScriptedAI
         if (DeathCheck_Timer < uiDiff)
         {
             if (m_pInstance)
-                if (Creature* pStalagg = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_STALAGG))))
+                if (Creature* pStalagg = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STALAGG)))
                     if (pStalagg->isDead())
                         if (m_bResurrectionNeeded)
                         {

@@ -305,7 +305,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
 
         if (!m_lSparkPortalGUIDList.empty())
             for (std::list<uint64>::iterator itr = m_lSparkPortalGUIDList.begin(); itr != m_lSparkPortalGUIDList.end(); ++itr)
-                if (Creature* pSparkPortal = (Creature*)Unit::GetUnit(*m_creature, *itr))
+                if (Creature* pSparkPortal = m_creature->GetMap()->GetCreature(*itr))
                     pSparkPortal->Respawn();
 
         m_lSparkPortalGUIDList.clear();
@@ -485,7 +485,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         }
         else if (uiPointId == POINT_ID_LAND)
         {
-            if (Creature* pTargetSparkPortal = (Creature*)Unit::GetUnit(*m_creature, m_uiTargetSparkPortalGUID))
+            if (Creature* pTargetSparkPortal = m_creature->GetMap()->GetCreature(m_uiTargetSparkPortalGUID))
                 pTargetSparkPortal->Respawn();
 
             m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
@@ -563,7 +563,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         {
             if (m_uiPortalNeedResTimer <= uiDiff)
             {
-                if (Creature* pTargetSparkPortal = (Creature*)Unit::GetUnit(*m_creature, m_uiTargetSparkPortalGUID))
+                if (Creature* pTargetSparkPortal = m_creature->GetMap()->GetCreature(m_uiTargetSparkPortalGUID))
                     pTargetSparkPortal->Respawn();
 
                 m_bPortalNeedRes = false;
@@ -578,7 +578,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             {
                 if (m_uiTimer <= uiDiff)
                 {
-                    if (Creature* pTargetSparkPortal = (Creature*)Unit::GetUnit(*m_creature, m_uiTargetSparkPortalGUID))
+                    if (Creature* pTargetSparkPortal = m_creature->GetMap()->GetCreature(m_uiTargetSparkPortalGUID))
                     {
                         pTargetSparkPortal->ForcedDespawn();
                         m_bPortalNeedRes = true;
@@ -761,7 +761,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                 DoScriptText(SAY_POWER_SPARK, m_creature);
                 std::list<uint64>::iterator pTargetSparkPortalGUID = m_lSparkPortalGUIDList.begin();
                 advance(pTargetSparkPortalGUID, urand(0, m_lSparkPortalGUIDList.size()-1));
-                if (Creature* pTargetSparkPortal = (Creature*)Unit::GetUnit(*m_creature, *pTargetSparkPortalGUID))
+                if (Creature* pTargetSparkPortal = m_creature->GetMap()->GetCreature(*pTargetSparkPortalGUID))
                     if (Creature *pSpark = pTargetSparkPortal->SummonCreature(NPC_POWER_SPARK, pTargetSparkPortal->GetPositionX(), pTargetSparkPortal->GetPositionY(), pTargetSparkPortal->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 120000))
                     {
                         pTargetSparkPortal->CastSpell(pTargetSparkPortal, SPELL_PORTAL_BEAM, true);
@@ -1558,7 +1558,7 @@ struct MANGOS_DLL_DECL npc_alexstraszaAI : public ScriptedAI
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
         m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
         if (m_pInstance)
-		    if (Creature* pMalygos = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_MALYGOS)))
+		    if (Creature* pMalygos = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_MALYGOS)))
 			    m_creature->SetFacingToObject(pMalygos);
     }
 
@@ -1579,7 +1579,7 @@ struct MANGOS_DLL_DECL npc_alexstraszaAI : public ScriptedAI
 			{
 				case 0:
 					if (m_pInstance)
-						if (Creature* pMalygos = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_MALYGOS)))
+						if (Creature* pMalygos = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_MALYGOS)))
 							pMalygos->RemoveCorpse();
 					DoScriptText(SAY_OUTRO1, m_creature);
 					m_uiTimer = 5000;
@@ -1617,16 +1617,19 @@ struct MANGOS_DLL_DECL npc_alexstraszaAI : public ScriptedAI
 ######*/
 bool GOHello_go_focusing_iris(Player* pPlayer, GameObject* pGo)
 {
-    if (Unit* pMalygos = Unit::GetUnit(*pGo, pGo->GetInstanceData()->GetData64(NPC_MALYGOS)))
-    {
-        if (Creature* pSparkPortal = GetClosestCreatureWithEntry(pMalygos, NPC_SPARK_PORTAL, 100.0f))
-            if (pSparkPortal->HasAura(SPELL_PORTAL_BEAM))
-                pSparkPortal->ForcedDespawn();
+    ScriptedInstance* pInstance = (ScriptedInstance*)pGo->GetInstanceData();
+    if (pInstance)
+        if (Unit* pMalygos = pGo->GetMap()->GetUnit(pInstance->GetData64(NPC_MALYGOS)))
+        {
+            if (Creature* pSparkPortal = GetClosestCreatureWithEntry(pMalygos, NPC_SPARK_PORTAL, 100.0f))
+                if (pSparkPortal->HasAura(SPELL_PORTAL_BEAM))
+                    pSparkPortal->ForcedDespawn();
 
-        pMalygos->GetMotionMaster()->Clear();
-        float fAng = pMalygos->GetAngle(CENTER_X, CENTER_Y);
-        pMalygos->GetMotionMaster()->MovePoint(POINT_ID_LAND, CENTER_X-40.76f*cos(fAng), CENTER_Y-40.76f*sin(fAng), FLOOR_Z+7.0f);
-    }
+            pMalygos->GetMotionMaster()->Clear();
+            float fAng = pMalygos->GetAngle(CENTER_X, CENTER_Y);
+            pMalygos->GetMotionMaster()->MovePoint(POINT_ID_LAND, CENTER_X-40.76f*cos(fAng), CENTER_Y-40.76f*sin(fAng), FLOOR_Z+7.0f);
+        }
+    
     return false;
 }
 

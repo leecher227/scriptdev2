@@ -116,7 +116,7 @@ struct MANGOS_DLL_DECL mob_mature_netherwing_drakeAI : public ScriptedAI
             {
                 if (bCanEat && !bIsEating)
                 {
-                    if (Unit* pUnit = Unit::GetUnit(*m_creature, uiPlayerGUID))
+                    if (Player* pPlayer = m_creature->GetMap()->GetPlayer(uiPlayerGUID))
                     {
                         if (pMeat = GetClosestGameObjectWithEntry(m_creature, 185155, 100.0f))
                         {
@@ -139,8 +139,8 @@ struct MANGOS_DLL_DECL mob_mature_netherwing_drakeAI : public ScriptedAI
                     DoCast(m_creature, SPELL_JUST_EATEN);
                     DoScriptText(SAY_JUST_EATEN, m_creature);
 
-                    if (Player* pPlr = (Player*)Unit::GetUnit((*m_creature), uiPlayerGUID))
-                        pPlr->KilledMonsterCredit(NPC_EVENT_PINGER, m_creature->GetGUID());
+                    if (Player* pPlayer = m_creature->GetMap()->GetPlayer(uiPlayerGUID))
+                        pPlayer->KilledMonsterCredit(NPC_EVENT_PINGER, m_creature->GetGUID());
 
                     Reset();
                     m_creature->GetMotionMaster()->Clear();
@@ -244,7 +244,7 @@ struct MANGOS_DLL_DECL mob_enslaved_netherwing_drakeAI : public ScriptedAI
                 {
                     Tapped = false;
 
-                    if (Player* pPlayer = (Player*)Unit::GetUnit(*m_creature, PlayerGUID))
+                    if (Player* pPlayer = m_creature->GetMap()->GetPlayer(PlayerGUID))
                     {
                         if (pPlayer->GetQuestStatus(QUEST_FORCE_OF_NELT) == QUEST_STATUS_INCOMPLETE)
                         {
@@ -344,7 +344,7 @@ struct MANGOS_DLL_DECL mob_dragonmaw_peonAI : public ScriptedAI
         {
             if (m_uiPoisonTimer <= uiDiff)
             {
-                if (Player* pPlayer = (Player*)Unit::GetUnit(*m_creature, m_uiPlayerGUID))
+                if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_uiPlayerGUID))
                 {
                     if (pPlayer->GetQuestStatus(QUEST_SLOW_DEATH) == QUEST_STATUS_INCOMPLETE)
                         pPlayer->KilledMonsterCredit(NPC_DRAGONMAW_KILL_CREDIT, m_creature->GetGUID());
@@ -935,7 +935,7 @@ struct MANGOS_DLL_DECL mob_torlothAI : public ScriptedAI
 
         if (TorlothAnim[m_uiAnimationCount].uiCreature == LORD_ILLIDAN)
         {
-            pCreature = ((Creature*)Unit::GetUnit(*m_creature, m_uiLordIllidanGUID));
+            pCreature = m_creature->GetMap()->GetCreature(m_uiLordIllidanGUID);
 
             if (!pCreature)
             {
@@ -958,16 +958,16 @@ struct MANGOS_DLL_DECL mob_torlothAI : public ScriptedAI
                 m_creature->SetStandState(UNIT_STAND_STATE_STAND);
                 break;
             case 5:
-                if (Unit* pTarget = Unit::GetUnit((*m_creature), m_uiPlayerGUID))
+                if (Player* pTarget = m_creature->GetMap()->GetPlayer(m_uiPlayerGUID))
                 {
                     m_creature->AddThreat(pTarget);
                     m_creature->SetFacingToObject(pTarget);
                     m_creature->HandleEmote(EMOTE_ONESHOT_POINT);
                 }
-                 break;
+                break;
             case 6:
             {
-                if (Unit* pTarget = Unit::GetUnit((*m_creature), m_uiPlayerGUID))
+                if (Player* pTarget = m_creature->GetMap()->GetPlayer(m_uiPlayerGUID))
                 {
                     SetCombatMovement(true);
                     m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -988,7 +988,7 @@ struct MANGOS_DLL_DECL mob_torlothAI : public ScriptedAI
         {
             pPlayer->GroupEventHappens(QUEST_BATTLE_OF_THE_CRIMSON_WATCH, m_creature);
         
-            if (Creature* pLordIllidan = ((Creature*)Unit::GetUnit(*m_creature, m_uiLordIllidanGUID)))
+            if (Creature* pLordIllidan = m_creature->GetMap()->GetCreature(m_uiLordIllidanGUID))
             {
                 DoScriptText(SAY_EVENT_COMPLETED, pLordIllidan, pPlayer);
                 pLordIllidan->AI()->EnterEvadeMode();
@@ -1147,7 +1147,7 @@ struct MANGOS_DLL_DECL npc_lord_illidan_stormrageAI : public Scripted_NoMovement
         }
         else
         {
-            if (Unit* pTarget = Unit::GetUnit((*m_creature), m_uiPlayerGUID))
+            if (Player* pTarget = m_creature->GetMap()->GetPlayer(m_uiPlayerGUID))
             {
                 float fLocX, fLocY, fLocZ;
                 pTarget->GetPosition(fLocX, fLocY, fLocZ);
@@ -1167,7 +1167,7 @@ struct MANGOS_DLL_DECL npc_lord_illidan_stormrageAI : public Scripted_NoMovement
 
     void CheckEventFail()
     {
-        Player* pPlayer = ((Player*)Unit::GetUnit((*m_creature), m_uiPlayerGUID));
+        Player* pPlayer = m_creature->GetMap()->GetPlayer(m_uiPlayerGUID);
 
         if (!pPlayer)
             return;

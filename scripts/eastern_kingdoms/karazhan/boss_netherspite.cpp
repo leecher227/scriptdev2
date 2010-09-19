@@ -300,8 +300,8 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
         Unit* pNpc_Portal = NULL;
 
         m_auiCurrent_CandidateGUID[color] = m_creature->GetGUID();
-        pNpc_Beam = Unit::GetUnit((*m_creature), m_auiNpc_BeamGUID[color]);
-        pNpc_Portal = Unit::GetUnit((*m_creature), m_auiNpc_PortalGUID[color]);
+        pNpc_Beam = m_creature->GetMap()->GetUnit(m_auiNpc_BeamGUID[color]);
+        pNpc_Portal = m_creature->GetMap()->GetUnit(m_auiNpc_PortalGUID[color]);
 
         Map *map = m_creature->GetMap();
         if (map->IsDungeon())
@@ -449,7 +449,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
                 if (m_auiRed_Beam_BlockerGUID[i] == 0)
                 {
                     m_auiRed_Beam_BlockerGUID[i] = iPlayerGUID;
-                    pPlayer = Unit::GetUnit((*m_creature), m_auiRed_Beam_BlockerGUID[i]);
+                    pPlayer = m_creature->GetMap()->GetUnit(m_auiRed_Beam_BlockerGUID[i]);
                     m_creature->getThreatManager().addThreat(pPlayer, 5000000.0f);
                     break;
                 }
@@ -462,7 +462,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
         for (uint8 i=0;i<10;i++)
         {
             Unit* pPlayer = NULL;
-            pPlayer = Unit::GetUnit((*m_creature), m_auiExhaust_CandidateGUID[color][i]);
+            pPlayer = m_creature->GetMap()->GetUnit(m_auiExhaust_CandidateGUID[color][i]);
 
             if (pPlayer && pPlayer->isAlive())
             {
@@ -473,7 +473,7 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
                         for (uint8 j=0;j<10;j++)
                         {
                             Unit* pRedBeam_Player = NULL;
-                            pRedBeam_Player = Unit::GetUnit((*m_creature), m_auiRed_Beam_BlockerGUID[j]);
+                            pRedBeam_Player = m_creature->GetMap()->GetUnit(m_auiRed_Beam_BlockerGUID[j]);
                             if (pRedBeam_Player && pPlayer == pRedBeam_Player)
                             {
                                 if (pRedBeam_Player->isAlive())
@@ -511,14 +511,14 @@ struct MANGOS_DLL_DECL boss_netherspiteAI : public ScriptedAI
         
         for (uint8 i=0;i<3;i++)
         {
-            pSummoned = Unit::GetUnit((*m_creature), m_auiNpc_BeamGUID[i]);
+            pSummoned = m_creature->GetMap()->GetUnit(m_auiNpc_BeamGUID[i]);
             if (pSummoned && pSummoned->isAlive())
                 pSummoned->DealDamage(pSummoned, pSummoned->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
         }
 
         for (uint8 i=0;i<3;i++)
         {
-            pSummoned = Unit::GetUnit((*m_creature), m_auiNpc_PortalGUID[i]);
+            pSummoned = m_creature->GetMap()->GetUnit(m_auiNpc_PortalGUID[i]);
             if (pSummoned && pSummoned->isAlive())
                 pSummoned->DealDamage(pSummoned, pSummoned->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
         }

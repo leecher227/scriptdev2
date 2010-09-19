@@ -151,7 +151,7 @@ struct MANGOS_DLL_DECL boss_bjarngrimAI : public ScriptedAI
 
         for (uint8 i=0; i<2; ++i)
         {
-            Creature* pMinion = (Creature*)Unit::GetUnit((*m_creature), m_auiStormforgedLieutenantGUID[i]);
+            Creature* pMinion = m_creature->GetMap()->GetCreature(m_auiStormforgedLieutenantGUID[i]);
             if (pMinion && pMinion->isDead())
                 pMinion->Respawn();
         }

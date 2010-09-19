@@ -155,7 +155,7 @@ struct MANGOS_DLL_DECL boss_halazziAI : public ScriptedAI
                 m_creature->Attack(m_creature->getVictim(), true);
                 m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
             }
-            if(Unit *Lynx = Unit::GetUnit(*m_creature, LynxGUID))
+            if(Unit *Lynx = m_creature->GetMap()->GetUnit(LynxGUID))
             {
                 Lynx->SetVisibility(VISIBILITY_OFF);
                 Lynx->setDeathState(JUST_DIED);
@@ -180,7 +180,7 @@ struct MANGOS_DLL_DECL boss_halazziAI : public ScriptedAI
             TotemTimer = 12000;
             break;
         case PHASE_MERGE:
-            if(Unit *Lynx = Unit::GetUnit(*m_creature, LynxGUID))
+            if(Unit *Lynx = m_creature->GetMap()->GetUnit(LynxGUID))
             {
                 DoScriptText(SAY_MERGE, m_creature);
                 Lynx->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -270,7 +270,7 @@ struct MANGOS_DLL_DECL boss_halazziAI : public ScriptedAI
                         EnterPhase(PHASE_MERGE);
                     else
                     {
-                        Unit *Lynx = Unit::GetUnit(*m_creature, LynxGUID);
+                        Unit *Lynx = m_creature->GetMap()->GetUnit(LynxGUID);
                         if(Lynx && Lynx->GetHealth() * 10 < Lynx->GetMaxHealth())
                             EnterPhase(PHASE_MERGE);
                     }
@@ -283,7 +283,7 @@ struct MANGOS_DLL_DECL boss_halazziAI : public ScriptedAI
         {
             if(CheckTimer < diff)
             {
-                Unit *Lynx = Unit::GetUnit(*m_creature, LynxGUID);
+                Unit *Lynx = m_creature->GetMap()->GetUnit(LynxGUID);
                 if(Lynx && m_creature->IsWithinDistInMap(Lynx, 6.0f))
                 {
                     if(TransformCount < 3)

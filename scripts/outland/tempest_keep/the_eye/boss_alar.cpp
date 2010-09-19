@@ -312,13 +312,14 @@ struct MANGOS_DLL_DECL boss_alarAI : public ScriptedAI
                     bool InMeleeRange = false;
                     for (ThreatList::const_iterator i = lThreatList.begin(); i != lThreatList.end(); ++i) 
                     {
-                        if (Unit* pUnit = Unit::GetUnit(*m_creature, (*i)->getUnitGuid()))
+                        if (Unit* pUnit = m_creature->GetMap()->GetUnit((*i)->getUnitGuid()))
                             if (m_creature->IsWithinDistInMap(pUnit, 5))
                             {                        
                                 InMeleeRange = true;
                                 m_creature->getThreatManager().addThreat(pUnit, 1.0f);
                                 break;
-                            }else
+                            }
+                            else
                                 m_creature->getThreatManager().modifyThreatPercent(pUnit, -100);
                     }
                     if (!InMeleeRange)
@@ -449,8 +450,8 @@ struct MANGOS_DLL_DECL mob_ember_of_alarAI : public ScriptedAI
 
         damage = 0;
         DoCast(m_creature, SPELL_EMBER_BLAST);
-        if(pInstance && !Phase1)
-            if (Unit* Alar = Unit::GetUnit((*m_creature), pInstance->GetData64(DATA_ALAR)))
+        if (pInstance && !Phase1)
+            if (Unit* Alar = m_creature->GetMap()->GetUnit(pInstance->GetData64(DATA_ALAR)))
             {
                 int AlarHealth = Alar->GetHealth() - Alar->GetMaxHealth()*0.03;
                 if (AlarHealth > 0)

@@ -63,11 +63,11 @@ struct MANGOS_DLL_DECL mob_sladran_summon_targetAI : public ScriptedAI
 {
     mob_sladran_summon_targetAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (instance_gundrak*)pCreature->GetInstanceData();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
+    instance_gundrak* m_pInstance;
 
     void Reset() {}
     void MoveInLineOfSight(Unit* pWho) {}
@@ -78,7 +78,7 @@ struct MANGOS_DLL_DECL mob_sladran_summon_targetAI : public ScriptedAI
         if (!m_pInstance)
             return;
 
-        if (Creature* pSladran = ((Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_SLADRAN))))
+        if (Creature* pSladran = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_SLADRAN)))
         {
             float fPosX, fPosY, fPosZ;
             pSladran->GetPosition(fPosX, fPosY, fPosZ);

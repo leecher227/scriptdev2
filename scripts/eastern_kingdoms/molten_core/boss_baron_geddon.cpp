@@ -38,13 +38,6 @@ enum
 	SPELL_ARMAGEDDON	=	20479,	//at 2% health there is the emote and after 5 seconds he casts this spell
 };
 
-class MANGOS_DLL_DECL BombAura : public Aura
-{
-    public:
-        BombAura(SpellEntry *spell, SpellEffectIndex eff, int32 *bp, Unit *target, Unit *caster) : Aura(spell, eff, bp, target, caster, NULL)
-            {}
-};
-
 struct MANGOS_DLL_DECL boss_baron_geddonAI : public ScriptedAI
 {
     boss_baron_geddonAI(Creature* pCreature) : ScriptedAI(pCreature) 
@@ -152,13 +145,7 @@ struct MANGOS_DLL_DECL boss_baron_geddonAI : public ScriptedAI
         if (uiLivingBomb_Timer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-			{
-			    //DoCast(pTarget, SPELL_LIVING_BOMB);
-				SpellEntry *spell = (SpellEntry *)GetSpellStore()->LookupEntry(SPELL_LIVING_BOMB);
-                pTarget->AddAura(new BombAura(spell, EFFECT_INDEX_0, NULL, pTarget, pTarget));
-                pTarget->AddAura(new BombAura(spell, EFFECT_INDEX_1, NULL, pTarget, pTarget));
-                pTarget->AddAura(new BombAura(spell, EFFECT_INDEX_2, NULL, pTarget, pTarget));
-			}
+			    DoCast(pTarget, SPELL_LIVING_BOMB, true);
             uiLivingBomb_Timer = 30000;
 		}
 		else 

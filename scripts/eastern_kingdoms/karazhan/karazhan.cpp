@@ -257,7 +257,7 @@ struct MANGOS_DLL_DECL npc_barnesAI : public npc_escortAI
             {
                 if (m_uiTalkCount > 3)
                 {
-                    if (Creature* pSpotlight = (Creature*)Unit::GetUnit(*m_creature, m_uiSpotlightGUID))
+                    if (Creature* pSpotlight = m_creature->GetMap()->GetCreature(m_uiSpotlightGUID))
                         pSpotlight->ForcedDespawn();
 
                     SetEscortPaused(false);
@@ -544,7 +544,7 @@ struct MANGOS_DLL_DECL npc_image_of_medivhAI : public ScriptedAI
 
     uint32 NextStep(uint32 step)
     {
-        Creature* pArcanagos = (Creature*)Unit::GetUnit(*m_creature, m_uiArcanagosGUID);
+        Creature* pArcanagos = m_creature->GetMap()->GetCreature(m_uiArcanagosGUID);
         if (!pArcanagos)
             return 9999999;
         

@@ -299,11 +299,11 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
 		Resurect_Timer = 8000;
 		Resurect_Phase = 1;
 		if (m_pInstance)
-			if(Unit* ingvar = Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_INGVAR)))
+			if (Unit* pIngvar = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_INGVAR)))
 			{
-				ingvar->RemoveAura(SPELL_SUMMON_BANSHEE, EFFECT_INDEX_0);
-				ingvar->CastSpell(ingvar, SPELL_SCOURG_RESURRECTION_DUMMY, true);
-				DoCast(ingvar, SPELL_SCOURG_RESURRECTION_BEAM);
+				pIngvar->RemoveAura(SPELL_SUMMON_BANSHEE, EFFECT_INDEX_0);
+				pIngvar->CastSpell(pIngvar, SPELL_SCOURG_RESURRECTION_DUMMY, true);
+				DoCast(pIngvar, SPELL_SCOURG_RESURRECTION_BEAM);
 			}
     }
 
@@ -323,10 +323,10 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
 				case 1:
 					if (m_pInstance)
 					{
-						if (Unit* ingvar = Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_INGVAR)))
+						if (Unit* pIngvar = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_INGVAR)))
 						{
-							ingvar->SetStandState(UNIT_STAND_STATE_STAND);
-							ingvar->CastSpell(ingvar, SPELL_SCOURG_RESURRECTION_HEAL, false);
+							pIngvar->SetStandState(UNIT_STAND_STATE_STAND);
+							pIngvar->CastSpell(pIngvar, SPELL_SCOURG_RESURRECTION_HEAL, false);
 						}
 					}
 					Resurect_Timer = 3000;
@@ -334,16 +334,18 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
 					break;
 				case 2:
 	                if (m_pInstance)
-						if(Unit* ingvar = Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_INGVAR)))
+						if(Unit* pIngvar = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_INGVAR)))
 						{
-							ingvar->RemoveAurasDueToSpell(SPELL_SCOURG_RESURRECTION_DUMMY);
-							((Creature*)ingvar)->UpdateEntry(MOB_INGVAR_UNDEAD);
-							((boss_ingvarAI*)(((Creature*)ingvar)->AI()))->StartZombiePhase();
+							pIngvar->RemoveAurasDueToSpell(SPELL_SCOURG_RESURRECTION_DUMMY);
+							((Creature*)pIngvar)->UpdateEntry(MOB_INGVAR_UNDEAD);
+							((boss_ingvarAI*)(((Creature*)pIngvar)->AI()))->StartZombiePhase();
 						}
 					Resurect_Phase = 0;
 					break;
             }
-        }else Resurect_Timer -= diff;
+        }
+        else
+            Resurect_Timer -= diff;
     }
 };
 

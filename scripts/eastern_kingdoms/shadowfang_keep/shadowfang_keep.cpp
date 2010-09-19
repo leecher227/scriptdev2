@@ -143,7 +143,7 @@ CreatureAI* GetAI_npc_shadowfang_prisoner(Creature* pCreature)
 
 bool GossipHello_npc_shadowfang_prisoner(Player* pPlayer, Creature* pCreature)
 {
-    ScriptedInstance* pInstance = ((ScriptedInstance*)pCreature->GetInstanceData());
+    ScriptedInstance* pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
 
     if (pInstance && pInstance->GetData(TYPE_FREE_NPC) != DONE && pInstance->GetData(TYPE_RETHILGORE) == DONE)
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_DOOR, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
@@ -526,7 +526,6 @@ struct MANGOS_DLL_DECL boss_arugalAI : public ScriptedAI
                             if (!i)
                                 pLeader = pVoidwalker;
 
-
                             if (mob_arugal_voidwalkerAI* pVoidwalkerAI = dynamic_cast<mob_arugal_voidwalkerAI*>(pVoidwalker->AI()))
                                 pVoidwalkerAI->SetPosition(i,pLeader);
 
@@ -651,7 +650,6 @@ struct MANGOS_DLL_DECL boss_arugalAI : public ScriptedAI
             else
                 m_uiTeleportTimer = urand(48000, 55000);
 
-
             m_posPosition = posNewPosition;
         }
         else
@@ -662,18 +660,18 @@ struct MANGOS_DLL_DECL boss_arugalAI : public ScriptedAI
     }
 
     void AttackStart(Unit* pWho) 
-    { 
+    {
         if (!m_bEventMode)
             ScriptedAI::AttackStart(pWho);
     }
 
     //make the code nice and pleasing to the eye
     inline float GetManaPercent() 
-    { 
+    {
         return (((float)m_creature->GetPower(POWER_MANA) / (float)m_creature->GetMaxPower(POWER_MANA)) * 100);
     }
 
-    inline float GetVictimDistance() 
+    inline float GetVictimDistance()
     {
         return (m_creature->getVictim() ? m_creature->GetDistance2d(m_creature->getVictim()) : 999.9f);
     }

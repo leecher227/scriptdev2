@@ -132,7 +132,7 @@ struct MANGOS_DLL_DECL mob_fireswornAI : public ScriptedAI
 
     void Reset()
     {
-		pGarr = Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_GARR));
+		pGarr = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_GARR));
 
         uiImmolate_Timer = 4000;      //These times are probably wrong
 

@@ -9,20 +9,19 @@
 
 struct Escort_Waypoint
 {
-    Escort_Waypoint(uint32 _id, float _x, float _y, float _z, uint32 _w)
-    {
-        id = _id;
-        x = _x;
-        y = _y;
-        z = _z;
-        WaitTimeMs = _w;
-    }
+    Escort_Waypoint(uint32 uiId, float fX, float fY, float fZ, uint32 uiWaitTime) :
+        uiId(uiId),
+        fX(fX),
+        fY(fY),
+        fZ(fZ),
+        uiWaitTime(uiWaitTime)
+    {}
 
-    uint32 id;
-    float x;
-    float y;
-    float z;
-    uint32 WaitTimeMs;
+    uint32 uiId;
+    float  fX;
+    float  fY;
+    float  fZ;
+    uint32 uiWaitTime;
 };
 
 enum eEscortState
@@ -76,8 +75,11 @@ struct MANGOS_DLL_DECL npc_escortAI : public ScriptedAI
 
         bool HasEscortState(uint32 uiEscortState) { return (m_uiEscortState & uiEscortState); }
 
+        // update current point
+        void SetCurrentWaypoint(uint32 uiPointId);
+
     protected:
-        Player* GetPlayerForEscort() { return (Player*)Unit::GetUnit(*m_creature, m_uiPlayerGUID); }
+        Player* GetPlayerForEscort() { return m_creature->GetMap()->GetPlayer(m_uiPlayerGUID); }
         virtual void JustStartedEscort() {}
 
     private:

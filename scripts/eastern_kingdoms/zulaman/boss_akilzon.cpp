@@ -269,7 +269,7 @@ struct MANGOS_DLL_DECL boss_akilzonAI : public ScriptedAI
             Cloud->RemoveAurasDueToSpell(45213);
             CloudGUID = 0;
             
-            if (Unit* Cyclone = Unit::GetUnit(*m_creature, CycloneGUID))
+            if (Unit* Cyclone = m_creature->GetMap()->GetUnit(CycloneGUID))
                 Cyclone->RemoveAurasDueToSpell(25160);
             
             SetWeather(WEATHER_STATE_FINE, 0.0f);
@@ -286,13 +286,13 @@ struct MANGOS_DLL_DECL boss_akilzonAI : public ScriptedAI
 
         if(StormCount)
         {
-            Unit* target = Unit::GetUnit(*m_creature, CloudGUID);
+            Unit* target = m_creature->GetMap()->GetUnit(CloudGUID);
             if(!target || !target->isAlive())
             {
                 EnterEvadeMode();
                 return;
             }
-            else if(Unit* Cyclone = Unit::GetUnit(*m_creature, CycloneGUID))
+            else if(Unit* Cyclone = m_creature->GetMap()->GetUnit(CycloneGUID))
                 Cyclone->CastSpell(target, 25160, true); // keep casting or...
 
             if(StormSequenceTimer < diff)
@@ -330,7 +330,7 @@ struct MANGOS_DLL_DECL boss_akilzonAI : public ScriptedAI
 
         if (SDisruptAOEVisual_Timer < diff) 
         {
-            Unit* SDVictim = Unit::GetUnit((*m_creature), TargetGUID);
+            Unit* SDVictim = m_creature->GetMap()->GetUnit(TargetGUID);
             if(SDVictim && SDVictim->isAlive())
                 SDVictim->CastSpell(SDVictim, SPELL_STATIC_VISUAL, true);
             
@@ -433,7 +433,7 @@ struct MANGOS_DLL_DECL mob_soaring_eagleAI : public ScriptedAI
 
     uint32 EagleSwoop_Timer;
     bool arrived;
-    uint32 TargetGUID;
+    uint64 TargetGUID;
 
     void Reset()
     {
@@ -460,8 +460,8 @@ struct MANGOS_DLL_DECL mob_soaring_eagleAI : public ScriptedAI
         arrived = true;
         if (TargetGUID)
         {
-            if (Unit* target = Unit::GetUnit(*m_creature, TargetGUID))
-                m_creature->CastSpell(target, SPELL_EAGLE_SWOOP, true);
+            if (Unit* pTarget = m_creature->GetMap()->GetUnit(TargetGUID))
+                m_creature->CastSpell(pTarget, SPELL_EAGLE_SWOOP, true);
             
             TargetGUID = 0;
             m_creature->SetSpeedRate(MOVE_RUN, 1.2f);

@@ -137,9 +137,9 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            Creature* pZeliek = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ZELIEK));
-            Creature* pThane = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_THANE));
-            Creature* pRivendare = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_RIVENDARE));
+            Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
+            Creature* pThane = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_THANE));
+            Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
             if (pZeliek && pZeliek->isDead())
                 pZeliek->Respawn();
             if (pThane && pThane->isDead())
@@ -179,9 +179,9 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
         
         if (m_pInstance)
         {
-            Creature* pZeliek = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ZELIEK));
-            Creature* pThane = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_THANE));
-            Creature* pRivendare = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_RIVENDARE));
+            Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
+            Creature* pThane = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_THANE));
+            Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
             if (pZeliek && pThane && pRivendare && pZeliek->isDead() && pThane->isDead() && pRivendare->isDead())
                  m_pInstance->SetData(TYPE_FOUR_HORSEMEN, DONE);
         }
@@ -327,9 +327,9 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            Creature* pBlaumeux = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_BLAUMEUX));
-            Creature* pThane = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_THANE));
-            Creature* pRivendare = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_RIVENDARE));
+            Creature* pBlaumeux = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX));
+            Creature* pThane = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_THANE));
+            Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
             if (pBlaumeux && pBlaumeux->isDead())
                 pBlaumeux->Respawn();
             if (pThane && pThane->isDead())
@@ -360,9 +360,9 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            Creature* pThane = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_THANE));
-            Creature* pRivendare = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_RIVENDARE));
-            Creature* pBlaumeux = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_BLAUMEUX));
+            Creature* pThane = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_THANE));
+            Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
+            Creature* pBlaumeux = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX));
             if (pThane && pRivendare && pBlaumeux && pThane->isDead() && pRivendare->isDead() && pBlaumeux->isDead())
                  m_pInstance->SetData(TYPE_FOUR_HORSEMEN, DONE);
         }
@@ -466,9 +466,9 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            Creature* pBlaumeux = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_BLAUMEUX));
-            Creature* pThane = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_THANE));
-            Creature* pZeliek = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ZELIEK));
+            Creature* pBlaumeux = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX));
+            Creature* pThane = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_THANE));
+            Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
             if (pBlaumeux && pBlaumeux->isDead())
                 pBlaumeux->Respawn();
             if (pThane && pThane->isDead())
@@ -508,9 +508,9 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            Creature* pZeliek = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ZELIEK));
-            Creature* pThane = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_THANE));
-            Creature* pBlaumeux = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_BLAUMEUX));
+            Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
+            Creature* pThane = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_THANE));
+            Creature* pBlaumeux = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX));
             if (pZeliek && pThane && pBlaumeux && pZeliek->isDead() && pThane->isDead() && pBlaumeux->isDead())
                  m_pInstance->SetData(TYPE_FOUR_HORSEMEN, DONE);
         }
@@ -592,9 +592,9 @@ struct MANGOS_DLL_DECL boss_thane_korthazzAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            Creature* pBlaumeux = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_BLAUMEUX));
-            Creature* pRivendare = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_RIVENDARE));
-            Creature* pZeliek = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ZELIEK));
+            Creature* pBlaumeux = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX));
+            Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
+            Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
             if (pBlaumeux && pBlaumeux->isDead())
                 pBlaumeux->Respawn();
             if (pRivendare && pRivendare->isDead())
@@ -625,9 +625,9 @@ struct MANGOS_DLL_DECL boss_thane_korthazzAI : public ScriptedAI
 
         if (m_pInstance)
         {
-            Creature* pZeliek = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_ZELIEK));
-            Creature* pRivendare = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_RIVENDARE));
-            Creature* pBlaumeux = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(NPC_BLAUMEUX));
+            Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
+            Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
+            Creature* pBlaumeux = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX));
             if (pZeliek && pRivendare && pBlaumeux && pZeliek->isDead() && pRivendare->isDead() && pBlaumeux->isDead())
                  m_pInstance->SetData(TYPE_FOUR_HORSEMEN, DONE);
         }

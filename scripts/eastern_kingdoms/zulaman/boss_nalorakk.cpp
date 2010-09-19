@@ -128,10 +128,10 @@ struct MANGOS_DLL_DECL boss_nalorakkAI : public ScriptedAI
 
     void MovementInform(uint32, uint32)
     {
-        if(ChargeTargetGUID)
+        if (ChargeTargetGUID)
         {
-            if(Unit* target = Unit::GetUnit(*m_creature, ChargeTargetGUID))
-                m_creature->CastSpell(target, SPELL_SURGE, true);
+            if (Unit* pTarget = m_creature->GetMap()->GetUnit(ChargeTargetGUID))
+                m_creature->CastSpell(pTarget, SPELL_SURGE, true);
             ChargeTargetGUID = 0;
         }
     }

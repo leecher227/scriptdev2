@@ -687,6 +687,22 @@
 				<Filter
 					Name="gnomeregan"
 					>
+					<File
+						RelativePath="..\scripts\eastern_kingdoms\gnomeregan\boss_thermaplugg.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\scripts\eastern_kingdoms\gnomeregan\gnomeregan.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\scripts\eastern_kingdoms\gnomeregan\gnomeregan.h"
+						>
+					</File>
+					<File
+						RelativePath="..\scripts\eastern_kingdoms\gnomeregan\instance_gnomeregan.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="karazhan"
@@ -2187,6 +2203,10 @@
 						Name="ulduar"
 						>
 						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\assembly_of_iron.cpp"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_algalon.cpp"
 							>
 						</File>
@@ -2195,7 +2215,15 @@
 							>
 						</File>
 						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_flame_leviathan.cpp"
+							>
+						</File>
+						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_freya.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_general_vezax.cpp"
 							>
 						</File>
 						<File
@@ -2207,15 +2235,7 @@
 							>
 						</File>
 						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_iron_council.cpp"
-							>
-						</File>
-						<File
 							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_kologarn.cpp"
-							>
-						</File>
-						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_leviathan.cpp"
 							>
 						</File>
 						<File
@@ -2231,11 +2251,7 @@
 							>
 						</File>
 						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_vezax.cpp"
-							>
-						</File>
-						<File
-							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_xt002.cpp"
+							RelativePath="..\scripts\northrend\ulduar\ulduar\boss_xt_002.cpp"
 							>
 						</File>
 						<File
@@ -2562,10 +2578,6 @@
 					<Filter
 						Name="slave_pens"
 						>
-						<File
-							RelativePath="..\scripts\outland\coilfang_reservoir\slave_pens\boss_rokmar.cpp"
-							>
-						</File>
 					</Filter>
 					<Filter
 						Name="steam_vault"

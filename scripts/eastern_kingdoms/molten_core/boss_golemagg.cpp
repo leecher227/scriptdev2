@@ -144,7 +144,7 @@ struct MANGOS_DLL_DECL mob_core_ragerAI : public ScriptedAI
     void Reset()
     {
 		if (m_pInstance)
-			pGolemagg = Unit::GetUnit((*m_creature), m_pInstance->GetData64(DATA_GOLEMAGG));
+			pGolemagg = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_GOLEMAGG));
 
 		uiMangle_Timer = 7000;      //These times are probably wrong 
 

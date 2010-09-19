@@ -87,7 +87,7 @@ struct MANGOS_DLL_DECL boss_moamAI : public ScriptedAI
                         m_uiPhase = PHASE_ENERGIZING;
                         return;
                     }
-                } 
+                }
                 else
                     m_uiCheckoutMana_Timer -= uiDiff;
 
@@ -112,7 +112,8 @@ struct MANGOS_DLL_DECL boss_moamAI : public ScriptedAI
 
                     for (ThreatList::const_iterator itr = threatlist.begin(); itr != threatlist.end(); ++itr)
                     {
-                        Unit* pUnit = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid());
+                        Unit* pUnit = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
+
                         if (pUnit && pUnit->isAlive() && pUnit->GetPower(POWER_MANA))
                             lTargets.push_back(pUnit);
                     }
@@ -124,7 +125,7 @@ struct MANGOS_DLL_DECL boss_moamAI : public ScriptedAI
                     std::advance(itr, urand(0, lTargets.size()-1));
 
                     DoCastSpellIfCan(*itr, SPELL_DRAIN_MANA);
-                } 
+                }
                 else
                     m_uiManaDrain_Timer -= uiDiff;
 
@@ -132,7 +133,7 @@ struct MANGOS_DLL_DECL boss_moamAI : public ScriptedAI
                 {
                     DoCastSpellIfCan(m_creature->getVictim(), SPELL_TRAMPLE);
                     m_uiTrample_Timer = 15000;
-                } 
+                }
                 else
                     m_uiTrample_Timer -= uiDiff;
 
@@ -150,7 +151,7 @@ struct MANGOS_DLL_DECL boss_moamAI : public ScriptedAI
                         m_uiPhase = PHASE_ATTACKING;
                         return;
                     }
-                } 
+                }
                 else
                     m_uiCheckoutMana_Timer -= uiDiff;
                 break;

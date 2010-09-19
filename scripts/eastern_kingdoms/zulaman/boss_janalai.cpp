@@ -72,10 +72,10 @@ float JanalainPos[1][3] =
 
 float FireWallCoords[4][4] =
 {
-    {-10.13f, 1149.27f, 19.0f, M_PI},
-    {-33.93f, 1123.90f, 19.0f, M_PI*0.5f},
+    {-10.13f, 1149.27f, 19.0f, 3.1416f},
+    {-33.93f, 1123.90f, 19.0f, 1.5708f},
     {-54.80f, 1150.08f, 19.0f, 0},
-    {-33.93f, 1175.68f, 19.0f, M_PI*1.5f}
+    {-33.93f, 1175.68f, 19.0f, 4.7124f}
 };
 
 float hatcherway[2][5][3] =
@@ -176,9 +176,9 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
 
     void DamageDeal(Unit* target, uint32 &damage)
     {
-        if(isFlameBreathing)
+        if (isFlameBreathing)
         {
-            if(!m_creature->HasInArc(M_PI/6, target))
+            if (!m_creature->HasInArc(0.5236f, target))
                 damage = 0;
         }
     }
@@ -254,9 +254,9 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
 
     void HandleBombSequence()
     {
-        if(BombCount < 40)
+        if (BombCount < 40)
         {
-            if(Unit *FireBomb = Unit::GetUnit((*m_creature), FireBombGUIDs[BombCount]))
+            if (Unit* FireBomb = m_creature->GetMap()->GetUnit(FireBombGUIDs[BombCount]))
             {
                 FireBomb->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                 DoCast(FireBomb, SPELL_FIRE_BOMB_THROW, true);

@@ -639,10 +639,10 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
 
             if (m_uiLifeSparkTimer < uiDiff)
             {
-                if (Unit* pTarget = Unit::GetUnit(*m_creature, pLightBombTarGUID))
+                if (Unit* pTarget = m_creature->GetMap()->GetUnit(pLightBombTarGUID))
                 {
                     Creature * LifeSpark = m_creature->SummonCreature(NPC_LIFESPARK, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
-                    if(m_bIsRegularMode)
+                    if (m_bIsRegularMode)
                         LifeSpark->SetHealth(50400);
                 }
                 m_uiLifeSparkTimer = 60000;
@@ -650,7 +650,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
 
             if (m_uiVoidZoneTimer < uiDiff)
             {
-                if (Unit* pTarget = Unit::GetUnit(*m_creature, pGravityBombTarGUID))
+                if (Unit* pTarget = m_creature->GetMap()->GetUnit(pGravityBombTarGUID))
                     m_creature->SummonCreature(NPC_VOIDZONE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 180000);         
                 m_uiVoidZoneTimer = 60000;
             }else m_uiVoidZoneTimer -= uiDiff;

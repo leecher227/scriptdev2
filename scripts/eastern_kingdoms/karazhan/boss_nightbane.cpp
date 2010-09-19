@@ -278,7 +278,7 @@ struct MANGOS_DLL_DECL boss_nightbaneAI : public ScriptedAI
                 ThreatList const& lThreatList = m_creature->getThreatManager().getThreatList();
                 for (ThreatList::const_iterator i = lThreatList.begin(); i != lThreatList.end(); ++i)
                 {
-                    if (Unit* pUnit = Unit::GetUnit(*m_creature, (*i)->getUnitGuid()))
+                    if (Unit* pUnit = m_creature->GetMap()->GetUnit((*i)->getUnitGuid()))
                         if (pUnit->isAlive() && !m_creature->IsWithinDistInMap(pUnit, 40, true))
                             DoCast(pUnit, SPELL_FIREBALL_BARRAGE);
                 }

@@ -164,11 +164,10 @@ struct MANGOS_DLL_DECL boss_eregosAI : public ScriptedAI
         std::list<HostileReference *> t_list = m_creature->getThreatManager().getThreatList();
         if (t_list.size())
         {
-            std::list<HostileReference *>::iterator itr = t_list.begin();
-            for(; itr!= t_list.end(); ++itr)
+            for (std::list<HostileReference *>::iterator itr = t_list.begin(); itr != t_list.end(); ++itr)
             {
-                Unit *target = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid());
-                if(target && target->isAlive() && target->GetTypeId() == TYPEID_PLAYER)
+                Unit *pTarget = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
+                if (pTarget && pTarget->isAlive() && pTarget->GetTypeId() == TYPEID_PLAYER)
                    DoCast(m_creature, SPELL_PLANAR_ANOMALIES_SUMMON, true);
             }
         }

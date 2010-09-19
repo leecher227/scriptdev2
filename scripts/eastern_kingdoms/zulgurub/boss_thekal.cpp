@@ -336,8 +336,8 @@ struct MANGOS_DLL_DECL mob_zealot_lorkhanAI : public ScriptedAI
         {
             if (m_pInstance)
             {
-                Unit *pThekal = Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_THEKAL));
-                Unit *pZath = Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_ZATH));
+                Unit *pThekal = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(DATA_THEKAL));
+                Unit *pZath = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(DATA_ZATH));
 
                 switch (urand(0, 1))
                 {

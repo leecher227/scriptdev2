@@ -130,14 +130,14 @@ struct MANGOS_DLL_DECL boss_brutallusAI : public ScriptedAI
     {
         DoScriptText(YELL_DEATH, m_creature);
 
-        if (Creature* Felmist = ((Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_FELMYST))))
+        if (!m_pInstance)
+            return;
+
+        if (Creature* Felmist = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_FELMYST)))
         {
            Felmist->SetVisibility(VISIBILITY_ON);
            Felmist->setFaction(14);
         }
-
-        if (!m_pInstance)
-            return;
 
         if (GameObject* pFireBarrier = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(DATA_GO_FIRE_BARRIER)))
             pFireBarrier->SetGoState(GO_STATE_ACTIVE);
@@ -206,13 +206,13 @@ struct MANGOS_DLL_DECL boss_brutallusAI : public ScriptedAI
             std::list<HostileReference *> t_list = m_creature->getThreatManager().getThreatList();
             for(std::list<HostileReference *>::iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
             {
-                Unit *BurnedPlayer = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid());
+                Unit* BurnedPlayer = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
                 if (BurnedPlayer && BurnedPlayer->GetTypeId() == TYPEID_PLAYER && BurnedPlayer->HasAura(SPELL_BURN_AURA))
                 {
                     std::list<HostileReference *> t_list = m_creature->getThreatManager().getThreatList();
                     for(std::list<HostileReference *>::iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
                     {
-                        Unit *TargetedPlayer = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid());  
+                        Unit* TargetedPlayer = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());  
                         if (TargetedPlayer && TargetedPlayer->GetTypeId() == TYPEID_PLAYER && TargetedPlayer->IsWithinDistInMap(BurnedPlayer, 6) && !TargetedPlayer->HasAura(SPELL_BURN_AURA))
                             TargetedPlayer->CastSpell(TargetedPlayer,SPELL_BURN_AURA,true);
                     }

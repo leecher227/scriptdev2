@@ -67,12 +67,6 @@ enum
     NPC_SHADOW_LEO          = 21875
 };
 
-class MANGOS_DLL_DECL InsidiousAura : public Aura {
-public:
-    InsidiousAura(SpellEntry *spell, SpellEffectIndex eff, int32* bp, Unit* target, Unit* caster) : Aura(spell, eff, bp, target, caster, NULL)
-    {}
-};
-
 struct MANGOS_DLL_DECL mob_inner_demonAI : public ScriptedAI
 {
     mob_inner_demonAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -91,9 +85,10 @@ struct MANGOS_DLL_DECL mob_inner_demonAI : public ScriptedAI
         m_uiShadowBoltTimer = 10000;
         m_uiLinkTimer = 1000;
     }
+
     void JustDied(Unit* pVictim)
     {
-        Unit* pUnit = Unit::GetUnit(*m_creature, m_uiVictimGUID);
+        Unit* pUnit = m_creature->GetMap()->GetUnit(m_uiVictimGUID);
         if (pUnit)
             pUnit->RemoveAurasDueToSpell(SPELL_INSIDIOUS_WHISPER);
     }
@@ -120,7 +115,7 @@ struct MANGOS_DLL_DECL mob_inner_demonAI : public ScriptedAI
             return;
 
         if (m_creature->getVictim()->GetGUID() != m_uiVictimGUID)
-            if (Unit* pOwner = Unit::GetUnit(*m_creature,m_uiVictimGUID))
+            if (Unit* pOwner = m_creature->GetMap()->GetUnit(m_uiVictimGUID))
                 AttackStart(pOwner);
         
         if (m_uiLinkTimer < uiDiff)
@@ -239,7 +234,7 @@ struct MANGOS_DLL_DECL boss_leotheras_the_blindAI : public ScriptedAI
                 // Greyheart Spellbinder is dead, we must respawn it
                 if(uiGreyheartSpellbinderGUID[i])
                 {
-                    Creature* pSpellbinder = (Creature*)Unit::GetUnit(*m_creature, uiGreyheartSpellbinderGUID[i]);
+                    Creature* pSpellbinder = m_creature->GetMap()->GetCreature(uiGreyheartSpellbinderGUID[i]);
                     if (pSpellbinder)
                     {
                         if(!pSpellbinder->isAlive())
@@ -291,7 +286,7 @@ struct MANGOS_DLL_DECL boss_leotheras_the_blindAI : public ScriptedAI
             m_creature->LoadEquipment(m_creature->GetEquipmentId());
 
             if (m_pInstance && m_pInstance->GetData64(DATA_LEOTHERAS_EVENT_STARTER))
-                if (Unit* pVictim = Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_LEOTHERAS_EVENT_STARTER)))
+                if (Unit* pVictim = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(DATA_LEOTHERAS_EVENT_STARTER)))
                     m_creature->getThreatManager().addThreat(pVictim, 1);
         }
         else if (m_uiChannelersCount != 0 && !m_creature->HasAura(AURA_BANISH))
@@ -339,8 +334,7 @@ struct MANGOS_DLL_DECL boss_leotheras_the_blindAI : public ScriptedAI
         {
             if (m_auiInnerDemonGUID[i])
             {
-                Creature* pDemon = (Creature*)Unit::GetUnit(*m_creature, m_auiInnerDemonGUID[i]);
-                if (Creature* pDemon = (Creature*)Unit::GetUnit(*m_creature, m_auiInnerDemonGUID[i]))
+                if (Creature* pDemon = m_creature->GetMap()->GetCreature(m_auiInnerDemonGUID[i]))
                 {
                     pDemon->ForcedDespawn();
                     m_auiInnerDemonGUID[i] = 0;
@@ -356,10 +350,10 @@ struct MANGOS_DLL_DECL boss_leotheras_the_blindAI : public ScriptedAI
         {
             if (m_auiInnerDemonGUID[i] > 0 )
             {
-                Unit* pUnit = Unit::GetUnit(*m_creature, m_auiInnerDemonGUID[i]);
+                Unit* pUnit = m_creature->GetMap()->GetUnit(m_auiInnerDemonGUID[i]);
                 if (pUnit && pUnit->isAlive())
                 {
-                    Unit* pUnitTarget = Unit::GetUnit(*pUnit, ((mob_inner_demonAI*)((Creature*)pUnit)->AI())->m_uiVictimGUID);
+                    Unit* pUnitTarget = pUnit->GetMap()->GetUnit(((mob_inner_demonAI*)((Creature*)pUnit)->AI())->m_uiVictimGUID);
                     if (pUnitTarget && pUnitTarget->isAlive())
                     {
                         pUnit->CastSpell(pUnitTarget, SPELL_CONS_MADNESS, true);
@@ -390,7 +384,7 @@ struct MANGOS_DLL_DECL boss_leotheras_the_blindAI : public ScriptedAI
         //despawn copy
         if (m_uiShadowLeo)
         {
-            if (Creature* pShadowLeo = (Creature*)Unit::GetUnit((*m_creature), m_uiShadowLeo))
+            if (Creature* pShadowLeo = m_creature->GetMap()->GetCreature(m_uiShadowLeo))
                 pShadowLeo->ForcedDespawn();
         }
 
@@ -528,11 +522,10 @@ struct MANGOS_DLL_DECL boss_leotheras_the_blindAI : public ScriptedAI
                 if (!lThreatList.empty())
                     for (ThreatList::const_iterator itr = lThreatList.begin(); itr != lThreatList.end(); ++itr)
                     {
-                        Unit* pTempTarget = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid());
+                        Unit* pTempTarget = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
                         if (pTempTarget && pTempTarget->GetTypeId() == TYPEID_PLAYER && pTempTarget->GetGUID() != m_creature->getVictim()->GetGUID() && TargetList.size()<5)
                             TargetList.push_back(pTempTarget);
                     }
-                SpellEntry* pSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_INSIDIOUS_WHISPER);
                 if (!TargetList.empty())
                     for(std::vector<Unit*>::iterator itr = TargetList.begin(); itr != TargetList.end(); ++itr)
                         if (*itr && (*itr)->isAlive())
@@ -544,8 +537,12 @@ struct MANGOS_DLL_DECL boss_leotheras_the_blindAI : public ScriptedAI
                                 ((mob_inner_demonAI*)pDemon->AI())->m_uiVictimGUID = (*itr)->GetGUID();
                             }
                                                         
-                            if (pSpell)
-                                (*itr)->AddAura(new InsidiousAura(pSpell, EFFECT_INDEX_0, NULL, *itr, *itr));
+                            if (SpellEntry* pSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_INSIDIOUS_WHISPER))
+                            {
+                                pSpell->EffectImplicitTargetA[0] = TARGET_SELF;
+                                pSpell->EffectImplicitTargetB[0] = 0;
+                                (*itr)->CastSpell(*itr, pSpell, true);
+                            }
 
                             if (m_uiInnerDemon_Count > 4)
                                 m_uiInnerDemon_Count = 0;
@@ -707,7 +704,7 @@ struct MANGOS_DLL_DECL mob_greyheart_spellbinderAI : public ScriptedAI
             m_creature->CastStop();
             if (m_uiLeoGUID)
             {
-                Creature* pLeo = (Creature *)Unit::GetUnit(*m_creature, m_uiLeoGUID);
+                Creature* pLeo = m_creature->GetMap()->GetCreature(m_uiLeoGUID);
                 if(pLeo && pLeo->isAlive())
                 {
                     DoCast(pLeo, BANISH_BEAM);
@@ -727,7 +724,7 @@ struct MANGOS_DLL_DECL mob_greyheart_spellbinderAI : public ScriptedAI
                 m_uiLeoGUID = m_pInstance->GetData64(DATA_LEOTHERAS);
 
             if (!m_creature->isInCombat() && m_pInstance->GetData64(DATA_LEOTHERAS_EVENT_STARTER))
-                if (Unit* pTarget = Unit::GetUnit(*m_creature, m_pInstance->GetData64(DATA_LEOTHERAS_EVENT_STARTER)))
+                if (Unit* pTarget =m_creature->GetMap()->GetUnit(m_pInstance->GetData64(DATA_LEOTHERAS_EVENT_STARTER)))
                     AttackStart(pTarget);
         }
         
@@ -775,7 +772,7 @@ struct MANGOS_DLL_DECL mob_greyheart_spellbinderAI : public ScriptedAI
     {
         if (m_bAddedBanish)
             if (m_pInstance && m_uiLeoGUID)
-                if (Creature* pLeo = (Creature*)Unit::GetUnit(*m_creature, m_uiLeoGUID))
+                if (Creature* pLeo = m_creature->GetMap()->GetCreature(m_uiLeoGUID))
                     ((boss_leotheras_the_blindAI*)pLeo->AI())->m_uiChannelersCount--;
     }
 };

@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Areatrigger_Scripts
 SD%Complete: 100
-SDComment: Quest support: 6681, 11686, 10589/10604, 12741, 13315/13351
+SDComment: Quest support: 6681, 11686, 10589/10604, 12741, 12548, 13315/13351
 SDCategory: Areatrigger
 EndScriptData */
 
@@ -32,15 +32,15 @@ at_childrens_week_spot          3546,3547,3548,3552,3549,3550
 EndContentData */
 
 #include "precompiled.h"
-                                                                    
-uint32 TriggerOrphanSpell[6][3] =
+
+static uint32 TriggerOrphanSpell[6][3] =
 {
-    {3546, 14305, 65056},   // The Bough of the Eternals
-    {3547, 14444, 65059},   // Lordaeron Throne Room
-    {3548, 14305, 65055},   // The Stonewrought Dam
-    {3549, 14444, 65058},   // Gateway to the Frontier
-    {3550, 14444, 65057},   // Down at the Docks
-    {3552, 14305, 65054}    // Spooky Lighthouse
+    {3546, 14305, 65056},                                   // The Bough of the Eternals
+    {3547, 14444, 65059},                                   // Lordaeron Throne Room
+    {3548, 14305, 65055},                                   // The Stonewrought Dam
+    {3549, 14444, 65058},                                   // Gateway to the Frontier
+    {3550, 14444, 65057},                                   // Down at the Docks
+    {3552, 14305, 65054}                                    // Spooky Lighthouse
 };
 
 bool AreaTrigger_at_childrens_week_spot(Player* pPlayer, AreaTriggerEntry const* pAt)
@@ -78,10 +78,10 @@ bool AreaTrigger_at_aldurthar_gate(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     switch(pAt->id)
     {
-        case TRIGGER_SOUTH:     pPlayer->KilledMonsterCredit(NPC_SOUTH_GATE, 0);     break;
-        case TRIGGER_CENTRAL:   pPlayer->KilledMonsterCredit(NPC_CENTRAL_GATE, 0);   break;
-        case TRIGGER_NORTH:     pPlayer->KilledMonsterCredit(NPC_NORTH_GATE, 0);     break;
-        case TRIGGER_NORTHWEST: pPlayer->KilledMonsterCredit(NPC_NORTHWEST_GATE, 0); break;
+        case TRIGGER_SOUTH:     pPlayer->KilledMonsterCredit(NPC_SOUTH_GATE);     break;
+        case TRIGGER_CENTRAL:   pPlayer->KilledMonsterCredit(NPC_CENTRAL_GATE);   break;
+        case TRIGGER_NORTH:     pPlayer->KilledMonsterCredit(NPC_NORTH_GATE);     break;
+        case TRIGGER_NORTHWEST: pPlayer->KilledMonsterCredit(NPC_NORTHWEST_GATE); break;
     }
     return true;
 }
@@ -151,7 +151,7 @@ enum
 bool AreaTrigger_at_ravenholdt(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     if (pPlayer->GetQuestStatus(QUEST_MANOR_RAVENHOLDT) == QUEST_STATUS_INCOMPLETE)
-        pPlayer->KilledMonsterCredit(NPC_RAVENHOLDT, 0);
+        pPlayer->KilledMonsterCredit(NPC_RAVENHOLDT);
 
     return false;
 }
@@ -178,13 +178,41 @@ bool AreaTrigger_at_warsong_farms(Player* pPlayer, AreaTriggerEntry const* pAt)
     {
         switch(pAt->id)
         {
-            case AT_SLAUGHTERHOUSE: pPlayer->KilledMonsterCredit(NPC_CREDIT_SLAUGHTERHOUSE, 0); break;
-            case AT_GRAINERY:       pPlayer->KilledMonsterCredit(NPC_CREDIT_GRAINERY, 0);       break;
-            case AT_TORP_FARM:      pPlayer->KilledMonsterCredit(NPC_CREDIT_TORP_FARM, 0);      break;
+            case AT_SLAUGHTERHOUSE: pPlayer->KilledMonsterCredit(NPC_CREDIT_SLAUGHTERHOUSE); break;
+            case AT_GRAINERY:       pPlayer->KilledMonsterCredit(NPC_CREDIT_GRAINERY);       break;
+            case AT_TORP_FARM:      pPlayer->KilledMonsterCredit(NPC_CREDIT_TORP_FARM);      break;
         }
     }
     return true;
- }
+}
+
+/*######
+## Quest 12548
+######*/
+
+enum
+{
+    SPELL_SHOLOZAR_TO_UNGORO_TELEPORT = 52056,
+    SPELL_UNGORO_TO_SHOLOZAR_TELEPORT = 52057,
+    AT_WAYGATE_SHOLOZAR               = 5046,
+    AT_WAYGATE_UNGORO                 = 5047,
+    QUEST_THE_MARKERS_OVERLOOK        = 12613,
+    QUEST_THE_MARKERS_PERCH           = 12559
+};
+
+bool AreaTrigger_at_waygate(Player* pPlayer, AreaTriggerEntry const* pAt)
+{
+    if (!pPlayer->isDead() && pPlayer->GetQuestStatus(QUEST_THE_MARKERS_OVERLOOK) == QUEST_STATUS_COMPLETE && pPlayer->GetQuestStatus(QUEST_THE_MARKERS_PERCH) == QUEST_STATUS_COMPLETE)
+    {
+        switch(pAt->id)
+        {
+            case AT_WAYGATE_SHOLOZAR: pPlayer->CastSpell(pPlayer, SPELL_SHOLOZAR_TO_UNGORO_TELEPORT, false); break;
+            case AT_WAYGATE_UNGORO: pPlayer->CastSpell(pPlayer, SPELL_UNGORO_TO_SHOLOZAR_TELEPORT, false); break;
+        }
+    }
+
+    return false;
+}
 
 /*######
 ## Quest 12741
@@ -206,40 +234,45 @@ bool AreaTrigger_at_stormwright_shelf(Player* pPlayer, AreaTriggerEntry const* p
 
 void AddSC_areatrigger_scripts()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "at_childrens_week_spot";
-    newscript->pAreaTrigger = &AreaTrigger_at_childrens_week_spot;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "at_childrens_week_spot";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_childrens_week_spot;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "at_aldurthar_gate";
-    newscript->pAreaTrigger = &AreaTrigger_at_aldurthar_gate;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "at_aldurthar_gate";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_aldurthar_gate;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "at_coilfang_waterfall";
-    newscript->pAreaTrigger = &AreaTrigger_at_coilfang_waterfall;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "at_coilfang_waterfall";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_coilfang_waterfall;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "at_legion_teleporter";
-    newscript->pAreaTrigger = &AreaTrigger_at_legion_teleporter;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "at_legion_teleporter";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_legion_teleporter;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "at_ravenholdt";
-    newscript->pAreaTrigger = &AreaTrigger_at_ravenholdt;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "at_ravenholdt";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_ravenholdt;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "at_warsong_farms";
-    newscript->pAreaTrigger = &AreaTrigger_at_warsong_farms;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "at_warsong_farms";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_warsong_farms;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "at_stormwright_shelf";
-    newscript->pAreaTrigger = &AreaTrigger_at_stormwright_shelf;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "at_waygate";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_waygate;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "at_stormwright_shelf";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_stormwright_shelf;
+    pNewScript->RegisterSelf();
 }

@@ -236,8 +236,8 @@ struct MANGOS_DLL_DECL boss_malacrassAI : public ScriptedAI
 
         for(uint8 i = 0; i < 4; ++i)
         {
-            Unit* Temp = Unit::GetUnit((*m_creature),AddGUID[i]);
-            if(Temp && Temp->isAlive())
+            Unit* Temp = m_creature->GetMap()->GetUnit(AddGUID[i]);
+            if (Temp && Temp->isAlive())
                 ((Creature*)Temp)->AI()->AttackStart(m_creature->getVictim());
             else
             {
@@ -267,10 +267,10 @@ struct MANGOS_DLL_DECL boss_malacrassAI : public ScriptedAI
             case 1: DoScriptText(SAY_DEATH_TWO, m_creature); break;
         }
 
-        for(uint8 i = 0; i < 4 ; ++i)
+        for (uint8 i = 0; i < 4 ; ++i)
         {
-            Unit* Temp = Unit::GetUnit((*m_creature),AddGUID[i]);
-            if(Temp && Temp->isAlive())
+            Unit* Temp = m_creature->GetMap()->GetUnit(AddGUID[i]);
+            if (Temp && Temp->isAlive())
                 Temp->DealDamage(Temp, Temp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
         }
     }
@@ -298,7 +298,7 @@ struct MANGOS_DLL_DECL boss_malacrassAI : public ScriptedAI
     {
         for(uint8 i = 0; i < 4; ++i)
         {
-            Creature *pCreature = ((Creature*)Unit::GetUnit((*m_creature), AddGUID[i]));
+            Creature* pCreature = m_creature->GetMap()->GetCreature(AddGUID[i]);
             if(!pCreature || !pCreature->isAlive())
             {
                 if(pCreature) pCreature->setDeathState(DEAD);
@@ -333,7 +333,7 @@ struct MANGOS_DLL_DECL boss_malacrassAI : public ScriptedAI
         {
             for(uint8 i = 0; i < 4; ++i)
             {
-                Unit* Temp = Unit::GetUnit((*m_creature),AddGUID[i]);
+                Unit* Temp = m_creature->GetMap()->GetUnit(AddGUID[i]);
                 if(Temp && Temp->isAlive() && !Temp->getVictim())
                     ((Creature*)Temp)->AI()->AttackStart(m_creature->getVictim());
             }
@@ -467,20 +467,19 @@ struct MANGOS_DLL_DECL boss_malacrass_addAI : public ScriptedAI
     }
 
     void Reset() {}
+
     void Aggro(Unit* who) {}
+
     void JustDied(Unit* killer)
 	{
-		if(!pInstance)
-            return;
-
-        Creature* Malacrass = ((Creature*)Unit::GetUnit(*m_creature, pInstance->GetData64(DATA_MALACRASSGUID)));
-        if(Malacrass)
-			((boss_malacrassAI*)Malacrass->AI())->AddDied();
+		if (pInstance)
+            if (Creature* Malacrass = m_creature->GetMap()->GetCreature(pInstance->GetData64(DATA_MALACRASSGUID)))
+	    		((boss_malacrassAI*)Malacrass->AI())->AddDied();
 	}
 
     void UpdateAI(const uint32 diff)
     {
-        if(pInstance && pInstance->GetData(DATA_MALACRASSEVENT) != IN_PROGRESS)
+        if (pInstance && pInstance->GetData(DATA_MALACRASSEVENT) != IN_PROGRESS)
             EnterEvadeMode();
 
         DoMeleeAttackIfReady();

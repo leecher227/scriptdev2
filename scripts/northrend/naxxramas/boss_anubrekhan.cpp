@@ -55,7 +55,7 @@ enum
     SPELL_FRENZY                = 8269
 };
 
-float m_afCryptGuardPos[4] = {3305.48f, -3476.29f, 287.08f, M_PI};
+float m_afCryptGuardPos[4] = {3305.48f, -3476.29f, 287.08f, 3.1416f};
 
 struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
 {
@@ -130,8 +130,8 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
         }
 
         if (!m_lCryptGuardList.empty())
-            for(std::list<uint64>::iterator itr = m_lCryptGuardList.begin(); itr != m_lCryptGuardList.end(); ++itr)
-                if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+            for (std::list<uint64>::iterator itr = m_lCryptGuardList.begin(); itr != m_lCryptGuardList.end(); ++itr)
+                if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                     pTemp->AI()->AttackStart(pWho);
 
         if (m_pInstance)
@@ -177,7 +177,7 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
 
         for (std::list<uint64>::iterator itr = m_lCryptGuardList.begin(); itr != m_lCryptGuardList.end(); ++itr)
         {
-            if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
                     pTemp->ForcedDespawn();
         }
 
@@ -316,7 +316,7 @@ struct MANGOS_DLL_DECL mob_crypt_guardAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            if (Creature* pAnubRekhan = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_ANUB_REKHAN))))
+            if (Creature* pAnubRekhan = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ANUB_REKHAN)))
                 if (pAnubRekhan->isAlive() && !pAnubRekhan->getVictim())
                     pAnubRekhan->AI()->AttackStart(pWho);
         }

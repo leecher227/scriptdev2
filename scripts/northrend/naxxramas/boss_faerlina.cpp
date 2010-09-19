@@ -188,13 +188,6 @@ struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
     }
 };
 
-class MANGOS_DLL_DECL BugAura : public Aura
-{
-    public:
-        BugAura(SpellEntry *spell, SpellEffectIndex eff, int32 *bp, Unit *target, Unit *caster) : Aura(spell, eff, bp, target, caster, NULL)
-            {}
-};
-
 struct MANGOS_DLL_DECL mob_worshipperAI : public ScriptedAI
 {
     mob_worshipperAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -218,7 +211,7 @@ struct MANGOS_DLL_DECL mob_worshipperAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            if (Creature* pFaerlina = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_FAERLINA))))
+            if (Creature* pFaerlina = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_FAERLINA)))
                 if (pFaerlina->isAlive() && !pFaerlina->getVictim())
                     pFaerlina->AI()->AttackStart(pWho);
         }
@@ -227,13 +220,19 @@ struct MANGOS_DLL_DECL mob_worshipperAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         if (m_pInstance)
-            if (Creature* pFaerlina = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_FAERLINA))))
-                if ((pFaerlina->HasAura(SPELL_FRENZY) || pFaerlina->HasAura(H_SPELL_FRENZY)) && (m_creature->GetDistance2d(pFaerlina) <= 10))
+            if (Creature* pFaerlina = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_FAERLINA)))
+                if ((pFaerlina->HasAura(SPELL_FRENZY) || pFaerlina->HasAura(H_SPELL_FRENZY)) && (m_creature->GetDistance2d(pFaerlina) <= 10.0f))
                 {
                     pFaerlina->RemoveAurasDueToSpell(m_bIsRegularMode ? SPELL_FRENZY : H_SPELL_FRENZY);
-                    SpellEntry *spell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_WIDOWS_EMBRACE);
-                    pFaerlina->AddAura(new BugAura(spell, EFFECT_INDEX_0, NULL, pFaerlina, m_creature));
-                    pFaerlina->MonsterTextEmote("%s is affected by Widow's Embrace!", 0, true);
+                    if (SpellEntry* pSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_WIDOWS_EMBRACE))
+                    {
+                        pSpell->EffectImplicitTargetA[0] = TARGET_SELF;
+                        pSpell->EffectImplicitTargetB[0] = 0;
+                        pSpell->EffectImplicitTargetA[1] = TARGET_SELF;
+                        pSpell->EffectImplicitTargetB[1] = 0;
+                        pFaerlina->CastSpell(pFaerlina, pSpell, true);
+                        pFaerlina->MonsterTextEmote("%s is affected by Widow's Embrace!", 0, true);
+                    }
                 }
     }
 

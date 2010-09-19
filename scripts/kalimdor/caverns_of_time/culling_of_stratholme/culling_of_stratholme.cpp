@@ -169,32 +169,32 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
 
     void MoveSoldiers()
     {
-         if(Unit* Marine01 = Unit::GetUnit((*m_creature), m_uiMarine01GUID))
+         if (Unit* Marine01 = m_creature->GetMap()->GetUnit(m_uiMarine01GUID))
          {
             Marine01->GetMotionMaster()->MovePoint(0, 2083.483f,1282.313f,141.198f);
             Marine01->setFaction(culling_faction);
          }
-         if(Unit* Marine02 = Unit::GetUnit((*m_creature), m_uiMarine02GUID))
+         if (Unit* Marine02 = m_creature->GetMap()->GetUnit(m_uiMarine02GUID))
          {
             Marine02->GetMotionMaster()->MovePoint(0, 2083.681f,1292.809f,141.141f);
             Marine02->setFaction(culling_faction);
          }
-         if(Unit* Marine03 = Unit::GetUnit((*m_creature), m_uiMarine03GUID))
+         if (Unit* Marine03 = m_creature->GetMap()->GetUnit(m_uiMarine03GUID))
          {
             Marine03->GetMotionMaster()->MovePoint(0, 2082.158f,1290.406f,141.261f);
             Marine03->setFaction(culling_faction);
          }
-         if(Unit* Marine04 = Unit::GetUnit((*m_creature), m_uiMarine04GUID))
+         if (Unit* Marine04 = m_creature->GetMap()->GetUnit(m_uiMarine04GUID))
          {
             Marine04->GetMotionMaster()->MovePoint(0, 2081.899f,1285.122f,141.302f);
             Marine04->setFaction(culling_faction);
          }
-         if(Unit* Priest01 = Unit::GetUnit((*m_creature), m_uiPriest01GUID))
+         if (Unit* Priest01 = m_creature->GetMap()->GetUnit(m_uiPriest01GUID))
          {
             Priest01->GetMotionMaster()->MovePoint(0, 2081.072f,1292.233f,141.329f);
             Priest01->setFaction(culling_faction);
          }
-         if(Unit* Priest02 = Unit::GetUnit((*m_creature), m_uiPriest02GUID))
+         if (Unit* Priest02 = m_creature->GetMap()->GetUnit(m_uiPriest02GUID))
          {
             Priest02->GetMotionMaster()->MovePoint(0, 2080.632f,1283.004f,141.358f);
             Priest02->setFaction(culling_faction);
@@ -314,7 +314,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
               SetEscortPaused(true);
               m_pInstance->SetData(TYPE_PHASE, 2);
               ResetStep(2000);
-              if(Unit* Cityman = Unit::GetUnit((*m_creature), m_uiPeople01GUID))
+              if (Unit* Cityman = m_creature->GetMap()->GetUnit(m_uiPeople01GUID))
               {
                  m_creature->SetUInt64Value(UNIT_FIELD_TARGET, Cityman->GetGUID());
                  Cityman->SetUInt64Value(UNIT_FIELD_TARGET, m_creature->GetGUID());
@@ -322,7 +322,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
               }
               break;
            case 14:
-              if(Creature* Human01 = m_creature->SummonCreature(NPC_CITY,2397.308f,1207.565f,134.038f,5.593f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
+              if (Creature* Human01 = m_creature->SummonCreature(NPC_CITY,2397.308f,1207.565f,134.038f,5.593f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
                 m_uiHuman01GUID = Human01->GetGUID();
               if(Creature* Human02 = m_creature->SummonCreature(NPC_CITY,2400.770f,1207.362f,134.038f,3.454f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
                 m_uiHuman02GUID = Human02->GetGUID();
@@ -582,7 +582,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
        switch(m_uiStep)
        {
           case 0:
-		  if(Unit* Cityman = Unit::GetUnit((*m_creature), m_uiPeople01GUID))
+		  if(Unit* Cityman = m_creature->GetMap()->GetUnit(m_uiPeople01GUID))
                  DoScriptText(SAY_ENTER02, Cityman);
               JumpNextStep(4000);
               break;
@@ -592,15 +592,15 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
               JumpNextStep(3000);
               break;
           case 2:
-              if(Unit* Cityman = Unit::GetUnit((*m_creature), m_uiPeople01GUID))
+              if(Unit* Cityman = m_creature->GetMap()->GetUnit(m_uiPeople01GUID))
                  DoScriptText(SAY_ENTER04, Cityman);
               m_creature->HandleEmoteCommand(37);
               JumpNextStep(1000);
               break;
           case 3:
-              if(Unit* Cityman = Unit::GetUnit((*m_creature), m_uiPeople01GUID))
+              if(Unit* Cityman = m_creature->GetMap()->GetUnit(m_uiPeople01GUID))
                   m_creature->DealDamage(Cityman, Cityman->GetMaxHealth(),NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-              if(Unit* Crazyman = Unit::GetUnit((*m_creature), m_uiPeople02GUID))
+              if(Unit* Crazyman = m_creature->GetMap()->GetUnit(m_uiPeople02GUID))
               {
                  DoScriptText(SAY_ENTER05, Crazyman);
                  Crazyman->SetUInt64Value(UNIT_FIELD_TARGET, m_creature->GetGUID());
@@ -614,7 +614,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
               JumpNextStep(1000);
               break;
           case 5:
-              if(Unit* Crazyman = Unit::GetUnit((*m_creature), m_uiPeople02GUID))
+              if(Unit* Crazyman = m_creature->GetMap()->GetUnit(m_uiPeople02GUID))
                  Crazyman->DealDamage(Crazyman, Crazyman->GetMaxHealth(),NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
               JumpNextStep(1000);
               break;
@@ -642,7 +642,7 @@ struct MANGOS_DLL_DECL npc_arthasAI : public npc_escortAI
               JumpNextStep(11000);
               break;
           case 9:
-              if(Unit* TempMalganis = Unit::GetUnit((*m_creature), m_uiMalganisGUID))
+              if(Unit* TempMalganis = m_creature->GetMap()->GetUnit(m_uiMalganisGUID))
                   DoScriptText(SAY_ENTER08, TempMalganis);
               JumpNextStep(17000);
               break;
