@@ -185,7 +185,7 @@ struct MANGOS_DLL_DECL boss_akilzonAI : public ScriptedAI
 
     void HandleStormSequence(Unit *Cloud) // 1: begin, 2-9: tick, 10: end
     {
-        if(StormCount < 10 && StormCount > 1)
+        if (StormCount < 10 && StormCount > 1)
         {
             // deal damage
             int32 bp0 = 800;
@@ -201,7 +201,7 @@ struct MANGOS_DLL_DECL boss_akilzonAI : public ScriptedAI
 
             {
                 MaNGOS::AnyAoETargetUnitInObjectRangeCheck u_check(m_creature, 999);
-                MaNGOS::UnitListSearcher<MaNGOS::AnyAoETargetUnitInObjectRangeCheck> searcher(m_creature, tempUnitMap, u_check);
+                MaNGOS::UnitListSearcher<MaNGOS::AnyAoETargetUnitInObjectRangeCheck> searcher(tempUnitMap, u_check);
 
                 TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyAoETargetUnitInObjectRangeCheck>, WorldTypeMapContainer > world_unit_searcher(searcher);
                 TypeContainerVisitor<MaNGOS::UnitListSearcher<MaNGOS::AnyAoETargetUnitInObjectRangeCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
@@ -210,7 +210,7 @@ struct MANGOS_DLL_DECL boss_akilzonAI : public ScriptedAI
                 cell.Visit(p, grid_unit_searcher, *(m_creature->GetMap()));
             }
 
-            for(std::list<Unit*>::iterator i = tempUnitMap.begin(); i != tempUnitMap.end(); ++i)
+            for (std::list<Unit*>::iterator i = tempUnitMap.begin(); i != tempUnitMap.end(); ++i)
             {
                 if(!Cloud->IsWithinDistInMap(*i, 15))
                 {
