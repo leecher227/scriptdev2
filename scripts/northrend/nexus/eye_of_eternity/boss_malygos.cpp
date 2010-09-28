@@ -291,6 +291,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         m_uiSpeechTimer = 15000;
         m_creature->SetSpeedRate(MOVE_RUN, 2.85714f);
         m_creature->SetSpeedRate(MOVE_WALK, 6.0f);
+        m_creature->SetSpeedRate(MOVE_FLIGHT, 2.0f);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
         m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
@@ -471,8 +472,6 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
 
         if (uiPointId == POINT_ID_WAYPOINT)
         {
-            m_creature->GetMotionMaster()->Clear();
-
             if (Creature* pSparkPortal = GetClosestCreatureWithEntry(m_creature, NPC_SPARK_PORTAL, 100.0f))
             {
                 m_creature->SetFacingToObject(pSparkPortal);
