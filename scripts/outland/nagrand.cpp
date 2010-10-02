@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Nagrand
-SD%Complete: 95
-SDComment: Quest support: 9849, 9868, 9874, 9879, 9918, 9991, 10044, 10085, 10107, 10108, 10172, 10646. TextId's unknown for altruis_the_sufferer and greatmother_geyah (npc_text)
+SD%Complete: 100
+SDComment: Quest support: 9849, 9868, 9874, 9879, 9918, 9923, 9954, 9991, 10044, 10085, 10107, 10108, 10172, 10646. TextId's unknown for altruis_the_sufferer and greatmother_geyah (npc_text)
 SDCategory: Nagrand
 EndScriptData */
 
@@ -30,6 +30,8 @@ npc_greatmother_geyah
 npc_lantresor_of_the_blade
 npc_maghar_captive
 npc_creditmarker_visit_with_ancestors
+go_corkis_prison
+go_warmaul_prison
 npc_kurenai_captive
 EndContentData */
 
@@ -847,6 +849,66 @@ CreatureAI* GetAI_npc_kurenai_captive(Creature* pCreature)
     return new npc_kurenai_captiveAI(pCreature);
 }
 
+/*#####
+## go_corkis_prison
+#####*/
+
+enum
+{
+    QUEST_HELP 		= 9923,
+    NPC_CORKI 		= 18369,
+    SPELL_DESPAWN_SELF	= 43014,
+    SAY_THANKS_1 	= -1999851
+};
+
+bool GOHello_go_corkis_prison(Player* pPlayer, GameObject* pGo)
+{
+    if (pPlayer->GetQuestStatus(QUEST_HELP) == QUEST_STATUS_INCOMPLETE)
+    {
+        if(Creature *pCorki = GetClosestCreatureWithEntry(pPlayer, NPC_CORKI, INTERACTION_DISTANCE))
+        {
+            pPlayer->KilledMonsterCredit(NPC_CORKI, pCorki->GetGUID());
+            DoScriptText(SAY_THANKS_1, pCorki);
+            pCorki->CastSpell(pCorki, SPELL_DESPAWN_SELF, false);
+        }
+    }
+    return false;
+};
+
+/*#####
+## go_warmaul_prison
+#####*/
+
+enum
+{
+    QUEST_FINDING_THE_SURVIVORS        = 9948,
+    NPC_MAGHAR_PRISONER                = 18428,
+    SAY_MAGHAR_THANKS_1                = -1000040,
+    SAY_MAGHAR_THANKS_2                = -1000041,
+    SAY_MAGHAR_THANKS_3                = -1000042,
+};
+
+bool GOHello_go_warmaul_prison(Player* pPlayer, GameObject* pGo) 
+{
+    if (pPlayer->GetQuestStatus(QUEST_FINDING_THE_SURVIVORS) == QUEST_STATUS_INCOMPLETE)
+    {
+     Creature *pCreature = GetClosestCreatureWithEntry(pGo, NPC_MAGHAR_PRISONER, INTERACTION_DISTANCE);
+        if(pCreature)
+        {
+            pPlayer->CastedCreatureOrGO(NPC_MAGHAR_PRISONER, pCreature->GetGUID(), 32347);
+                switch(urand(0,2))
+                {
+                    case 0: DoScriptText(SAY_MAGHAR_THANKS_1, pCreature); break;
+                    case 1: DoScriptText(SAY_MAGHAR_THANKS_2, pCreature); break;
+                    default: DoScriptText(SAY_MAGHAR_THANKS_3, pCreature); break;
+                }
+
+            pCreature->CastSpell(pCreature, SPELL_DESPAWN_SELF, false);
+        }
+    }
+    return false;
+};
+
 /*######
 ## AddSC
 ######*/
@@ -906,5 +968,15 @@ void AddSC_nagrand()
     newscript->Name = "npc_kurenai_captive";
     newscript->GetAI = &GetAI_npc_kurenai_captive;
     newscript->pQuestAccept = &QuestAccept_npc_kurenai_captive;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "go_corkis_prison";
+    newscript->pGOHello = &GOHello_go_corkis_prison;
+    newscript->RegisterSelf();
+    
+    newscript = new Script;
+    newscript->Name = "go_warmaul_prison";
+    newscript->pGOHello = &GOHello_go_warmaul_prison;
     newscript->RegisterSelf();
 }
