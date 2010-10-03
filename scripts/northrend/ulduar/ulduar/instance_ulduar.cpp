@@ -1244,12 +1244,8 @@ InstanceData* GetInstanceData_instance_ulduar(Map* pMap)
 bool AreaTrigger_at_ulduar(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     if (pAt->id == 5398)
-    {
-//        uint64 uiVehicleGUID = pPlayer->GetVehicleGUID();
-
-//        if (Vehicle* pVehicle = pPlayer->GetMap()->GetVehicle(uiVehicleGUID))
-  //          pVehicle->Dismiss();
-    }
+        if (VehicleKit* pVehicle = pPlayer->GetVehicle())
+            ((Creature*)(pVehicle->GetBase()))->ForcedDespawn();
 
     return false;
 }
