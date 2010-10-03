@@ -47,6 +47,7 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
     uint64 m_uiYmironDoorGUID;
 
     uint64 m_uiSkadiGUID;
+    uint64 m_uiGraufGUID;
     uint64 m_uiSkadiDoorGUID;
 
     void Initialize()
@@ -69,6 +70,7 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
         m_uiYmironDoorGUID = 0;
 
         m_uiSkadiGUID = 0;
+        m_uiGraufGUID = 0;
         m_uiSkadiDoorGUID = 0;
     }
 
@@ -108,6 +110,9 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
                 break;
             case NPC_SKADI:
                 m_uiSkadiGUID = pCreature->GetGUID();
+                break;
+            case NPC_GRAUF:
+                m_uiGraufGUID = pCreature->GetGUID();
                 break;
         }
     }
@@ -231,6 +236,8 @@ struct MANGOS_DLL_DECL instance_pinnacle : public ScriptedInstance
                 return m_uiStasisGeneratorGUID;
             case NPC_SKADI:
                 return m_uiSkadiGUID;
+            case NPC_GRAUF:
+                return m_uiGraufGUID;
         }
         return 0;
     }

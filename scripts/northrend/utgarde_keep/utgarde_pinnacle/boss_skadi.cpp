@@ -94,7 +94,6 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        m_uiGraufGUID = 0;
         Reset();
     }
 
@@ -118,8 +117,6 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
     uint32 m_uiPoisonedSpearTimer;
     uint32 m_uiWhirlwindTimer;
 
-    uint64 m_uiGraufGUID;
-
     uint8 m_uiFireStack;
     uint8 m_uiBreathSide;
 
@@ -142,19 +139,21 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
         m_uiPoisonedSpearTimer = 10000;
         m_uiWhirlwindTimer = 17000;
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_SKADI, NOT_STARTED);
-
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         SetCombatMovement(false);
 
         m_creature->ExitVehicle();
-//        if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
-//            pGrauf->Dismiss();
-
-        m_uiGraufGUID = 0;
-
-        m_creature->NearTeleportTo(SKADI_X, SKADI_Y, SKADI_Z, SKADI_O);
+//        m_creature->NearTeleportTo(SKADI_X, SKADI_Y, SKADI_Z, SKADI_O);
+        if (m_pInstance)
+        {
+            if (Creature* pGrauf = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_GRAUF)))
+            {
+                pGrauf->GetMotionMaster()->MoveTargetedHome();
+                pGrauf->RemoveSplineFlag(SPLINEFLAG_FLYING);
+                pGrauf->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+            }
+            m_pInstance->SetData(TYPE_SKADI, NOT_STARTED);
+        }
     }
 
     void Aggro(Unit* pWho)
@@ -221,13 +220,16 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
 
     void MoveGrauf(float fX, float fY, float fZ, uint32 uiTime)
     {
-//        if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
-//        {
-//            m_uiMoveTimer = uiTime;
-//            pGrauf->GetMap()->CreatureRelocation(pGrauf, fX, fY, fZ, pGrauf->GetAngle(fX, fY));
-//            pGrauf->SendMonsterMove(fX, fY, fZ, SPLINETYPE_NORMAL, pGrauf->GetSplineFlags(), uiTime);
-//            m_creature->Relocate(fX, fY, fZ, m_creature->GetAngle(pGrauf));
-//        }
+        if (m_pInstance)
+        {
+            if (Creature* pGrauf = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_GRAUF)))
+            {
+                m_uiMoveTimer = uiTime;
+                pGrauf->GetMap()->CreatureRelocation(pGrauf, fX, fY, fZ, pGrauf->GetAngle(fX, fY));
+                pGrauf->SendMonsterMove(fX, fY, fZ, SPLINETYPE_NORMAL, pGrauf->GetSplineFlags(), uiTime);
+                m_creature->Relocate(fX, fY, fZ, m_creature->GetAngle(pGrauf));
+            }
+        }
     }
 
     void NextWp()
@@ -264,8 +266,9 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                     case 1: DoScriptText(SAY_DRAKEBREATH_2, m_creature); break;
                     case 2: DoScriptText(SAY_DRAKEBREATH_3, m_creature); break;
                 }
-//                if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
-//                    pGrauf->CastSpell(pGrauf, SPELL_GRAUF_BREATH_R, false); 
+                if (m_pInstance)
+                    if (Creature* pGrauf = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_GRAUF)))
+                        pGrauf->CastSpell(pGrauf, SPELL_GRAUF_BREATH_R, false); 
                 m_uiBreathSide = urand(1, 2);
                 m_bIsSkadiMove = false;
                 m_uiFireStack = 0;
@@ -298,10 +301,6 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
     
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_uiGraufGUID && m_bIsFirstPhase)
-//            if (Vehicle* pGrauf = m_creature->SummonVehicle(NPC_GRAUF, SKADI_X, SKADI_Y-10.0f, SKADI_Z, SKADI_O))
-//                m_uiGraufGUID = pGrauf->GetGUID();
-
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
@@ -311,27 +310,28 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
             {
                 if (m_uiIntroTimer <= uiDiff)
                 {
-/*                    if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
-                    {
-                        switch (m_uiIntroCount)
+                    if (m_pInstance)
+                        if (Creature* pGrauf = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_GRAUF)))
                         {
-                            case 0:
-                                m_creature->EnterVehicle(pGrauf, 0, true);
-                                for (uint8 i = 0; i < 7; ++i)
-                                    m_creature->SummonCreature(NPC_YMIRJAR_WARRIOR, SUMMON_X+urand(0, 6), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
-                                for (uint8 i = 0; i < 3; ++i)
-                                    m_creature->SummonCreature(NPC_YMIRJAR_HARPOONER, SUMMON_X+urand(0, 6), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
-                                m_uiIntroTimer = 3000;
-                                break;
-                            case 1:
-                                m_bIsSkadiMove = true;
-                                pGrauf->AddSplineFlag(SPLINEFLAG_FLYING);
-                                pGrauf->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
-                                break;
+                            switch (m_uiIntroCount)
+                            {
+                                case 0:
+                                    m_creature->EnterVehicle(pGrauf->GetVehicleKit(), 0);
+                                    for (uint8 i = 0; i < 7; ++i)
+                                        m_creature->SummonCreature(NPC_YMIRJAR_WARRIOR, SUMMON_X+urand(0, 6), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
+                                    for (uint8 i = 0; i < 3; ++i)
+                                        m_creature->SummonCreature(NPC_YMIRJAR_HARPOONER, SUMMON_X+urand(0, 6), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
+                                    m_uiIntroTimer = 3000;
+                                    break;
+                                case 1:
+                                    m_bIsSkadiMove = true;
+                                    pGrauf->AddSplineFlag(SPLINEFLAG_FLYING);
+                                    pGrauf->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
+                                    break;
+                            }
                         }
-                    }
                     ++m_uiIntroCount;
-*/                }
+                }
                 else
                     m_uiIntroTimer -= uiDiff;
             }
@@ -359,17 +359,18 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                 if (m_uiMoveTimer <= uiDiff)
                 {
                     BurnTrigger(m_uiBreathSide);
-/*                    if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
-                    {
-                        MoveGrauf(pGrauf->GetPositionX()-10.0f, pGrauf->GetPositionY(), 113.717f, 700);
-                        if (m_uiFireStack >= 12)
+                    if (m_pInstance)
+                        if (Creature* pGrauf = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_GRAUF)))
                         {
-                            m_bIsBreathAttack = false;
-                            m_bIsSkadiMove = true;
-                            pGrauf->RemoveAllAuras();
+                            MoveGrauf(pGrauf->GetPositionX()-10.0f, pGrauf->GetPositionY(), 113.717f, 700);
+                            if (m_uiFireStack >= 12)
+                            {
+                                m_bIsBreathAttack = false;
+                                m_bIsSkadiMove = true;
+                                pGrauf->RemoveAllAuras();
+                            }
                         }
-                    }
-*/                    ++m_uiFireStack;
+                    ++m_uiFireStack;
                 }
                 else
                     m_uiMoveTimer -= uiDiff;
@@ -472,7 +473,6 @@ struct MANGOS_DLL_DECL boss_graufAI : public ScriptedAI
                 ((boss_skadiAI*)pSkadi->AI())->m_bIsFirstPhase = false;
                 pSkadi->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 ((boss_skadiAI*)pSkadi->AI())->SetCombatMovement(true);
-                ((boss_skadiAI*)pSkadi->AI())->m_uiGraufGUID = 0;
                 ((boss_skadiAI*)pSkadi->AI())->m_bCanLaunchHarpoon = false;
                 if (Unit* pTarget = pSkadi->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
