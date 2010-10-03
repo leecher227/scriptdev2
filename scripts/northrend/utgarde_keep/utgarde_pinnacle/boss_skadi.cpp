@@ -149,8 +149,8 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
         SetCombatMovement(false);
 
         m_creature->ExitVehicle();
-        if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
-            pGrauf->Dismiss();
+//        if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
+//            pGrauf->Dismiss();
 
         m_uiGraufGUID = 0;
 
@@ -221,13 +221,13 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
 
     void MoveGrauf(float fX, float fY, float fZ, uint32 uiTime)
     {
-        if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
-        {
-            m_uiMoveTimer = uiTime;
-            pGrauf->GetMap()->CreatureRelocation(pGrauf, fX, fY, fZ, pGrauf->GetAngle(fX, fY));
-            pGrauf->SendMonsterMove(fX, fY, fZ, SPLINETYPE_NORMAL, pGrauf->GetSplineFlags(), uiTime);
-            m_creature->Relocate(fX, fY, fZ, m_creature->GetAngle(pGrauf));
-        }
+//        if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
+//        {
+//            m_uiMoveTimer = uiTime;
+//            pGrauf->GetMap()->CreatureRelocation(pGrauf, fX, fY, fZ, pGrauf->GetAngle(fX, fY));
+//            pGrauf->SendMonsterMove(fX, fY, fZ, SPLINETYPE_NORMAL, pGrauf->GetSplineFlags(), uiTime);
+//            m_creature->Relocate(fX, fY, fZ, m_creature->GetAngle(pGrauf));
+//        }
     }
 
     void NextWp()
@@ -264,8 +264,8 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                     case 1: DoScriptText(SAY_DRAKEBREATH_2, m_creature); break;
                     case 2: DoScriptText(SAY_DRAKEBREATH_3, m_creature); break;
                 }
-                if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
-                    pGrauf->CastSpell(pGrauf, SPELL_GRAUF_BREATH_R, false); 
+//                if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
+//                    pGrauf->CastSpell(pGrauf, SPELL_GRAUF_BREATH_R, false); 
                 m_uiBreathSide = urand(1, 2);
                 m_bIsSkadiMove = false;
                 m_uiFireStack = 0;
@@ -299,8 +299,8 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_uiGraufGUID && m_bIsFirstPhase)
-            if (Vehicle* pGrauf = m_creature->SummonVehicle(NPC_GRAUF, SKADI_X, SKADI_Y-10.0f, SKADI_Z, SKADI_O))
-                m_uiGraufGUID = pGrauf->GetGUID();
+//            if (Vehicle* pGrauf = m_creature->SummonVehicle(NPC_GRAUF, SKADI_X, SKADI_Y-10.0f, SKADI_Z, SKADI_O))
+//                m_uiGraufGUID = pGrauf->GetGUID();
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -311,7 +311,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
             {
                 if (m_uiIntroTimer <= uiDiff)
                 {
-                    if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
+/*                    if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
                     {
                         switch (m_uiIntroCount)
                         {
@@ -331,7 +331,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                         }
                     }
                     ++m_uiIntroCount;
-                }
+*/                }
                 else
                     m_uiIntroTimer -= uiDiff;
             }
@@ -359,7 +359,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                 if (m_uiMoveTimer <= uiDiff)
                 {
                     BurnTrigger(m_uiBreathSide);
-                    if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
+/*                    if (Vehicle* pGrauf = m_creature->GetMap()->GetVehicle(m_uiGraufGUID))
                     {
                         MoveGrauf(pGrauf->GetPositionX()-10.0f, pGrauf->GetPositionY(), 113.717f, 700);
                         if (m_uiFireStack >= 12)
@@ -369,7 +369,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                             pGrauf->RemoveAllAuras();
                         }
                     }
-                    ++m_uiFireStack;
+*/                    ++m_uiFireStack;
                 }
                 else
                     m_uiMoveTimer -= uiDiff;

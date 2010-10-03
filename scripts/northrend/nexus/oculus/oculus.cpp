@@ -331,7 +331,7 @@ bool ItemUse_item_summon_drake(Player* pPlayer, Item* pItem, const SpellCastTarg
     if (pPlayer->GetMapId() != MAP_ID_OCULUS)
         return false;
 
-    if (!pPlayer->GetTransport() && !pPlayer->GetVehicleGUID() && !pPlayer->isInCombat())
+//    if (!pPlayer->GetTransport() && !pPlayer->GetVehicleGUID() && !pPlayer->isInCombat())
     {
         switch(pItem->GetEntry())
         {

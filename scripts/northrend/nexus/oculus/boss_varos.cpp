@@ -150,7 +150,7 @@ struct MANGOS_DLL_DECL boss_varosAI : public ScriptedAI
 
            for(Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
            {
-              if(i->getSource()->isAlive() && i->getSource()->GetVehicleGUID())
+//              if(i->getSource()->isAlive() && i->getSource()->GetVehicleGUID())
                  EnterEvadeMode();
            }
         }

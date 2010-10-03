@@ -185,7 +185,7 @@ struct MANGOS_DLL_DECL boss_uromAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho)
     {
-        if(pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && m_creature->IsWithinDistInMap(pWho, 30.0f) && !pWho->GetVehicleGUID() && m_pInstance->GetData(TYPE_VAROS) == DONE && !m_bIsTalk)
+//        if(pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && m_creature->IsWithinDistInMap(pWho, 30.0f) && !pWho->GetVehicleGUID() && m_pInstance->GetData(TYPE_VAROS) == DONE && !m_bIsTalk)
         {
           switch(m_pInstance->GetData(TYPE_UROM_PHASE))
           {
@@ -265,7 +265,7 @@ struct MANGOS_DLL_DECL boss_uromAI : public ScriptedAI
 
            for(Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
            {
-              if(i->getSource()->isAlive() && i->getSource()->GetVehicleGUID())
+//              if(i->getSource()->isAlive() && i->getSource()->GetVehicleGUID())
                  EnterEvadeMode();
            }
         }

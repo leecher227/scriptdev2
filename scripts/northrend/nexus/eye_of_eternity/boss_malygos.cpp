@@ -396,9 +396,9 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
 
     void SummonedCreatureJustDied(Creature* pSummoned)
     {
-        if (pSummoned->GetEntry() == NPC_NEXUS_LORD || pSummoned->GetEntry() == NPC_SCION_OF_ETERNITY)
-            if (Vehicle* pHoverDisk = pSummoned->SummonVehicle(NPC_HOVER_DISK, pSummoned->GetPositionX(), pSummoned->GetPositionY(), pSummoned->GetPositionZ(), 0))
-                m_lHoverDiskGUIDList.push_back(pHoverDisk->GetGUID());
+//        if (pSummoned->GetEntry() == NPC_NEXUS_LORD || pSummoned->GetEntry() == NPC_SCION_OF_ETERNITY)
+  //          if (Vehicle* pHoverDisk = pSummoned->SummonVehicle(NPC_HOVER_DISK, pSummoned->GetPositionX(), pSummoned->GetPositionY(), pSummoned->GetPositionZ(), 0))
+    //            m_lHoverDiskGUIDList.push_back(pHoverDisk->GetGUID());
     }
 
     bool IsThereAnyAdd()
@@ -425,9 +425,9 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             if (!pMap)
                 return;
 
-            for (std::list<uint64>::iterator itr = m_lHoverDiskGUIDList.begin(); itr != m_lHoverDiskGUIDList.end(); ++itr)
-                if (Vehicle* pVehicle = pMap->GetVehicle(*itr))
-                    pVehicle->Dismiss();
+//            for (std::list<uint64>::iterator itr = m_lHoverDiskGUIDList.begin(); itr != m_lHoverDiskGUIDList.end(); ++itr)
+  //              if (Vehicle* pVehicle = pMap->GetVehicle(*itr))
+    //                pVehicle->Dismiss();
 
             m_lHoverDiskGUIDList.clear();
             return;
@@ -448,8 +448,8 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                 if (!pMap)
                     return;
 
-                if (Vehicle* pVehicle = pMap->GetVehicle((*iter)->GetVehicleGUID()))
-                    pVehicle->Dismiss();
+//                if (Vehicle* pVehicle = pMap->GetVehicle((*iter)->GetVehicleGUID()))
+  //                  pVehicle->Dismiss();
             }
 
             (*iter)->ForcedDespawn();
@@ -856,10 +856,10 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                     for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
                     {
                         Player* pPlayer = itr->getSource();
-                        if (pPlayer->GetVehicleGUID() && m_uiPhase == PHASE_ADDS)
-                            pPlayer->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_ARCANE, true);
-                        else
-                            pPlayer->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_ARCANE, false);
+//                        if (pPlayer->GetVehicleGUID() && m_uiPhase == PHASE_ADDS)
+  //                          pPlayer->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_ARCANE, true);
+    //                    else
+      //                      pPlayer->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_ARCANE, false);
                     }
                 }
 
@@ -1004,18 +1004,18 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
 					if (pMap)
 					{
 						Map::PlayerList const &lPlayers = pMap->GetPlayers();
-						if (!lPlayers.isEmpty())
-							for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
-								if (Player* pPlayer = itr->getSource())
-									if (Vehicle* pTemp = pPlayer->SummonVehicle(NPC_WYRMREST_SKYTALON, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0))
-									{
-										pPlayer->EnterVehicle(pTemp, 0, false);
-										m_creature->AddThreat(pTemp);  // To not leave combat
-                                        pTemp->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
-					                    pTemp->CastSpell(pTemp, SPELL_FLIGHT, true);
-										pTemp->SetMaxHealth(pTemp->GetMaxHealth() + pPlayer->GetMaxHealth()*2);
-										pTemp->SetHealth(pTemp->GetMaxHealth());
-									}
+//						if (!lPlayers.isEmpty())
+//							for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+	//							if (Player* pPlayer = itr->getSource())
+//									if (Vehicle* pTemp = pPlayer->SummonVehicle(NPC_WYRMREST_SKYTALON, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0))
+//									{
+//										pPlayer->EnterVehicle(pTemp, 0, false);
+//										m_creature->AddThreat(pTemp);  // To not leave combat
+  //                                      pTemp->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
+	//				                    pTemp->CastSpell(pTemp, SPELL_FLIGHT, true);
+	//									pTemp->SetMaxHealth(pTemp->GetMaxHealth() + pPlayer->GetMaxHealth()*2);
+	//									pTemp->SetHealth(pTemp->GetMaxHealth());
+	//								}
 					}
 					
                     m_uiSubPhase = SUBPHASE_DESTROY_PLATFORM_4;
@@ -1226,13 +1226,13 @@ struct MANGOS_DLL_DECL npc_nexus_lordAI : public ScriptedAI
 
     void Reset()
     {
-        if (!m_creature->GetVehicleGUID())
-			if (Vehicle* pDisk = m_creature->SummonVehicle(NPC_HOVER_DISK, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0))
-            {
-				m_creature->EnterVehicle(pDisk, 0);
-                pDisk->SetSpeedRate(MOVE_WALK, 1.5f);
-                m_uiVehicleGUID = pDisk->GetGUID();
-            }
+//        if (!m_creature->GetVehicleGUID())
+//			if (Vehicle* pDisk = m_creature->SummonVehicle(NPC_HOVER_DISK, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0))
+  //          {
+	//			m_creature->EnterVehicle(pDisk, 0);
+      //          pDisk->SetSpeedRate(MOVE_WALK, 1.5f);
+        //        m_uiVehicleGUID = pDisk->GetGUID();
+          //  }
 
         m_uiCheckTimer = 0;
         m_fTargetOldX = 0.0f;
@@ -1250,8 +1250,8 @@ struct MANGOS_DLL_DECL npc_nexus_lordAI : public ScriptedAI
         if (!pMap)
             return;
 
-        if (Vehicle* pVehicle = pMap->GetVehicle(m_uiVehicleGUID))
-            pVehicle->Dismiss();
+//        if (Vehicle* pVehicle = pMap->GetVehicle(m_uiVehicleGUID))
+  //          pVehicle->Dismiss();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1262,7 +1262,7 @@ struct MANGOS_DLL_DECL npc_nexus_lordAI : public ScriptedAI
         Map *pMap = m_creature->GetMap();
         if (pMap)
         {
-			if (Vehicle* pDisk = pMap->GetVehicle(m_uiVehicleGUID))
+/*			if (Vehicle* pDisk = pMap->GetVehicle(m_uiVehicleGUID))
             {
 				float fX = pDisk->GetPositionX();
 				float fY = pDisk->GetPositionY();
@@ -1297,7 +1297,7 @@ struct MANGOS_DLL_DECL npc_nexus_lordAI : public ScriptedAI
 			        else
 						m_uiCheckTimer -= uiDiff;
                 }
-            }
+            }*/
         }
 
         if (m_uiArcaneShockTimer <= uiDiff)
@@ -1343,12 +1343,12 @@ struct MANGOS_DLL_DECL npc_scion_of_eternityAI : public ScriptedAI
 
     void Reset()
     {
-		if (!m_creature->GetVehicleGUID())
-			if (Vehicle* pDisk = m_creature->SummonVehicle(NPC_HOVER_DISK, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0))
-            {
-				m_creature->EnterVehicle(pDisk, 0);
-                m_uiVehicleGUID = pDisk->GetGUID();
-            }
+//		if (!m_creature->GetVehicleGUID())
+//			if (Vehicle* pDisk = m_creature->SummonVehicle(NPC_HOVER_DISK, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0))
+  //          {
+	//			m_creature->EnterVehicle(pDisk, 0);
+      //          m_uiVehicleGUID = pDisk->GetGUID();
+        //    }
 
 		m_uiArcaneBarrageTimer = urand(4000, 12000);
         InitMovement();
@@ -1361,8 +1361,8 @@ struct MANGOS_DLL_DECL npc_scion_of_eternityAI : public ScriptedAI
         if (!pMap)
             return;
 
-        if (Vehicle* pVehicle = pMap->GetVehicle(m_uiVehicleGUID))
-            pVehicle->Dismiss();
+//        if (Vehicle* pVehicle = pMap->GetVehicle(m_uiVehicleGUID))
+  //          pVehicle->Dismiss();
     }
 
     void InitMovement()
@@ -1374,20 +1374,20 @@ struct MANGOS_DLL_DECL npc_scion_of_eternityAI : public ScriptedAI
         if (!pMap)
             return;
         
-        Vehicle* pDisk = pMap->GetVehicle(m_uiVehicleGUID);
-        if (!pDisk)
-            return;
+//        Vehicle* pDisk = pMap->GetVehicle(m_uiVehicleGUID);
+  //      if (!pDisk)
+    //        return;
 
-        m_fDistance = pDisk->GetDistance2d(CENTER_X, CENTER_Y); // From center of platform
+//        m_fDistance = pDisk->GetDistance2d(CENTER_X, CENTER_Y); // From center of platform
         
         //Calculate angle - lol, i hope its right.
         float m_fLenght = 2*M_PI_F*m_fDistance; // perimeter of circle
         m_fAngle = (M_PI_F - ((2*M_PI_F) / m_fLenght)) / 2; // (Triangle(PI) - angle at center of circle) / 2  =  one of two another angles, I wish this can be explain in ASCII image :/
 
-        if (m_bClockWise)
-            m_fAngle += ((2*M_PI_F) / m_fLenght) + pDisk->GetAngle(CENTER_X, CENTER_Y); // angle from 0 to center + alpha angle + beta angle
-        else
-            m_fAngle = pDisk->GetAngle(CENTER_X, CENTER_Y) - m_fAngle - ((2*M_PI_F) / m_fLenght);
+//        if (m_bClockWise)
+  //          m_fAngle += ((2*M_PI_F) / m_fLenght) + pDisk->GetAngle(CENTER_X, CENTER_Y); // angle from 0 to center + alpha angle + beta angle
+    //    else
+      //      m_fAngle = pDisk->GetAngle(CENTER_X, CENTER_Y) - m_fAngle - ((2*M_PI_F) / m_fLenght);
 
         //because it cant be lower than 0 or bigger than 2*PI
         m_fAngle = (m_fAngle >= 0) ? m_fAngle : 2 * M_PI_F + m_fAngle;
@@ -1427,21 +1427,21 @@ struct MANGOS_DLL_DECL npc_scion_of_eternityAI : public ScriptedAI
         if (!pMap)
             return;
         
-        Vehicle* pDisk = pMap->GetVehicle(m_uiVehicleGUID);
-        if (!pDisk)
-            return;
+//        Vehicle* pDisk = pMap->GetVehicle(m_uiVehicleGUID);
+  //      if (!pDisk)
+    //        return;
         
-        float destX = pDisk->GetPositionX();
-        float destY = pDisk->GetPositionY();
+      //  float destX = pDisk->GetPositionX();
+//        float destY = pDisk->GetPositionY();
 
-        destX += cos(m_fAngle);
-        destY += sin(m_fAngle);
+//        destX += cos(m_fAngle);
+  //      destY += sin(m_fAngle);
 
-        MaNGOS::NormalizeMapCoord(destX);
-        MaNGOS::NormalizeMapCoord(destY);
-        pDisk->GetMap()->CreatureRelocation(pDisk, destX, destY, pDisk->GetPositionZ(), m_fAngle);
-        pDisk->SendMonsterMove(destX, destY, pDisk->GetPositionZ(), SPLINETYPE_NORMAL, pDisk->GetSplineFlags(), 900);
-        m_creature->Relocate(destX, destY, pDisk->GetPositionZ(), m_fAngle);
+  //      MaNGOS::NormalizeMapCoord(destX);
+ //       MaNGOS::NormalizeMapCoord(destY);
+//        pDisk->GetMap()->CreatureRelocation(pDisk, destX, destY, pDisk->GetPositionZ(), m_fAngle);
+  //      pDisk->SendMonsterMove(destX, destY, pDisk->GetPositionZ(), SPLINETYPE_NORMAL, pDisk->GetSplineFlags(), 900);
+ //       m_creature->Relocate(destX, destY, pDisk->GetPositionZ(), m_fAngle);
     }
 
 	void UpdateAI(const uint32 uiDiff)
@@ -1453,12 +1453,12 @@ struct MANGOS_DLL_DECL npc_scion_of_eternityAI : public ScriptedAI
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-				if (!pTarget->GetVehicleGUID())
-                {
-                    int32 uiDmg = m_bIsRegularMode ? urand(14138, 15862) : urand(16965, 19035);
-                    m_creature->CastCustomSpell(pTarget, SPELL_ARCANE_BARRAGE, &uiDmg, 0, 0, true);
-                    m_uiArcaneBarrageTimer = urand(4000, 12000);
-                }
+//				if (!pTarget->GetVehicleGUID())
+  //              {
+    //                int32 uiDmg = m_bIsRegularMode ? urand(14138, 15862) : urand(16965, 19035);
+      //              m_creature->CastCustomSpell(pTarget, SPELL_ARCANE_BARRAGE, &uiDmg, 0, 0, true);
+        //            m_uiArcaneBarrageTimer = urand(4000, 12000);
+          //      }
             }
         }
         else
@@ -1512,13 +1512,13 @@ struct MANGOS_DLL_DECL npc_hover_diskAI : public ScriptedAI
 		if (m_uiCheckTimer <= uiDiff)
         {
             if (!m_bPassengerHere)
-				if (Unit* pPassenger = ((Vehicle*)m_creature)->GetPassenger(0))
-				{
-	                pPassenger->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-		    		pPassenger->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-			        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-				    m_bPassengerHere = true;
-				}
+//				if (Unit* pPassenger = ((Vehicle*)m_creature)->GetPassenger(0))
+//				{
+//	                pPassenger->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+//		    		pPassenger->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+//			        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+//				    m_bPassengerHere = true;
+//				}
 
 			if (!m_bMoved && !m_bPassengerHere)
 			{
