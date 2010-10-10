@@ -17,6 +17,7 @@ enum
     DATA_VESPERON               = 13,
 
     NPC_SARTHARION              = 28860,
+    NPC_SARTHARION_H            = 31311,
     NPC_TENEBRON                = 30452,
     NPC_SHADRON                 = 30451,
     NPC_VESPERON                = 30449,

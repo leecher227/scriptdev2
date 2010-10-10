@@ -490,7 +490,10 @@ enum
     NPC_BROODLORD   = 12017,
     NPC_VOID_REAVER = 19516,
     NPC_JAN_ALAI    = 23578,
-    NPC_SARTHARION  = 28860
+    NPC_SARTHARION  = 28860,
+    NPC_SARTHARION_H1 = 288601,
+    NPC_SARTHARION_H2 = 288602,
+    NPC_SARTHARION_H3 = 288603,
 };
 
 bool ScriptedAI::EnterEvadeIfOutOfCombatArea(const uint32 uiDiff)
@@ -525,6 +528,9 @@ bool ScriptedAI::EnterEvadeIfOutOfCombatArea(const uint32 uiDiff)
                 return false;
             break;
         case NPC_SARTHARION:                                // sartharion (calculate box)
+        case NPC_SARTHARION_H1:
+        case NPC_SARTHARION_H2:
+        case NPC_SARTHARION_H3:
             if (fX > 3203.97f && fX < 3289.40f && fY < 576.70f && fY > 484.68f)
                 return false;
             break;

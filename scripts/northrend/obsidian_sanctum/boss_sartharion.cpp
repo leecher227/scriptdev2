@@ -219,6 +219,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
     bool m_bTenebronHelpedInFight;
     bool m_bShadronHelpedInFight;
     bool m_bVesperonHelpedInFight;
+    bool m_bDeath;
 
     bool bCanUseWill;
     bool bFirstWill;
@@ -252,6 +253,8 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         m_bHasCalledTenebron = false;
         m_bHasCalledShadron = false;
         m_bHasCalledVesperon = false;
+
+        m_bDeath = false;
 
         bCanUseWill = false;
         bFirstWill = true;
@@ -296,6 +299,8 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         m_bShadronHelpedInFight = false;
         m_bVesperonHelpedInFight = false;
 
+        m_creature->UpdateEntry(m_bIsRegularMode ? NPC_SARTHARION : NPC_SARTHARION_H);
+
         m_creature->RemoveAurasDueToSpell(SPELL_GIFT_OF_TWILIGTH_SAR);
         m_creature->RemoveAurasDueToSpell(SPELL_TWILIGHT_REVENGE);
     }
@@ -319,26 +324,29 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         }
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
-    {
-        if (uiDamage > m_creature->GetHealth())
-        {
-            uint8 uiHardMode = 0;
-            if (m_bTenebronHelpedInFight)
-                ++uiHardMode;
-            if (m_bShadronHelpedInFight)
-                ++uiHardMode;
-            if (m_bVesperonHelpedInFight)
-                ++uiHardMode;
-
-            if (uiHardMode)
-                m_creature->UpdateEntry(m_creature->GetEntry()*10+uiHardMode);
-        }
-    }
-
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_SARTHARION_DEATH, m_creature);
+
+        Creature* pTene = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_TENEBRON));
+        Creature* pShad = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_SHADRON));
+        Creature* pVesp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_VESPERON));
+
+        if (pTene && pTene->isAlive())
+            pTene->ForcedDespawn();
+
+        if (pShad && pShad->isAlive())
+            pShad->ForcedDespawn();
+
+        if (pVesp && pVesp->isAlive())
+            pVesp->ForcedDespawn();
+
+        std::list<Creature*> lLaveBlaze;
+        GetCreatureListWithEntryInGrid(lLaveBlaze, m_creature, NPC_LAVA_BLAZE, 200.0f);
+
+        if (!lLaveBlaze.empty())
+            for (std::list<Creature*>::iterator iter = lLaveBlaze.begin(); iter != lLaveBlaze.end(); ++iter)
+                (*iter)->ForcedDespawn();
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_SARTHARION_EVENT, DONE);
@@ -360,6 +368,8 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         Creature* pShad = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_SHADRON));
         Creature* pVesp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_VESPERON));
 
+        uint8 uiHardMode = 0;
+
         //if at least one of the dragons are alive and are being called
         if (pTene && pTene->isAlive() && !pTene->getVictim())
         {
@@ -368,7 +378,8 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
             pTene->AddSplineFlag(SPLINEFLAG_FLYING);
             pTene->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
             pTene->GetMotionMaster()->MovePoint(POINT_ID_INIT, m_aTene[0].m_fX, m_aTene[0].m_fY, m_aTene[0].m_fZ);
-
+            m_bTenebronHelpedInFight = true;
+            ++uiHardMode;
             if (!pTene->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
                 pTene->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         }
@@ -380,7 +391,8 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
             pShad->AddSplineFlag(SPLINEFLAG_FLYING);
             pShad->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
             pShad->GetMotionMaster()->MovePoint(POINT_ID_INIT, m_aShad[0].m_fX, m_aShad[0].m_fY, m_aShad[0].m_fZ);
-
+            m_bShadronHelpedInFight = true;
+            ++uiHardMode;
             if (!pShad->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
                 pShad->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         }
@@ -392,10 +404,14 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
             pVesp->AddSplineFlag(SPLINEFLAG_FLYING);
             pVesp->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
             pVesp->GetMotionMaster()->MovePoint(POINT_ID_INIT, m_aVesp[0].m_fX, m_aVesp[0].m_fY, m_aVesp[0].m_fZ);
-
+            m_bVesperonHelpedInFight = true;
+            ++uiHardMode;
             if (!pVesp->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
                 pVesp->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         }
+
+        if (uiHardMode)
+            m_creature->UpdateEntry(m_creature->GetEntry()*10+uiHardMode);
 
         if (bCanUseWill)
             DoCast(m_creature, SPELL_WILL_OF_SARTHARION);
@@ -433,17 +449,14 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
                     case NPC_TENEBRON:
                         iTextId = SAY_SARTHARION_CALL_TENEBRON;
                         pTemp->GetMotionMaster()->MovePoint(POINT_ID_LAND, m_aTene[1].m_fX, m_aTene[1].m_fY, m_aTene[1].m_fZ);
-                        m_bTenebronHelpedInFight = true;
                         break;
                     case NPC_SHADRON:
                         iTextId = SAY_SARTHARION_CALL_SHADRON;
                         pTemp->GetMotionMaster()->MovePoint(POINT_ID_LAND, m_aShad[1].m_fX, m_aShad[1].m_fY, m_aShad[1].m_fZ);
-                        m_bShadronHelpedInFight = true;
                         break;
                     case NPC_VESPERON:
                         iTextId = SAY_SARTHARION_CALL_VESPERON;
                         pTemp->GetMotionMaster()->MovePoint(POINT_ID_LAND, m_aVesp[1].m_fX, m_aVesp[1].m_fY, m_aVesp[1].m_fZ);
-                        m_bVesperonHelpedInFight = true;
                         break;
                 }
 
