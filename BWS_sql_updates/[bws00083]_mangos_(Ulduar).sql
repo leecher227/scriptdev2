@@ -43,16 +43,13 @@ UPDATE creature_template SET ScriptName='npc_expedition_commander' WHERE entry=3
 UPDATE creature_template SET ScriptName='npc_expedition_npc' WHERE entry in (33287, 33816, 33259);
 UPDATE creature_template SET ScriptName='mob_devouring_flame_target' WHERE entry IN (34189, 34188);
 
-/*
--- XT002
-UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_xt002' WHERE entry=33293;
-UPDATE creature_template SET ScriptName = 'mob_pummeler' WHERE entry = 33344;
-UPDATE creature_template SET speed_run=0.5, faction_a=1925, faction_h=1925, scriptname='mob_boombot' WHERE entry=33346;
-UPDATE creature_template SET speed_run=0.5 WHERE entry=33343;
-UPDATE creature_template SET mechanic_immune_mask=652951551, scriptname='mob_xtheart' WHERE entry=33329;
-UPDATE creature_template SET ScriptName = 'mob_voidzone' WHERE entry = 34001;
-UPDATE creature_template SET minhealth = 176400, maxhealth = 176400, minlevel = 80, maxlevel = 80, faction_a = 14, faction_h = 14, ScriptName = 'mob_lifespark' WHERE entry = 34004;
-UPDATE creature SET spawnMask = 0 WHERE id IN (34004);
+
+-- XT-002 Deconstructor
+UPDATE creature_template SET ScriptName='mob_pummeler' WHERE entry = 33344;
+UPDATE creature_template SET ScriptName='mob_boombot' WHERE entry=33346;
+UPDATE creature_template SET ScriptName='mob_xtheart' WHERE entry=33329;
+UPDATE creature_template SET ScriptName='mob_voidzone' WHERE entry=34001;
+UPDATE creature_template SET ScriptName='mob_lifespark' WHERE entry = 34004;
 
 -- THIS IS A WORKAROUND FOR THE HARD MODE LOOT, PLEASE REMOVE IF YOU DON'T WANT TO USE IT!
 -- hard loot for the heart
@@ -78,6 +75,7 @@ INSERT INTO `creature_loot_template` VALUES
 (33995, 45446, 0, 1, 1, 1, 0, 0, 0),
 (33995, 45442, 0, 1, 1, 1, 0, 0, 0);
 
+/*
 -- Iron council
 UPDATE creature_template SET mechanic_immune_mask=619395071, scriptname='boss_brundir' WHERE entry=32857;
 UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_molgeim' WHERE entry=32927;
