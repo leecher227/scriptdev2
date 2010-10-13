@@ -36,6 +36,7 @@ EndScriptData */
 
 //Ingvar Spells human form
 #define MOB_INGVAR_HUMAN                            23954
+#define MODEL_INGVAR_HUMAN                          21953
 #define SPELL_CLEAVE                                42724
 #define SPELL_SMASH                                 42669
 #define H_SPELL_SMASH                               59706
@@ -51,6 +52,7 @@ EndScriptData */
 
 //Ingvar Spells undead form
 #define MOB_INGVAR_UNDEAD                           23980
+#define MODEL_INGVAR_UNDEAD                         26351
 #define SPELL_DARK_SMASH                            42723
 #define SPELL_DREADFUL_ROAR                         42729
 #define H_SPELL_DREADFUL_ROAR                       59734
@@ -91,7 +93,8 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
 
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-		m_creature->UpdateEntry(MOB_INGVAR_HUMAN);
+		//m_creature->UpdateEntry(MOB_INGVAR_HUMAN);
+        m_creature->SetDisplayId(MODEL_INGVAR_HUMAN);
 
         Cleave_Timer = 2000;
         Smash_Timer = 5000;
@@ -103,7 +106,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
 
     void DamageTaken(Unit *done_by, uint32 &damage) 
     {
-        if( damage >= m_creature->GetHealth() && !undead)
+        if (damage >= m_creature->GetHealth() && !undead)
         {
             // visuel hack
             m_creature->SetHealth(0);
@@ -122,7 +125,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
             DoScriptText(SAY_AGGRO_1,m_creature);
         }
 
-		if(event_inProgress)
+		if (event_inProgress)
         {
             damage = 0;
         }
@@ -151,7 +154,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
 
     void KilledUnit(Unit *victim)
     {
-        if(undead)
+        if (undead)
         {
             DoScriptText(SAY_KILL_1,m_creature);
         }
@@ -169,11 +172,13 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
 
         if (event_inProgress)
         {
-            if(SpawnResTimer < diff)
+            if (SpawnResTimer < diff)
             {
                 m_creature->SummonCreature(MOB_ANNHYLDE_THE_CALLER, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()+13.0f, 2.0f, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 12000);
                 SpawnResTimer = 999999999;
-            }else SpawnResTimer -= diff;
+            }
+            else
+                SpawnResTimer -= diff;
 
             return;
         }
@@ -294,6 +299,8 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
 
     void Reset()
     {
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
+        m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 		Resurect_Timer = 8000;
@@ -334,10 +341,10 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
 					break;
 				case 2:
 	                if (m_pInstance)
-						if(Unit* pIngvar = m_creature->GetMap()->GetUnit(m_pInstance->GetData64(NPC_INGVAR)))
+						if(Creature* pIngvar = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_INGVAR)))
 						{
 							pIngvar->RemoveAurasDueToSpell(SPELL_SCOURG_RESURRECTION_DUMMY);
-							((Creature*)pIngvar)->UpdateEntry(MOB_INGVAR_UNDEAD);
+                            pIngvar->SetDisplayId(MODEL_INGVAR_UNDEAD);
 							((boss_ingvarAI*)(((Creature*)pIngvar)->AI()))->StartZombiePhase();
 						}
 					Resurect_Phase = 0;
