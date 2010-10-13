@@ -98,12 +98,12 @@ void instance_azjol_nerub::OnCreatureDeath(Creature* pCreature)
 
 void instance_azjol_nerub::OnCreatureEnterCombat(Creature* pCreature)
 {
-    uint32 uiEntry = pCreature->GetEntry();
+    /*uint32 uiEntry = pCreature->GetEntry();
     if (uiEntry == NPC_GASHRA || uiEntry == NPC_NARJIL || uiEntry == NPC_SILTHIK)
     {
         if (!m_uiPlayerGUID)
             m_uiPlayerGUID = pCreature->getVictim()->GetCharmerOrOwnerPlayerOrPlayerItself()->GetGUID();
-    }
+    }*/
 }
 
 void instance_azjol_nerub::OnCreatureEvade(Creature* pCreature)
@@ -119,7 +119,7 @@ void instance_azjol_nerub::Update(uint32 uiDiff)
     {
         if (m_uiWatcherTimer <= uiDiff)
         {
-            DoSendWatcherOrKrikthir();
+            //DoSendWatcherOrKrikthir();
             m_uiWatcherTimer = 0;
         }
         else
