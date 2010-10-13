@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Zuldrak
-SD%Complete: 12512, 12916
-SDComment: 50%
+SD%Complete: 100
+SDComment: Quest support: 12512, 12916, 12934.
 SDCategory: Zuldrak
 EndScriptData */
 
@@ -41,11 +41,45 @@ enum
 static float m_afSpawnLocation[] = {5768.71f, -2969.29f, 273.816f};
 static uint32 m_auiBosses[] = {NPC_AZBARIN, NPC_DUKE_SINGEN, NPC_ERATHIUS, NPC_GARGORAL};
 
+struct MANGOS_DLL_DECL npc_gurgthockAI : public ScriptedAI
+{
+    npc_gurgthockAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    uint64 m_uiPlayerGUID;
+
+    void SetPlayerGUID(uint64 uiPlayerGUID) { m_uiPlayerGUID = uiPlayerGUID; }
+
+    void Reset()
+    {
+        m_uiPlayerGUID = 0;
+    }
+
+    void SummonedCreatureJustDied(Creature* pSummoned)
+    {
+        uint32 uiEntry = pSummoned->GetEntry();
+        for(uint8 i = 0; i < 4; ++i)
+        {
+            if (uiEntry == m_auiBosses[i])
+            {
+                if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_uiPlayerGUID))
+                    pPlayer->GroupEventHappens(QUEST_FROM_BEYOND, m_creature);
+
+                m_uiPlayerGUID = 0;
+                return;
+            }
+        }
+    }
+};
+
 bool QuestAccept_npc_gurgthock(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
 {
     if (pQuest->GetQuestId() == QUEST_FROM_BEYOND)
+    {
         pCreature->SummonCreature(m_auiBosses[urand(0, 3)], m_afSpawnLocation[0], m_afSpawnLocation[1], m_afSpawnLocation[2], 0.0f, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 600000);
 
+        if (npc_gurgthockAI* pGurthockAI = dynamic_cast<npc_gurgthockAI*>(pCreature->AI()))
+            pGurthockAI->SetPlayerGUID(pPlayer->GetGUID());
+    }
     return true;
 }
 
@@ -73,12 +107,18 @@ bool GOHello_scourge_enclosure(Player* pPlayer, GameObject* pGo)
     return false;
 };
 
+CreatureAI* GetAI_npc_gurgthock(Creature* pCreature)
+{
+    return new npc_gurgthockAI(pCreature);
+}
+
 void AddSC_zuldrak()
 {
     Script* pNewScript;
 
     pNewScript = new Script;
     pNewScript->Name = "npc_gurgthock";
+    pNewScript->GetAI = &GetAI_npc_gurgthock;
     pNewScript->pQuestAccept = &QuestAccept_npc_gurgthock;
     pNewScript->RegisterSelf();
 
