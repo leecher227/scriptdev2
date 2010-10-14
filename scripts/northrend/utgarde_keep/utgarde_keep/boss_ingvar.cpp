@@ -116,6 +116,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
             m_creature->GetMotionMaster()->MovementExpired(false);
             m_creature->GetMotionMaster()->MoveIdle();
             m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+            DoResetThreat();
             // visuel hack end
             
             event_inProgress = true;
