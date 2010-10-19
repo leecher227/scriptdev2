@@ -158,7 +158,7 @@ struct MANGOS_DLL_DECL boss_halazziAI : public ScriptedAI
             if(Unit *Lynx = m_creature->GetMap()->GetUnit(LynxGUID))
             {
                 Lynx->SetVisibility(VISIBILITY_OFF);
-                Lynx->setDeathState(JUST_DIED);
+                Lynx->SetDeathState(JUST_DIED);
             }
             m_creature->SetMaxHealth(600000);
             m_creature->SetHealth(600000 - 150000 * TransformCount);

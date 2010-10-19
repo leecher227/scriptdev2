@@ -464,9 +464,10 @@ struct MANGOS_DLL_DECL mob_ember_of_alarAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-        if (Die) {
+        if (Die)
+        {
             m_creature->SetHealth(0);
-            m_creature->setDeathState(JUST_DIED);
+            m_creature->SetDeathState(JUST_DIED);
         }
 
         DoMeleeAttackIfReady();

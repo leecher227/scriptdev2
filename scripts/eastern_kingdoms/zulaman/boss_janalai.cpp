@@ -141,7 +141,6 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
 
         isFlameBreathing = false;
 
-
         for(uint8 i = 0; i < 40; i++)
             FireBombGUIDs[i] = 0;
 

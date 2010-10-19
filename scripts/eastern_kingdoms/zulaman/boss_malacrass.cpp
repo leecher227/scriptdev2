@@ -299,11 +299,13 @@ struct MANGOS_DLL_DECL boss_malacrassAI : public ScriptedAI
         for(uint8 i = 0; i < 4; ++i)
         {
             Creature* pCreature = m_creature->GetMap()->GetCreature(AddGUID[i]);
-            if(!pCreature || !pCreature->isAlive())
+            if (!pCreature || !pCreature->isAlive())
             {
-                if(pCreature) pCreature->setDeathState(DEAD);
+                if (pCreature)
+                    pCreature->SetDeathState(DEAD);
                 pCreature = m_creature->SummonCreature(AddEntry[i], Pos_X[i], POS_Y, POS_Z, ORIENT, TEMPSUMMON_DEAD_DESPAWN, 0);
-                if(pCreature) AddGUID[i] = pCreature->GetGUID();
+                if (pCreature)
+                    AddGUID[i] = pCreature->GetGUID();
             }
             else
             {
