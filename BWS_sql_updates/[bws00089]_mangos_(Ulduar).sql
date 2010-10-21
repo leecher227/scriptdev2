@@ -2,6 +2,7 @@
 UPDATE instance_template SET script='instance_ulduar' WHERE map=603;
 DELETE FROM areatrigger_scripts WHERE entry=5398;
 INSERT INTO areatrigger_scripts (entry, ScriptName) VALUES (5398, 'at_ulduar');
+UPDATE gameobject_template SET ScriptName='go_ulduar_teleporter' WHERE entry=194569;
 -- Instance Ulduar END
 
 -- Flame Leviathan
@@ -532,9 +533,6 @@ UPDATE creature_template SET ScriptName = 'mob_black_hole' WHERE entry = 32953;
 UPDATE creature_template SET ScriptName = 'mob_cosmic_smash_target' WHERE entry IN (33105, 33104);
 UPDATE creature_template SET minhealth = 39099, maxhealth = 39099 WHERE entry = 33089;
 UPDATE gameobject_template SET flags= 6553632, ScriptName='go_celestial_acces' WHERE entry IN (194628, 194752);
-
--- Teleporter
-UPDATE `gameobject_template` SET `flags` = 0, `ScriptName` = 'go_ulduar_teleporter' WHERE `entry`  IN (194569);
 
 -- Keepers
 -- Keepers images
