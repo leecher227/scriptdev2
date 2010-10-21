@@ -222,7 +222,7 @@ struct MANGOS_DLL_DECL boss_uromAI : public ScriptedAI
        m_creature->RemoveAllAuras();
        m_creature->DeleteThreatList();
        m_creature->CombatStop(true);
-       m_creature->LoadCreaturesAddon();
+       m_creature->LoadCreatureAddon();
 
        m_creature->SetLootRecipient(NULL);
 

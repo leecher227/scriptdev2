@@ -179,7 +179,7 @@ struct MANGOS_DLL_DECL mob_fireswornAI : public ScriptedAI
 			if (rand()%100 + 1 < 50)
 			{
 				DoCast(m_creature,SPELL_ERUPTION);
-				m_creature->setDeathState(JUST_DIED);
+				m_creature->SetDeathState(JUST_DIED);
 				m_creature->RemoveCorpse();
 			}
 			else 

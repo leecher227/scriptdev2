@@ -2,13 +2,15 @@
 UPDATE instance_template SET script='instance_ulduar' WHERE map=603;
 DELETE FROM areatrigger_scripts WHERE entry=5398;
 INSERT INTO areatrigger_scripts (entry, ScriptName) VALUES (5398, 'at_ulduar');
+-- Instance Ulduar END
 
 -- Flame Leviathan
 /*UPDATE creature_template SET ScriptName = 'boss_flame_leviathan' WHERE entry = 33113;
 UPDATE creature_template SET ScriptName = 'mob_defense_turret' WHERE entry = 33142;
 */
+-- Flame Leviathan END
 
--- Ignis
+-- Ignis the Furnace Master
 UPDATE creature_template SET ScriptName='boss_ignis' WHERE entry=33118;
 UPDATE creature_template SET ScriptName='mob_iron_construct' WHERE entry = 33121;
 UPDATE creature_template SET ScriptName='mob_scorch_target' WHERE entry=33221;
@@ -17,6 +19,7 @@ REPLACE INTO spell_script_target (entry, type, targetEntry) VALUES
 (64475, 1, 33118);
 -- Vehicle data for Ignis
 UPDATE creature_template SET VehicleId=342 WHERE entry IN (33118, 33190);
+-- Ignis the Furnace Master END
 
 -- Razorscale
 -- CUSTOM spawn repaired harpoon guns
@@ -42,42 +45,128 @@ UPDATE creature_template SET ScriptName='mob_dark_rune_guardian' WHERE entry=333
 UPDATE creature_template SET ScriptName='npc_expedition_commander' WHERE entry=33210;
 UPDATE creature_template SET ScriptName='npc_expedition_npc' WHERE entry in (33287, 33816, 33259);
 UPDATE creature_template SET ScriptName='mob_devouring_flame_target' WHERE entry IN (34189, 34188);
+-- Razorscale END
+
+-- XT-002 Deconstructor
+UPDATE creature_template SET ScriptName='boss_xt002' WHERE entry = 33293;
+UPDATE creature_template SET ScriptName='mob_pummeler' WHERE entry = 33344;
+UPDATE creature_template SET ScriptName='mob_boombot' WHERE entry=33346;
+UPDATE creature_template SET ScriptName='mob_scrapbot' WHERE entry = 33343;
+UPDATE creature_template SET ScriptName='mob_xtheart' WHERE entry=33329;
+UPDATE creature_template SET ScriptName='mob_xt002voidzone' WHERE entry=34001;
+UPDATE creature_template SET ScriptName='mob_lifespark' WHERE entry = 34004;
+
+-- CUSTOM Hard Mode loot
+replace into creature_template (entry, difficulty_entry_1, difficulty_entry_2, difficulty_entry_3, KillCredit1, KillCredit2, modelid_1, modelid_2, modelid_3, modelid_4, name, subname, IconName, gossip_menu_id, minlevel, maxlevel, minhealth, maxhealth, PowerType, minmana, maxmana, armor, faction_A, faction_H, npcflag, speed_walk, speed_run, scale, rank, mindmg, maxdmg, dmgschool, attackpower, dmg_multiplier, baseattacktime, rangeattacktime, unit_class, unit_flags, dynamicflags, family, trainer_type, trainer_spell, trainer_class, trainer_race, minrangedmg, maxrangedmg, rangedattackpower, type, type_flags, lootid, pickpocketloot, skinloot, resistance1, resistance2, resistance3, resistance4, resistance5, resistance6, spell1, spell2, spell3, spell4, spell5, spell6, spell7, spell8, PetSpellDataId, VehicleId, mingold, maxgold, AIName, MovementType, InhabitType, unk16, unk17, RacialLeader, questItem1, questItem2, questItem3, questItem4, questItem5, questItem6, movementId, RegenHealth, equipment_id, mechanic_immune_mask, flags_extra, ScriptName) values
+('332931','338851','0','0','33293','0','28611','0','0','0','XT-002 Deconstructor','','','0','83','83','5000008','5000008','0','0','0','10673','16','16','0','2.8','1.14286','1','3','509','683','0','805','35','1800','0','1','32832','0','0','0','0','0','0','371','535','135','9','32876','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','353','36320','38132','','0','3','358.552','1','0','0','0','0','0','0','0','321','1','0','650854399','1',''),
+('338851','0','0','0','33293','0','28611','0','0','0','XT-002 Deconstructor (1)','','','0','83','83','22499978','22499978','0','0','0','10673','16','16','0','2.8','1.14286','1','3','509','683','0','805','70','2000','0','1','32832','0','0','0','0','0','0','371','535','135','9','32876','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','72640','76264','','0','3','1613.48','1','0','0','0','0','0','0','0','321','1','0','650854399','1','');
+-- 10 ppl
+UPDATE creature_template SET lootid = entry WHERE entry = 33293;
+DELETE FROM creature_loot_template WHERE entry = 33293;
+INSERT INTO creature_loot_template (entry, item, ChanceOrQuestChance, groupid, mincountOrRef, maxcount, lootcondition, condition_value1, condition_value2) VALUES
+(33293,47241,100,0,1,1,0,0,0),
+-- --
+(33293,45680,0,1,1,1,0,0,0),
+(33293,45694,0,1,1,1,0,0,0),
+(33293,45687,0,1,1,1,0,0,0),
+(33293,45685,0,1,1,1,0,0,0),
+(33293,45686,0,1,1,1,0,0,0),
+-- --
+(33293,45676,0,2,1,1,0,0,0),
+(33293,45679,0,2,1,1,0,0,0),
+(33293,45675,0,2,1,1,0,0,0),
+(33293,45682,0,2,1,1,0,0,0),
+(33293,45677,0,2,1,1,0,0,0);
+-- Hard
+UPDATE creature_template SET lootid = entry WHERE entry = 332931;
+DELETE FROM creature_loot_template WHERE entry = 332931;
+INSERT INTO creature_loot_template (entry, item, ChanceOrQuestChance, groupid, mincountOrRef, maxcount, lootcondition, condition_value1, condition_value2) VALUES
+(332931,47241,100,0,1,1,0,0,0),
+-- -- 
+(332931,45680,0,1,1,1,0,0,0),
+(332931,45694,0,1,1,1,0,0,0),
+(332931,45687,0,1,1,1,0,0,0),
+(332931,45685,0,1,1,1,0,0,0),
+(332931,45686,0,1,1,1,0,0,0),
+-- --
+(332931,45676,0,2,1,1,0,0,0),
+(332931,45679,0,2,1,1,0,0,0),
+(332931,45675,0,2,1,1,0,0,0),
+(332931,45682,0,2,1,1,0,0,0),
+(332931,45677,0,2,1,1,0,0,0),
+-- 226lvl
+(332931,45868,0,3,1,1,0,0,0),
+(332931,45867,0,3,1,1,0,0,0),
+(332931,45869,0,3,1,1,0,0,0),
+(332931,45870,0,3,1,1,0,0,0),
+(332931,45871,0,3,1,1,0,0,0);
+-- 25 ppl
+UPDATE creature_template SET lootid = entry WHERE entry = 33885;
+DELETE FROM creature_loot_template WHERE entry = 33885;
+INSERT INTO creature_loot_template (entry, item, ChanceOrQuestChance, groupid, mincountOrRef, maxcount, lootcondition, condition_value1, condition_value2) VALUES
+(33885, 45087, 50, 0, 1, 1, 0, 0, 0),
+(33885, 47241, 100, 0, 1, 1, 0, 0, 0),
+(33885, 45038, 10, 0, 1, 1, 0, 0, 0),
+(33885, 1, 10, 0, -900002, 1, 0, 0, 0),
+-- --
+(33885,45246,0,1,1,1,0,0,0),
+(33885,45257,0,1,1,1,0,0,0),
+(33885,45254,0,1,1,1,0,0,0),
+(33885,45255,0,1,1,1,0,0,0),
+(33885,45256,0,1,1,1,0,0,0),
+-- -- 
+(33885,45260,0,2,1,1,0,0,0),
+(33885,45252,0,2,1,1,0,0,0),
+(33885,45253,0,2,1,1,0,0,0),
+(33885,45259,0,2,1,1,0,0,0),
+(33885,45258,0,2,1,1,0,0,0),
+-- --
+(33885,45249,0,3,1,1,0,0,0),
+(33885,45250,0,3,1,1,0,0,0),
+(33885,45248,0,3,1,1,0,0,0),
+(33885,45251,0,3,1,1,0,0,0),
+(33885,45247,0,3,1,1,0,0,0),
+-- --
+(33885, 46348,2,4,1,1,7,333,1),
+(33885, 46027,2,4,1,1,7,333,1);
+-- Hard
+UPDATE creature_template SET lootid = entry WHERE entry = 338851;
+DELETE FROM creature_loot_template WHERE entry = 338851;
+INSERT INTO creature_loot_template (entry, item, ChanceOrQuestChance, groupid, mincountOrRef, maxcount, lootcondition, condition_value1, condition_value2) VALUES
+(338851, 45087, 100, 0, 1, 1, 0, 0, 0),
+(338851, 47241, 100, 0, 1, 1, 0, 0, 0),
+(338851, 45038, 20, 0, 1, 1, 0, 0, 0),
+(338851, 1, 20, 0, -900002, 1, 0, 0, 0),
+-- --
+(338851,45246,0,1,1,1,0,0,0),
+(338851,45257,0,1,1,1,0,0,0),
+(338851,45254,0,1,1,1,0,0,0),
+(338851,45255,0,1,1,1,0,0,0),
+(338851,45256,0,1,1,1,0,0,0),
+-- -- 
+(338851,45260,0,2,1,1,0,0,0),
+(338851,45252,0,2,1,1,0,0,0),
+(338851,45253,0,2,1,1,0,0,0),
+(338851,45259,0,2,1,1,0,0,0),
+(338851,45258,0,2,1,1,0,0,0),
+-- --
+(338851,45249,0,3,1,1,0,0,0),
+(338851,45250,0,3,1,1,0,0,0),
+(338851,45248,0,3,1,1,0,0,0),
+(338851,45251,0,3,1,1,0,0,0),
+(338851,45247,0,3,1,1,0,0,0),
+-- 239
+(338851,45445,0,4,1,1,0,0,0),
+(338851,45443,0,4,1,1,0,0,0),
+(338851,45444,0,4,1,1,0,0,0),
+(338851,45446,0,4,1,1,0,0,0),
+(338851,45442,0,4,1,1,0,0,0),
+-- -- 
+(338851, 46348, 4, 5, 1, 1, 7, 333, 1),
+(338851, 46027, 4, 5, 1, 1, 7, 333, 1);
+-- XT-002 Deconstructor END
 
 /*
--- XT002
-UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_xt002' WHERE entry=33293;
-UPDATE creature_template SET ScriptName = 'mob_pummeler' WHERE entry = 33344;
-UPDATE creature_template SET speed_run=0.5, faction_a=1925, faction_h=1925, scriptname='mob_boombot' WHERE entry=33346;
-UPDATE creature_template SET speed_run=0.5 WHERE entry=33343;
-UPDATE creature_template SET mechanic_immune_mask=652951551, scriptname='mob_xtheart' WHERE entry=33329;
-UPDATE creature_template SET ScriptName = 'mob_voidzone' WHERE entry = 34001;
-UPDATE creature_template SET minhealth = 176400, maxhealth = 176400, minlevel = 80, maxlevel = 80, faction_a = 14, faction_h = 14, ScriptName = 'mob_lifespark' WHERE entry = 34004;
-UPDATE creature SET spawnMask = 0 WHERE id IN (34004);
-
--- THIS IS A WORKAROUND FOR THE HARD MODE LOOT, PLEASE REMOVE IF YOU DON'T WANT TO USE IT!
--- hard loot for the heart
-UPDATE creature_template SET lootid = 33329 WHERE entry = 33329;
-UPDATE creature_template SET lootid = 33995 WHERE entry = 33995;
--- rewrite loot for XT to support hard mode: moved hard mode loot to XT heart
--- 10 man:
--- hard mode loot for the heart
-DELETE FROM `creature_loot_template` WHERE (`entry`=33329);
-INSERT INTO `creature_loot_template` VALUES 
-(33329, 45867, 0, 1, 1, 1, 0, 0, 0),
-(33329, 45868, 0, 1, 1, 1, 0, 0, 0),
-(33329, 45869, 0, 1, 1, 1, 0, 0, 0),
-(33329, 45870, 0, 1, 1, 1, 0, 0, 0),
-(33329, 45871, 0, 1, 1, 1, 0, 0, 0);
--- 25 man:
--- no hard loot on xt so moving to the heart
-DELETE FROM `creature_loot_template` WHERE (`entry`=33995);
-INSERT INTO `creature_loot_template` VALUES 
-(33995, 45445, 0, 1, 1, 1, 0, 0, 0),
-(33995, 45443, 0, 1, 1, 1, 0, 0, 0),
-(33995, 45444, 0, 1, 1, 1, 0, 0, 0),
-(33995, 45446, 0, 1, 1, 1, 0, 0, 0),
-(33995, 45442, 0, 1, 1, 1, 0, 0, 0);
-
 -- Iron council
 UPDATE creature_template SET mechanic_immune_mask=619395071, scriptname='boss_brundir' WHERE entry=32857;
 UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_molgeim' WHERE entry=32927;

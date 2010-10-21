@@ -700,7 +700,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     // this will be removed when the Leviathan will be implemented
     void OpenXtDoor()
     {
-        if(m_auiEncounter[1] == DONE && m_auiEncounter[2] == DONE)
+        if (m_auiEncounter[1] == DONE && m_auiEncounter[2] == DONE)
             OpenDoor(m_uiXT002GateGUID);
     }
 
@@ -731,6 +731,8 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
                 OpenDoor(m_uiXT002GateGUID);
             else if (uiData == IN_PROGRESS)
                 CloseDoor(m_uiXT002GateGUID);
+            else if (uiData == NOT_STARTED)
+                OpenXtDoor();
             break;
         case TYPE_ASSEMBLY:
             m_auiEncounter[4] = uiData;
