@@ -497,6 +497,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         DespawnCreatures(NPC_LIFESPARK);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
     }
 
     void JustReachedHome()
@@ -535,7 +536,6 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
     }
 
     void Aggro(Unit* pWho)
