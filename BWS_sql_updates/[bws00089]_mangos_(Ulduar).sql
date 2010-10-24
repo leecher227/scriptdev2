@@ -2,6 +2,7 @@
 UPDATE instance_template SET script='instance_ulduar' WHERE map=603;
 DELETE FROM areatrigger_scripts WHERE entry=5398;
 INSERT INTO areatrigger_scripts (entry, ScriptName) VALUES (5398, 'at_ulduar');
+UPDATE gameobject_template SET ScriptName='go_ulduar_teleporter' WHERE entry=194569;
 -- Instance Ulduar END
 
 -- Flame Leviathan
@@ -166,66 +167,16 @@ INSERT INTO creature_loot_template (entry, item, ChanceOrQuestChance, groupid, m
 (338851, 46027, 4, 5, 1, 1, 7, 333, 1);
 -- XT-002 Deconstructor END
 
+-- Assembly of Iron
+UPDATE creature_template SET ScriptName='boss_brundir' WHERE entry=32857;
+UPDATE creature_template SET ScriptName='boss_molgeim' WHERE entry=32927;
+UPDATE creature_template SET ScriptName='boss_steelbreaker' WHERE entry=32867;
+UPDATE creature_template SET ScriptName='mob_rune_of_power' WHERE entry=33705;
+UPDATE creature_template SET ScriptName='mob_rune_of_summoning' WHERE entry=33051;
+UPDATE creature_template SET ScriptName='mob_ulduar_lightning_elemental' WHERE entry=32958;
+-- Assembly of Iron END
+
 /*
--- Iron council
-UPDATE creature_template SET mechanic_immune_mask=619395071, scriptname='boss_brundir' WHERE entry=32857;
-UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_molgeim' WHERE entry=32927;
-UPDATE creature_template SET mechanic_immune_mask=617299803, scriptname='boss_steelbreaker' WHERE entry=32867;
-UPDATE creature_template SET ScriptName = 'mob_rune_of_power' WHERE entry = 33705;
-UPDATE creature_template SET ScriptName = 'mob_rune_of_summoning' WHERE entry = 33051;
-UPDATE creature_template SET ScriptName = 'mob_ulduar_lightning_elemental' WHERE entry = 32958;
-UPDATE `creature_template` SET `mechanic_immune_mask` = 619397115 WHERE `entry` IN (32857, 33694);
-
--- LOOT FOR THESE THREE SHOUDL BE PROGRESSIVE, MAYBE THIS IS NOT THE RIGHT WAY TO DO IT
--- update loot id:
--- brundir
-UPDATE `creature_template` SET `lootid` = 32857 WHERE `entry` = 32857;
-UPDATE `creature_template` SET `lootid` = 33694 WHERE `entry` = 33694;
--- molgeim = steelbreaker (I dont know exactly which items are missing from molgeim's loot so i'm leaving it the same for now);
-UPDATE `creature_template` SET `lootid` = 32867 WHERE `entry` = 32927;
-UPDATE `creature_template` SET `lootid` = 33693 WHERE `entry` = 33692;
--- Rewrite loot for council: this will allow us to use hard mode loot because only the last killed boss will be lootable
--- 10 man version
--- Brundir:
-DELETE FROM `creature_loot_template` WHERE (`entry`=32857);
-INSERT INTO `creature_loot_template` VALUES 
-(32857, 45322, 0, 2, 1, 1, 0, 0, 0),
-(32857, 45324, 0, 1, 1, 1, 0, 0, 0),
-(32857, 45329, 0, 2, 1, 1, 0, 0, 0),
-(32857, 45330, 0, 1, 1, 1, 0, 0, 0),
-(32857, 45331, 0, 2, 1, 1, 0, 0, 0),
-(32857, 45332, 0, 1, 1, 1, 0, 0, 0),
-(32857, 45333, 0, 2, 1, 1, 0, 0, 0),
-(32857, 45378, 0, 2, 1, 1, 0, 0, 0),
-(32857, 45418, 0, 1, 1, 1, 0, 0, 0),
-(32857, 45423, 0, 1, 1, 1, 0, 0, 0),
--- emblem 100% drop
-(32857, 47241, 100, 0, 1, 1, 0, 0, 0);
--- 25 man version
--- Brundir:
-DELETE FROM `creature_loot_template` WHERE (`entry`=33694);
-INSERT INTO `creature_loot_template` VALUES 
-(33694, 45224, 0, 3, 1, 1, 0, 0, 0),
-(33694, 45228, 0, 3, 1, 1, 0, 0, 0),
-(33694, 45233, 0, 3, 1, 1, 0, 0, 0),
-(33694, 45234, 0, 3, 1, 1, 0, 0, 0),
-(33694, 45236, 0, 3, 1, 1, 0, 0, 0),
-(33694, 45226, 0, 2, 1, 1, 0, 0, 0),
-(33694, 45235, 0, 2, 1, 1, 0, 0, 0),
-(33694, 45237, 0, 2, 1, 1, 0, 0, 0),
-(33694, 45238, 0, 2, 1, 1, 0, 0, 0),
-(33694, 45239, 0, 2, 1, 1, 0, 0, 0),
-(33694, 45193, 0, 1, 1, 1, 0, 0, 0),
-(33694, 45225, 0, 1, 1, 1, 0, 0, 0),
-(33694, 45227, 0, 1, 1, 1, 0, 0, 0),
-(33694, 45232, 0, 1, 1, 1, 0, 0, 0),
-(33694, 45240, 0, 1, 1, 1, 0, 0, 0),
-(33694, 45038, 10, 0, 1, 1, 0, 0, 0),
-(33694, 45087, 33, 0, 1, 2, 0, 0, 0),
-(33694, 45089, 5, 0, -45089, 1, 0, 0, 0),
--- emblem 100% drop
-(33694, 47241, 100, 0, 1, 1, 0, 0, 0);
-
 -- Kologarn
 DELETE FROM creature WHERE id IN (32933, 32934);
 -- fix arms position because of the missing vehicles
@@ -532,9 +483,6 @@ UPDATE creature_template SET ScriptName = 'mob_black_hole' WHERE entry = 32953;
 UPDATE creature_template SET ScriptName = 'mob_cosmic_smash_target' WHERE entry IN (33105, 33104);
 UPDATE creature_template SET minhealth = 39099, maxhealth = 39099 WHERE entry = 33089;
 UPDATE gameobject_template SET flags= 6553632, ScriptName='go_celestial_acces' WHERE entry IN (194628, 194752);
-
--- Teleporter
-UPDATE `gameobject_template` SET `flags` = 0, `ScriptName` = 'go_ulduar_teleporter' WHERE `entry`  IN (194569);
 
 -- Keepers
 -- Keepers images

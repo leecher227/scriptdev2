@@ -497,12 +497,13 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         DespawnCreatures(NPC_LIFESPARK);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
+    }
 
+    void JustReachedHome()
+    {
         if (m_pInstance)
-        {
-            m_pInstance->SetData(TYPE_XT002, NOT_STARTED);
-            m_pInstance->SetData(TYPE_XT002_HARD, NOT_STARTED);
-        }
+            m_pInstance->SetData(TYPE_XT002, FAIL);
     }
 
     void JustDied(Unit* pKiller)
@@ -542,17 +543,18 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_XT002, IN_PROGRESS);
-            if(m_pInstance->GetData(TYPE_XT002_TP) != DONE)
+            if (m_pInstance->GetData(TYPE_XT002_TP) != DONE)
                 m_pInstance->SetData(TYPE_XT002_TP, DONE);
         }
 
         DoScriptText(SAY_AGGRO, m_creature);
+        m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
         m_creature->SetInCombatWithZone();
     }
 
     void KilledUnit(Unit* pVictim)
     {
-        switch(urand(0, 1))
+        switch (urand(0, 1))
         {
         case 0: DoScriptText(SAY_SLAY_01, m_creature); break;
         case 1: DoScriptText(SAY_SLAY_02, m_creature); break;

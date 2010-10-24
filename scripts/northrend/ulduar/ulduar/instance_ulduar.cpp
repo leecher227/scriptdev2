@@ -395,16 +395,13 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             break;
         case GO_LEVIATHAN_GATE:
             m_uiLeviathanGateGUID = pGo->GetGUID();
-            if(m_auiEncounter[0] == DONE)
-                pGo->SetGoState(GO_STATE_ACTIVE);
+            pGo->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_XT002_GATE:
-            pGo->SetGoState(GO_STATE_READY);
-            if(m_auiEncounter[3] == DONE)
-                pGo->SetGoState(GO_STATE_ACTIVE);
-            if(m_auiEncounter[1] == DONE && m_auiEncounter[2] == DONE)
-                pGo->SetGoState(GO_STATE_ACTIVE);
             m_uiXT002GateGUID = pGo->GetGUID();
+            pGo->SetGoState(GO_STATE_READY);
+            if ((m_auiEncounter[1] == DONE && m_auiEncounter[2] == DONE) || (m_auiEncounter[3] == DONE))
+                pGo->SetGoState(GO_STATE_ACTIVE);
             break;
 
             // Archivum
@@ -413,7 +410,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             break;
         case GO_ARCHIVUM_DOOR:
             m_uiArchivumDoorGUID = pGo->GetGUID();
-            if(m_auiEncounter[4])
+            if (m_auiEncounter[4])
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_ARCHIVUM_CONSOLE:
@@ -439,7 +436,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         case GO_KOLOGARN_BRIDGE:
             m_uiKologarnBridgeGUID = pGo->GetGUID();
             pGo->SetGoState(GO_STATE_ACTIVE);
-            if(m_auiEncounter[5] == DONE)
+            if (m_auiEncounter[5] == DONE)
             {
                 pGo->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
                 pGo->SetGoState(GO_STATE_READY);
@@ -453,12 +450,12 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             // Hodir
         case GO_HODIR_EXIT:
             m_uiHodirExitDoorGUID = pGo->GetGUID();
-            if(m_auiEncounter[8])
+            if (m_auiEncounter[8])
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_HODIR_ICE_WALL:
             m_uiHodirWallGUID = pGo->GetGUID();
-            if(m_auiEncounter[8])
+            if (m_auiEncounter[8])
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_HODIR_ENTER:
@@ -674,18 +671,16 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     }
 
 	// functions to open or close some doors
-    void OpenDoor(uint64 guid)
+    void OpenDoor(uint64 uiGuid)
     {
-        if(!guid) return;
-        GameObject* pGo = instance->GetGameObject(guid);
-        if(pGo) pGo->SetGoState(GO_STATE_ACTIVE);
+        if (GameObject* pGo = instance->GetGameObject(uiGuid))
+            pGo->SetGoState(GO_STATE_ACTIVE);
     }
 
-    void CloseDoor(uint64 guid)
+    void CloseDoor(uint64 uiGuid)
     {
-        if(!guid) return;
-        GameObject* pGo = instance->GetGameObject(guid);
-        if(pGo) pGo->SetGoState(GO_STATE_READY);
+        if (GameObject* pGo = instance->GetGameObject(uiGuid))
+            pGo->SetGoState(GO_STATE_READY);
     }
 
     // used in order to unlock the door to Vezax and make vezax attackable
@@ -694,14 +689,6 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         if(m_auiEncounter[7] == DONE && m_auiEncounter[8] == DONE && m_auiEncounter[9] == DONE && m_auiEncounter[10] == DONE)
             OpenDoor(m_uiAncientGateGUID);
             OpenDoor(m_uiAncientGateGUID);
-    }
-
-    // used to open the door to XT (custom script because Leviathan is disabled)
-    // this will be removed when the Leviathan will be implemented
-    void OpenXtDoor()
-    {
-        if (m_auiEncounter[1] == DONE && m_auiEncounter[2] == DONE)
-            OpenDoor(m_uiXT002GateGUID);
     }
 
     void SetData(uint32 uiType, uint32 uiData)
@@ -719,20 +706,20 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             break;
         case TYPE_IGNIS:
             m_auiEncounter[1] = uiData;
-            OpenXtDoor();       // remove when leviathan implemented
+            if (m_auiEncounter[1] == DONE && m_auiEncounter[2] == DONE)
+                OpenDoor(m_uiXT002GateGUID);
             break;
         case TYPE_RAZORSCALE:
             m_auiEncounter[2] = uiData;
-            OpenXtDoor();       // remove when leviathan implemented
+            if (m_auiEncounter[1] == DONE && m_auiEncounter[2] == DONE)
+                OpenDoor(m_uiXT002GateGUID);
             break;
         case TYPE_XT002:
             m_auiEncounter[3] = uiData;
-            if (uiData == DONE)
+            if (uiData == DONE || uiData == FAIL)
                 OpenDoor(m_uiXT002GateGUID);
             else if (uiData == IN_PROGRESS)
                 CloseDoor(m_uiXT002GateGUID);
-            else if (uiData == NOT_STARTED)
-                OpenXtDoor();
             break;
         case TYPE_ASSEMBLY:
             m_auiEncounter[4] = uiData;
@@ -761,7 +748,6 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             m_auiEncounter[6] = uiData;
             if (uiData == DONE)
             {
-//                CheckIronCouncil();		// used for a hacky achiev, remove for revision!
                 if (GameObject* pGO = instance->GetGameObject(m_uiMimironTramGUID))
                 {
                     pGO->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
@@ -1077,18 +1063,6 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         return false;
     }
 
-    // TODO: implement all hard mode loot here!
-/*    bool CheckConditionCriteriaMeet(Player const* source, uint32 map_id, uint32 instance_condition_id)
-    {
-        if (map_id != instance->GetId())
-            return false;
-        switch (instance_condition_id)
-        {
-           case TYPE_XT002_HARD:
-               break;
-        }
-    }*/
-
     uint32 GetData(uint32 uiType)
     {
         switch(uiType)
@@ -1210,7 +1184,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         >> m_auiUlduarKeepers[1] >> m_auiUlduarKeepers[2] >> m_auiUlduarKeepers[3] >> m_auiUlduarTeleporters[0]
         >> m_auiUlduarTeleporters[1] >> m_auiUlduarTeleporters[2];
 
-        for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+        for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
         {
             if (m_auiEncounter[i] == IN_PROGRESS)
                 m_auiEncounter[i] = NOT_STARTED;

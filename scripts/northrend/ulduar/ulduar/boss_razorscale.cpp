@@ -652,9 +652,13 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
                 pCommander->Respawn();
                 pCommander->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
             }
-
-            m_pInstance->SetData(TYPE_RAZORSCALE, NOT_STARTED);
         }
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_IGNIS, FAIL);
     }
 
     void Aggro(Unit* pWho)
