@@ -658,7 +658,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
     void JustReachedHome()
     {
         if (m_pInstance)
-            m_pInstance->SetData(TYPE_IGNIS, FAIL);
+            m_pInstance->SetData(TYPE_RAZORSCALE, FAIL);
     }
 
     void Aggro(Unit* pWho)
