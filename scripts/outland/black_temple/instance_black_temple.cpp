@@ -59,6 +59,7 @@ struct MANGOS_DLL_DECL instance_black_temple : public ScriptedInstance
     uint64 m_uiNajentusGateGUID;
     uint64 m_uiMainTempleDoorsGUID;
     uint64 m_uiShadeAkamaDoorGUID;
+    uint64 m_uiBloodboilPostDoorGUID;
     uint64 m_uiIllidanGateGUID;
     uint64 m_uiIllidanDoorGUID[2];
     uint64 m_uiShahrazPreDoorGUID;
@@ -73,6 +74,7 @@ struct MANGOS_DLL_DECL instance_black_temple : public ScriptedInstance
         m_uiAkamaGUID = 0;
         m_uiAkama_ShadeGUID = 0;
         m_uiShadeOfAkamaGUID = 0;
+        m_uiBloodboilPostDoorGUID = 0;
         m_uiSupremusGUID = 0;
         m_uiLadyMalandeGUID = 0;
         m_uiGathiosTheShattererGUID = 0;
@@ -136,6 +138,11 @@ struct MANGOS_DLL_DECL instance_black_temple : public ScriptedInstance
                 break;
             case 185478:
                 m_uiShadeAkamaDoorGUID = pGo->GetGUID();    // Door close during encounter
+                break;
+            case 185892:
+                m_uiBloodboilPostDoorGUID = pGo->GetGUID(); // Door open after killing Bloodboil
+                if (m_auiEncounter[4] == DONE)
+                    pGo->SetGoState(GO_STATE_ACTIVE);
                 break;
             case 185479:                                    // Door leading to Mother Shahraz
                 m_uiShahrazPreDoorGUID = pGo->GetGUID();
@@ -204,8 +211,12 @@ struct MANGOS_DLL_DECL instance_black_temple : public ScriptedInstance
                 break;
             case TYPE_BLOODBOIL:
                 m_auiEncounter[4] = uiData;
-                if (uiData == DONE && CanPreMotherDoorOpen())
-                    DoUseDoorOrButton(m_uiShahrazPreDoorGUID);
+                if (uiData == DONE)
+                {
+                    DoUseDoorOrButton(m_uiBloodboilPostDoorGUID);
+                    if (CanPreMotherDoorOpen())
+                        DoUseDoorOrButton(m_uiShahrazPreDoorGUID);
+                }
                 break;
             case TYPE_RELIQUIARY:
                 m_auiEncounter[5] = uiData;
