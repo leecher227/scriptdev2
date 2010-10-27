@@ -495,15 +495,19 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         DespawnCreatures(NPC_PUMMELER);
         DespawnCreatures(NPC_VOIDZONE);
         DespawnCreatures(NPC_LIFESPARK);
+        m_creature->RemoveAurasDueToSpell(SPELL_HEARTBREAK);
+        m_creature->RemoveAurasDueToSpell(SPELL_HEARTBREAK_H);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
     }
 
     void JustReachedHome()
     {
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_XT002, FAIL);
+            m_pInstance->SetData(TYPE_XT002_HARD, FAIL);
+        }
     }
 
     void JustDied(Unit* pKiller)
@@ -548,7 +552,6 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         }
 
         DoScriptText(SAY_AGGRO, m_creature);
-        m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
         m_creature->SetInCombatWithZone();
     }
 
@@ -769,7 +772,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         }
 
         // Hard mode
-        if (!m_bIsHardMode && m_pInstance->GetData(TYPE_XT002_HARD) == IN_PROGRESS)
+        if (!m_bIsHardMode && m_pInstance && m_pInstance->GetData(TYPE_XT002_HARD) == IN_PROGRESS)
         {
             DoScriptText(SAY_HEART_CLOSE, m_creature);
             m_creature->RemoveAurasDueToSpell(SPELL_STUN);
