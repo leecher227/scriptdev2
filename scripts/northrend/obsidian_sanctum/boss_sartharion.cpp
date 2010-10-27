@@ -984,7 +984,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
             //Once time is up, portal will disappear again.
             
             pPortal->SetRespawnTime(iPortalRespawnTime);
-            pPortal->UpdateObjectVisibility();
+            pPortal->Refresh();
 
             //Unclear what are expected to happen if one drake has a portal open already
             //Refresh respawnTime so time again are set to 30secs?
