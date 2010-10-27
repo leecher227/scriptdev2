@@ -728,8 +728,11 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
                 OpenDoor(m_uiIronCouncilDoorGUID);
                 OpenDoor(m_uiArchivumDoorGUID);
                 CheckIronCouncil();		// used for a hacky achiev, remove for revision!
-            } else if (uiData == IN_PROGRESS)
+            }
+            else if (uiData == IN_PROGRESS)
                 CloseDoor(m_uiIronCouncilDoorGUID);
+            else if (uiData == FAIL)
+                OpenDoor(m_uiIronCouncilDoorGUID);
             break;
         case TYPE_KOLOGARN:
             m_auiEncounter[5] = uiData;

@@ -84,6 +84,7 @@ enum
     SPELL_CHAIN_LIGHTNING       = 61879,
     SPELL_CHAIN_LIGHTNING_H     = 63479,
     SPELL_OVERLOAD              = 61869,
+    SPELL_OVERLOAD_H            = 63481,
     SPELL_LIGHTNING_WHIRL       = 61915,
     SPELL_LIGHTNING_WHIRL_H     = 63483,
     SPELL_STORMSHIELD           = 64187,
@@ -105,7 +106,6 @@ enum
     ACHIEV_CHOOSE_STEELBREAKER_H    = 2944,
 };
 
-// Rune of Power
 struct MANGOS_DLL_DECL mob_rune_of_powerAI : public ScriptedAI
 {
     mob_rune_of_powerAI(Creature* pCreature) : ScriptedAI(pCreature) 
@@ -114,24 +114,16 @@ struct MANGOS_DLL_DECL mob_rune_of_powerAI : public ScriptedAI
         Reset();
     }
 
-    uint32 m_uiDeath_Timer;
-
     void Reset()
     {
-        m_uiDeath_Timer = 60000;
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         DoCast(m_creature,  AURA_RUNE_OF_POWER);
+        m_creature->ForcedDespawn(60000);
     }
 
     void UpdateAI(const uint32 diff)
     {
-        if (m_uiDeath_Timer < diff)
-        {
-            m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-        }
-        else
-            m_uiDeath_Timer -= diff;
     }
 };
 
@@ -140,63 +132,6 @@ CreatureAI* GetAI_mob_rune_of_power(Creature* pCreature)
     return new mob_rune_of_powerAI(pCreature);
 }
 
-// Lightning Elemental
-struct MANGOS_DLL_DECL mob_ulduar_lightning_elementalAI : public ScriptedAI
-{
-    mob_ulduar_lightning_elementalAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-    bool m_bIsRegularMode;
-
-    uint32 m_uiDeath_Timer;
-    uint32 m_uiCheck_Timer;
-    bool m_bWillExplode;
-
-    void Reset()
-    {
-        m_bWillExplode  = false;
-        m_uiCheck_Timer = 1000;
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_bWillExplode)
-        {
-            if (m_uiDeath_Timer < diff && m_bWillExplode)
-                m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-            else
-                m_uiDeath_Timer -= diff;
-        }
-
-        if (m_uiCheck_Timer < diff)
-        {
-            if (m_creature->IsWithinDistInMap(m_creature->getVictim(), 15))
-            {
-                DoCast(m_creature, m_bIsRegularMode ? SPELL_LIGHTNING_BLAST : SPELL_LIGHTNING_BLAST_H);
-                m_bWillExplode  = true;
-                m_uiDeath_Timer = 500;
-                m_uiCheck_Timer = 5000;
-            }
-            m_uiCheck_Timer = 1000;
-        }
-        else
-            m_uiCheck_Timer -= diff;
-    }
-};
-
-CreatureAI* GetAI_mob_ulduar_lightning_elemental(Creature* pCreature)
-{
-    return new mob_ulduar_lightning_elementalAI(pCreature);
-}
-
-// Rune of Summoning
 struct MANGOS_DLL_DECL mob_rune_of_summoningAI : public ScriptedAI
 {
     mob_rune_of_summoningAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -208,13 +143,11 @@ struct MANGOS_DLL_DECL mob_rune_of_summoningAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
 
-    uint32 m_uiDeath_Timer;
     uint32 m_uiSummon_Timer;
     uint32 m_uiSummonNum;
 
     void Reset()
     {
-        m_uiDeath_Timer     = 0;
         m_uiSummon_Timer    = 5000;
         m_uiSummonNum       = 0;
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -247,6 +180,61 @@ struct MANGOS_DLL_DECL mob_rune_of_summoningAI : public ScriptedAI
 CreatureAI* GetAI_mob_rune_of_summoning(Creature* pCreature)
 {
     return new mob_rune_of_summoningAI(pCreature);
+}
+
+struct MANGOS_DLL_DECL mob_ulduar_lightning_elementalAI : public ScriptedAI
+{
+    mob_ulduar_lightning_elementalAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        Reset();
+    }
+
+    ScriptedInstance* m_pInstance;
+    bool m_bIsRegularMode;
+
+    uint32 m_uiDeath_Timer;
+    uint32 m_uiCheck_Timer;
+    bool m_bWillExplode;
+
+    void Reset()
+    {
+        m_bWillExplode  = false;
+        m_uiCheck_Timer = 1000;
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (m_bWillExplode)
+        {
+            if (m_uiDeath_Timer < diff)
+                m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+            else
+                m_uiDeath_Timer -= diff;
+        }
+
+        if (m_uiCheck_Timer < diff)
+        {
+            if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+            {
+                DoCast(m_creature, m_bIsRegularMode ? SPELL_LIGHTNING_BLAST : SPELL_LIGHTNING_BLAST_H);
+                m_bWillExplode  = true;
+                m_uiDeath_Timer = 500;
+                m_uiCheck_Timer = 5000;
+            }
+            m_uiCheck_Timer = 1000;
+        }
+        else
+            m_uiCheck_Timer -= diff;
+    }
+};
+
+CreatureAI* GetAI_mob_ulduar_lightning_elemental(Creature* pCreature)
+{
+    return new mob_ulduar_lightning_elementalAI(pCreature);
 }
 
 //Stormcaller Brundir
@@ -282,7 +270,6 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
         m_uiChain_Lightning_Timer = 0;
         m_uiOverload_Timer      = 35000;
         m_uiEnrage_Timer        = 900000;
@@ -305,7 +292,16 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
             uiDamage = 0;
             m_creature->CastStop();
             m_creature->RemoveAllAuras();
-            DoCast(m_creature, SPELL_SUPERCHARGE);
+            if (SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_SUPERCHARGE))
+            {
+                pTempSpell->EffectImplicitTargetA[0] = TARGET_ALL_FRIENDLY_UNITS_IN_AREA;
+                pTempSpell->EffectImplicitTargetB[0] = 0;
+                pTempSpell->EffectImplicitTargetA[1] = TARGET_ALL_FRIENDLY_UNITS_IN_AREA;
+                pTempSpell->EffectImplicitTargetB[1] = 0;
+                pTempSpell->EffectImplicitTargetA[2] = TARGET_ALL_FRIENDLY_UNITS_IN_AREA;
+                pTempSpell->EffectImplicitTargetB[2] = 0;
+                m_creature->CastSpell(m_creature, pTempSpell, false);
+            }
             m_uiDie_delay   = 500;
             m_bMustDie      = true;
         }
@@ -316,7 +312,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         //hacky way to complete achievements; use only if you have this function
         Map* pMap = m_creature->GetMap();
         AchievementEntry const *AchievYourSide = GetAchievementStore()->LookupEntry(m_bIsRegularMode ? ACHIEV_ON_YOUR_SIDE : ACHIEV_ON_YOUR_SIDE_H);
-        if(AchievYourSide && pMap)
+        if (AchievYourSide && pMap)
         {
             Map::PlayerList const &lPlayers = pMap->GetPlayers();
             if (!lPlayers.isEmpty())
@@ -339,8 +335,6 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         // if all of them are dead
         if (m_pInstance)
         {
-            // remove supercharge from players -> spell bug
-            //m_pInstance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SUPERCHARGE);
             // if the others are dead then give loot
             if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER)))
             {
@@ -371,7 +365,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                 if (pTemp->isAlive())
                     pTemp->SetHealth(pTemp->GetMaxHealth());
             }
-            if (Creature* pTemp = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_MOLGEIM)))
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_MOLGEIM)))
             {
                 if (pTemp->isAlive())
                     pTemp->SetHealth(pTemp->GetMaxHealth());
@@ -401,25 +395,25 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
             if (m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
                 m_pInstance->SetData(TYPE_ASSEMBLY, IN_PROGRESS);
         }
-
+        m_creature->SetInCombatWithZone();
         DoScriptText(SAY_BRUNDIR_AGGR0, m_creature);
     }
 
     void JustReachedHome()
     {
-        if (Creature* pTemp = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_STEELBREAKER)))
+        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER)))
         {
             if (!pTemp->isAlive())
                 pTemp->Respawn();
         }
-        if (Creature* pTemp = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_MOLGEIM)))
+        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_MOLGEIM)))
         {
             if (!pTemp->isAlive())
                 pTemp->Respawn();
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
                 m_pInstance->SetData(TYPE_ASSEMBLY, FAIL);
         }
     }
@@ -437,39 +431,74 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        // level 1 spells
+        if (m_bHasSupercharge2)
+        {
+            if (m_uiTendrils_start_Timer < uiDiff)
+            {
+                if (!m_creature->IsNonMeleeSpellCasted(false))
+                {
+                    if (!m_bIsTendrils)
+                    {
+                        DoScriptText(SAY_BRUNDIR_FLY, m_creature);
+                        DoCast(m_creature, LIGHTNING_TENDRILS_VISUAL);
+                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                            AttackStart(pTarget);
+                        m_bIsTendrils = true;
+                        m_creature->SetSpeedRate(MOVE_RUN, 0.8f);
+                        m_uiTendrils_start_Timer = 3000;
+                        m_uiTendrils_end_Timer = 40000;
+                        m_uiTendrils_Change = 5000;
+                    }
+                    else
+                    {
+                        DoCast(m_creature, m_bIsRegularMode ? SPELL_LIGHTNING_TENDRILS : SPELL_LIGHTNING_TENDRILS_H);
+                        m_uiTendrils_start_Timer = 90000;
+                    }
+                }
+            }
+            else
+                m_uiTendrils_start_Timer -= uiDiff;
+        }
+
         if (!m_bIsTendrils)
         {
-            if (m_uiChain_Lightning_Timer < uiDiff)
-            {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCast(target, m_bIsRegularMode ? SPELL_CHAIN_LIGHTNING : SPELL_CHAIN_LIGHTNING_H);
-                m_uiChain_Lightning_Timer = 2000;
-            }
-            else
-
-            if (m_uiOverload_Timer < uiDiff)
-            {
-                m_creature->CastStop();
-                DoCast(m_creature, SPELL_OVERLOAD);
-                m_uiOverload_Timer = 40000;
-            }
-            else
-                m_uiOverload_Timer -= uiDiff;  
-
-            // level 2 spells
             if (m_bHasSupercharge1)
             {
                 if (m_uiWhirl_Timer < uiDiff)
                 {
-                    m_creature->CastStop();
-                    DoScriptText(SAY_BRUNDIR_WHIRL, m_creature);
-                    DoCast(m_creature, m_bIsRegularMode ? SPELL_LIGHTNING_WHIRL : SPELL_LIGHTNING_WHIRL_H);
-                    m_uiWhirl_Timer = 15000;
+                    if (!m_creature->IsNonMeleeSpellCasted(false))
+                    {
+                        DoScriptText(SAY_BRUNDIR_WHIRL, m_creature);
+                        DoCast(m_creature, m_bIsRegularMode ? SPELL_LIGHTNING_WHIRL : SPELL_LIGHTNING_WHIRL_H);
+                        m_uiWhirl_Timer = 15000;
+                    }
                 }
                 else
                     m_uiWhirl_Timer -= uiDiff;
             }
+            if (m_uiOverload_Timer < uiDiff)
+            {
+                if (!m_creature->IsNonMeleeSpellCasted(false))
+                {
+                    DoCast(m_creature, m_bIsRegularMode ? SPELL_OVERLOAD : SPELL_OVERLOAD_H);
+                    m_uiOverload_Timer = 40000;
+                }
+            }
+            else
+                m_uiOverload_Timer -= uiDiff;  
+
+            if (m_uiChain_Lightning_Timer < uiDiff)
+            {
+                if (!m_creature->IsNonMeleeSpellCasted(false))
+                {
+                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        DoCast(target, m_bIsRegularMode ? SPELL_CHAIN_LIGHTNING : SPELL_CHAIN_LIGHTNING_H);
+                    m_uiChain_Lightning_Timer = 2300;
+                }
+            }
+            else
+                m_uiChain_Lightning_Timer -= uiDiff;
+
         }
         else
         {
@@ -496,35 +525,6 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
             }
             else
                 m_uiTendrils_end_Timer -= uiDiff;
-        }
-
-        // level 3 spells
-        // boss doesn't fly during tendrils, needs fixing!
-        if (m_bHasSupercharge2)
-        {
-            if (m_uiTendrils_start_Timer < uiDiff)
-            {
-                if (!m_bIsTendrils)
-                {
-                    DoScriptText(SAY_BRUNDIR_FLY, m_creature);
-                    m_creature->CastStop();
-                    DoCast(m_creature, LIGHTNING_TENDRILS_VISUAL);
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                           AttackStart(pTarget);
-                    m_bIsTendrils = true;
-                    m_creature->SetSpeedRate(MOVE_RUN, 0.8f);
-                    m_uiTendrils_start_Timer = 3000;
-                    m_uiTendrils_end_Timer = 40000;
-                    m_uiTendrils_Change = 5000;
-                }
-                else
-                {
-                       DoCast(m_creature, m_bIsRegularMode ? SPELL_LIGHTNING_TENDRILS : SPELL_LIGHTNING_TENDRILS_H);
-                    m_uiTendrils_start_Timer = 90000;
-                }
-            }
-            else
-                m_uiTendrils_start_Timer -= uiDiff;
         }
 
         // die after casting supercharge
@@ -558,7 +558,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                 {
                     if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER)))
                     {
-                        if (!pTemp->isAlive())
+                        if (pTemp->isDead())
                         {
                             m_bIsSteelbreakerDead = true;
                             if (!m_bHasSupercharge1)
@@ -572,6 +572,8 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                                 m_uiTendrils_start_Timer = 40000;
                                 m_uiTendrils_end_Timer = 60000;
                                 m_uiTendrils_Change = 6000;
+                                m_creature->CastStop();
+                                DoCast(m_creature, SPELL_STORMSHIELD);
                             }
                         }
                     }
@@ -580,7 +582,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                 {
                     if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_MOLGEIM)))
                     {
-                        if (!pTemp->isAlive())
+                        if (pTemp->isDead())
                         {
                             m_bIsMolgeimDead = true;
                             if (!m_bHasSupercharge1)
@@ -594,6 +596,8 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                                 m_uiTendrils_start_Timer = 40000;
                                 m_uiTendrils_end_Timer = 60000;
                                 m_uiTendrils_Change = 6000;
+                                m_creature->CastStop();
+                                DoCast(m_creature, SPELL_STORMSHIELD);
                             }
                         }
                     }
@@ -644,7 +648,6 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
         m_uiShield_Timer    = 20000;
         m_uiRune_Power_Timer = 10000;
         m_uiEnrage_Timer    = 900000;
@@ -665,7 +668,16 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
             uiDamage = 0;
             m_creature->RemoveAllAuras();
             m_creature->CastStop();
-            DoCast(m_creature, SPELL_SUPERCHARGE);
+            if (SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_SUPERCHARGE))
+            {
+                pTempSpell->EffectImplicitTargetA[0] = TARGET_ALL_FRIENDLY_UNITS_IN_AREA;
+                pTempSpell->EffectImplicitTargetB[0] = 0;
+                pTempSpell->EffectImplicitTargetA[1] = TARGET_ALL_FRIENDLY_UNITS_IN_AREA;
+                pTempSpell->EffectImplicitTargetB[1] = 0;
+                pTempSpell->EffectImplicitTargetA[2] = TARGET_ALL_FRIENDLY_UNITS_IN_AREA;
+                pTempSpell->EffectImplicitTargetB[2] = 0;
+                m_creature->CastSpell(m_creature, pTempSpell, false);
+            }
             m_uiDie_delay = 500;
             m_bMustDie = true;
         }
@@ -699,8 +711,6 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
         if (m_pInstance)
         {
-            // remove supercharge from players -> spell bug
-            //m_pInstance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SUPERCHARGE);
             // if the others are dead then give loot
             if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER)))
             {
@@ -761,7 +771,7 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
             if(m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
                 m_pInstance->SetData(TYPE_ASSEMBLY, IN_PROGRESS);
         }
-
+        m_creature->SetInCombatWithZone();
         DoScriptText(SAY_MOLGEIM_AGGRO, m_creature);
     }
 
@@ -800,39 +810,40 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
         // level 1 spells
         if (m_uiShield_Timer < uiDiff)
         {
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_SHIELD : SPELL_SHIELD_H);
-            m_uiShield_Timer = 50000;
+            if (!m_creature->IsNonMeleeSpellCasted(false))
+            {
+                DoCast(m_creature, m_bIsRegularMode ? SPELL_SHIELD : SPELL_SHIELD_H);
+                m_uiShield_Timer = 50000;
+            }
         }
         else
             m_uiShield_Timer -= uiDiff;   
 
         if (m_uiRune_Power_Timer < uiDiff)
         {
-            switch (urand(0, 2))
+            if (!m_creature->IsNonMeleeSpellCasted(false))
             {
-                case 0:
-                    if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BRUNDIR)))
-                    {
-                        if (pTemp->isAlive())
-                            DoCast(pTemp, SPELL_RUNE_OF_POWER);
-                        else
-                            DoCast(m_creature, SPELL_RUNE_OF_POWER);
-                    }
-                    break;
-                case 1:
-                    if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER)))
-                    {
-                        if (pTemp->isAlive())
-                            DoCast(pTemp, SPELL_RUNE_OF_POWER);
-                        else
-                            DoCast(m_creature, SPELL_RUNE_OF_POWER);
-                    }
-                    break;
-                case 2:
-                    DoCast(m_creature, SPELL_RUNE_OF_POWER);
-                    break;
+                Creature* pTarget = m_creature;
+                switch (urand(0, 2))
+                {
+                    case 0:
+                        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BRUNDIR)))
+                        {
+                            if (pTemp->isAlive())
+                                pTarget = pTemp;
+                        }
+                        break;
+                    case 1:
+                        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER)))
+                        {
+                            if (pTemp->isAlive())
+                                pTarget = pTemp;
+                        }
+                        break;
+                }
+                DoCast(pTarget, SPELL_RUNE_OF_POWER);
+                m_uiRune_Power_Timer = 30000;
             }
-            m_uiRune_Power_Timer = 30000;
         }
         else
             m_uiRune_Power_Timer -= uiDiff;
@@ -842,10 +853,13 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
         {
             if (m_uiRune_Death_Timer < uiDiff)
             {
-                DoScriptText(SAY_MOLGEIM_DEATH_RUNE, m_creature);
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCast(pTarget, m_bIsRegularMode ? SPELL_RUNE_OF_DEATH : SPELL_RUNE_OF_DEATH_H);
-                m_uiRune_Death_Timer = 30000;
+                if (!m_creature->IsNonMeleeSpellCasted(false))
+                {
+                    DoScriptText(SAY_MOLGEIM_DEATH_RUNE, m_creature);
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        DoCast(pTarget, m_bIsRegularMode ? SPELL_RUNE_OF_DEATH : SPELL_RUNE_OF_DEATH_H);
+                    m_uiRune_Death_Timer = 30000;
+                }
             }
             else
                 m_uiRune_Death_Timer -= uiDiff;
@@ -856,11 +870,13 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
         {
             if (m_uiRune_Summon_Timer < uiDiff)
             {
-                DoScriptText(SAY_MOLGEIM_SUMMON, m_creature);
-                m_creature->CastStop();
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCast(pTarget, SPELL_RUNE_OF_SUMMONING);
-                m_uiRune_Summon_Timer = 30000;
+                if (!m_creature->IsNonMeleeSpellCasted(false))
+                {
+                    DoScriptText(SAY_MOLGEIM_SUMMON, m_creature);
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        DoCast(pTarget, SPELL_RUNE_OF_SUMMONING);
+                    m_uiRune_Summon_Timer = 30000;
+                }
             }
             else
                 m_uiRune_Summon_Timer -= uiDiff;
@@ -974,7 +990,6 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
         m_uiFusion_Punch_Timer = 20000;
         m_uiEnrage_Timer    = 900000;
         m_uiCheckTimer      = 1000;
@@ -995,7 +1010,7 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
         if (m_bSupercharge2)
             DoCast(m_creature, SPELL_ELECTRICAL_CHARGE);
 
-        if (urand(0,1))
+        if (urand(0, 1))
             DoScriptText(SAY_STEEL_SLAY1, m_creature);
         else
             DoScriptText(SAY_STEEL_SLAY2, m_creature);
@@ -1008,7 +1023,16 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
             uiDamage = 0;
             m_creature->CastStop();
             m_creature->RemoveAllAuras();
-            DoCast(m_creature, SPELL_SUPERCHARGE);
+            if (SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_SUPERCHARGE))
+            {
+                pTempSpell->EffectImplicitTargetA[0] = TARGET_ALL_FRIENDLY_UNITS_IN_AREA;
+                pTempSpell->EffectImplicitTargetB[0] = 0;
+                pTempSpell->EffectImplicitTargetA[1] = TARGET_ALL_FRIENDLY_UNITS_IN_AREA;
+                pTempSpell->EffectImplicitTargetB[1] = 0;
+                pTempSpell->EffectImplicitTargetA[2] = TARGET_ALL_FRIENDLY_UNITS_IN_AREA;
+                pTempSpell->EffectImplicitTargetB[2] = 0;
+                m_creature->CastSpell(m_creature, pTempSpell, false);
+            }
             m_uiDie_delay   = 500;
             m_bMustDie      = true;
         }
@@ -1041,8 +1065,6 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
         if (m_pInstance)
         {
-            // remove supercharge from players -> spell bug
-            // m_pInstance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SUPERCHARGE);
             // if the others are dead then give loot
             if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_MOLGEIM)))
             {
@@ -1099,13 +1121,13 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
             if (pTemp->isAlive())
                 pTemp->SetInCombatWithZone();
         }
-        DoCast(m_creature, m_bIsRegularMode ? SPELL_HIGH_VOLTAGE : SPELL_HIGH_VOLTAGE_H);
         if (m_pInstance)
         {
             if(m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
                 m_pInstance->SetData(TYPE_ASSEMBLY, IN_PROGRESS);
         }
-
+        DoCast(m_creature, m_bIsRegularMode ? SPELL_HIGH_VOLTAGE : SPELL_HIGH_VOLTAGE_H);
+        m_creature->SetInCombatWithZone();
         DoScriptText(SAY_STEEL_AGGRO, m_creature);
     }
 
@@ -1136,8 +1158,11 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
         // level 1 spells
         if (m_uiFusion_Punch_Timer < uiDiff)
         {
-            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FUSION_PUNCH : SPELL_FUSION_PUNCH_H);
-            m_uiFusion_Punch_Timer = 20000;
+            if (!m_creature->IsNonMeleeSpellCasted(false))
+            {
+                DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FUSION_PUNCH : SPELL_FUSION_PUNCH_H);
+                m_uiFusion_Punch_Timer = 20000;
+            }
         }
         else
             m_uiFusion_Punch_Timer -= uiDiff;
@@ -1147,9 +1172,19 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
         {
             if (m_uiStatic_Disruption_Timer < uiDiff)
             {
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
-                    DoCast(pTarget, m_bIsRegularMode ? SPELL_STATIC_DISRUPTION : SPELL_STATIC_DISRUPTION_H);
-                m_uiStatic_Disruption_Timer = 60000;
+                if (!m_creature->IsNonMeleeSpellCasted(false))
+                {
+                    Unit* pTarget = NULL;
+                    for (uint8 i = 0; i<25; ++i)
+                    {
+                        pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+                        if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER && m_creature->GetDistance2d(pTarget) >= ATTACK_DISTANCE)
+                            break;
+                    }
+                    if (pTarget)
+                        DoCast(pTarget, m_bIsRegularMode ? SPELL_STATIC_DISRUPTION : SPELL_STATIC_DISRUPTION_H);
+                    m_uiStatic_Disruption_Timer = 60000;
+                }
             }
             else
                 m_uiStatic_Disruption_Timer -= uiDiff;
@@ -1160,11 +1195,13 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
         {
             if (m_uiPower_Timer < uiDiff)
             {
-                m_creature->CastStop();
-                DoScriptText(SAY_STEEL_OVERWHELMING, m_creature);
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
-                    DoCast(pTarget, m_bIsRegularMode ? SPELL_POWER : SPELL_POWER_H);
-                m_uiPower_Timer = m_bIsRegularMode ? 65000 : 35000;
+                if (!m_creature->IsNonMeleeSpellCasted(false))
+                {
+                    DoScriptText(SAY_STEEL_OVERWHELMING, m_creature);
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
+                        DoCast(pTarget, m_bIsRegularMode ? SPELL_POWER : SPELL_POWER_H);
+                    m_uiPower_Timer = m_bIsRegularMode ? 65000 : 35000;
+                }
             }
             else
                 m_uiPower_Timer -= uiDiff;

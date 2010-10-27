@@ -12,9 +12,9 @@ UPDATE creature_template SET ScriptName = 'mob_defense_turret' WHERE entry = 331
 -- Flame Leviathan END
 
 -- Ignis the Furnace Master
-UPDATE creature_template SET ScriptName='boss_ignis' WHERE entry=33118;
-UPDATE creature_template SET ScriptName='mob_iron_construct' WHERE entry = 33121;
-UPDATE creature_template SET ScriptName='mob_scorch_target' WHERE entry=33221;
+UPDATE creature_template SET AIName='', ScriptName='boss_ignis' WHERE entry=33118;
+UPDATE creature_template SET AIName='', ScriptName='mob_iron_construct' WHERE entry = 33121;
+UPDATE creature_template SET AIName='', ScriptName='mob_scorch_target' WHERE entry=33221;
 REPLACE INTO spell_script_target (entry, type, targetEntry) VALUES
 (64474, 1, 33118),
 (64475, 1, 33118);
@@ -38,24 +38,24 @@ update gameobject_template set flags=flags|16 where entry=194543;
 delete from creature where id=33282;
 
 UPDATE gameobject_template SET ScriptName='go_razorscale_harpoon_launcher' WHERE entry=194543;
-UPDATE creature_template SET ScriptName='boss_razorscale' WHERE entry=33186;
-UPDATE creature_template SET ScriptName='mob_mole_machine' WHERE entry=33245;
-UPDATE creature_template SET ScriptName='mob_dark_rune_watcher' WHERE entry=33453;
-UPDATE creature_template SET ScriptName='mob_dark_rune_sentinel' WHERE entry=33846;
-UPDATE creature_template SET ScriptName='mob_dark_rune_guardian' WHERE entry=33388;
-UPDATE creature_template SET ScriptName='npc_expedition_commander' WHERE entry=33210;
-UPDATE creature_template SET ScriptName='npc_expedition_npc' WHERE entry in (33287, 33816, 33259);
-UPDATE creature_template SET ScriptName='mob_devouring_flame_target' WHERE entry IN (34189, 34188);
+UPDATE creature_template SET AIName='', ScriptName='boss_razorscale' WHERE entry=33186;
+UPDATE creature_template SET AIName='', ScriptName='mob_mole_machine' WHERE entry=33245;
+UPDATE creature_template SET AIName='', ScriptName='mob_dark_rune_watcher' WHERE entry=33453;
+UPDATE creature_template SET AIName='', ScriptName='mob_dark_rune_sentinel' WHERE entry=33846;
+UPDATE creature_template SET AIName='', ScriptName='mob_dark_rune_guardian' WHERE entry=33388;
+UPDATE creature_template SET AIName='', ScriptName='npc_expedition_commander' WHERE entry=33210;
+UPDATE creature_template SET AIName='', ScriptName='npc_expedition_npc' WHERE entry in (33287, 33816, 33259);
+UPDATE creature_template SET AIName='', ScriptName='mob_devouring_flame_target' WHERE entry IN (34189, 34188);
 -- Razorscale END
 
 -- XT-002 Deconstructor
-UPDATE creature_template SET ScriptName='boss_xt002' WHERE entry = 33293;
-UPDATE creature_template SET ScriptName='mob_pummeler' WHERE entry = 33344;
-UPDATE creature_template SET ScriptName='mob_boombot' WHERE entry=33346;
-UPDATE creature_template SET ScriptName='mob_scrapbot' WHERE entry = 33343;
-UPDATE creature_template SET ScriptName='mob_xtheart' WHERE entry=33329;
-UPDATE creature_template SET ScriptName='mob_xt002voidzone' WHERE entry=34001;
-UPDATE creature_template SET ScriptName='mob_lifespark' WHERE entry = 34004;
+UPDATE creature_template SET AIName='', ScriptName='boss_xt002' WHERE entry = 33293;
+UPDATE creature_template SET AIName='', ScriptName='mob_pummeler' WHERE entry = 33344;
+UPDATE creature_template SET AIName='', ScriptName='mob_boombot' WHERE entry=33346;
+UPDATE creature_template SET AIName='', ScriptName='mob_scrapbot' WHERE entry = 33343;
+UPDATE creature_template SET AIName='', ScriptName='mob_xtheart' WHERE entry=33329;
+UPDATE creature_template SET AIName='', ScriptName='mob_xt002voidzone' WHERE entry=34001;
+UPDATE creature_template SET AIName='', ScriptName='mob_lifespark' WHERE entry = 34004;
 
 -- CUSTOM Hard Mode loot
 replace into creature_template (entry, difficulty_entry_1, difficulty_entry_2, difficulty_entry_3, KillCredit1, KillCredit2, modelid_1, modelid_2, modelid_3, modelid_4, name, subname, IconName, gossip_menu_id, minlevel, maxlevel, minhealth, maxhealth, PowerType, minmana, maxmana, armor, faction_A, faction_H, npcflag, speed_walk, speed_run, scale, rank, mindmg, maxdmg, dmgschool, attackpower, dmg_multiplier, baseattacktime, rangeattacktime, unit_class, unit_flags, dynamicflags, family, trainer_type, trainer_spell, trainer_class, trainer_race, minrangedmg, maxrangedmg, rangedattackpower, type, type_flags, lootid, pickpocketloot, skinloot, resistance1, resistance2, resistance3, resistance4, resistance5, resistance6, spell1, spell2, spell3, spell4, spell5, spell6, spell7, spell8, PetSpellDataId, VehicleId, mingold, maxgold, AIName, MovementType, InhabitType, unk16, unk17, RacialLeader, questItem1, questItem2, questItem3, questItem4, questItem5, questItem6, movementId, RegenHealth, equipment_id, mechanic_immune_mask, flags_extra, ScriptName) values
@@ -168,12 +168,12 @@ INSERT INTO creature_loot_template (entry, item, ChanceOrQuestChance, groupid, m
 -- XT-002 Deconstructor END
 
 -- Assembly of Iron
-UPDATE creature_template SET ScriptName='boss_brundir' WHERE entry=32857;
-UPDATE creature_template SET ScriptName='boss_molgeim' WHERE entry=32927;
-UPDATE creature_template SET ScriptName='boss_steelbreaker' WHERE entry=32867;
-UPDATE creature_template SET ScriptName='mob_rune_of_power' WHERE entry=33705;
-UPDATE creature_template SET ScriptName='mob_rune_of_summoning' WHERE entry=33051;
-UPDATE creature_template SET ScriptName='mob_ulduar_lightning_elemental' WHERE entry=32958;
+UPDATE creature_template SET AIName='', ScriptName='boss_brundir' WHERE entry=32857;
+UPDATE creature_template SET AIName='', ScriptName='boss_molgeim' WHERE entry=32927;
+UPDATE creature_template SET AIName='', ScriptName='boss_steelbreaker' WHERE entry=32867;
+UPDATE creature_template SET AIName='', ScriptName='mob_rune_of_power' WHERE entry=33705;
+UPDATE creature_template SET AIName='', ScriptName='mob_rune_of_summoning' WHERE entry=33051;
+UPDATE creature_template SET AIName='', ScriptName='mob_ulduar_lightning_elemental' WHERE entry=32958;
 -- Assembly of Iron END
 
 /*
