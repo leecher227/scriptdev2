@@ -442,11 +442,11 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                         DoScriptText(SAY_BRUNDIR_FLY, m_creature);
                         DoCast(m_creature, LIGHTNING_TENDRILS_VISUAL);
                         if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                            AttackStart(pTarget);
+                            m_creature->AddThreat(pTarget, 100000000.0f);
                         m_bIsTendrils = true;
                         m_creature->SetSpeedRate(MOVE_RUN, 0.8f);
-                        m_uiTendrils_start_Timer = 3000;
-                        m_uiTendrils_end_Timer = 40000;
+                        m_uiTendrils_start_Timer = 1000;
+                        m_uiTendrils_end_Timer = 25000;
                         m_uiTendrils_Change = 5000;
                     }
                     else
@@ -493,7 +493,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                 {
                     if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                         DoCast(target, m_bIsRegularMode ? SPELL_CHAIN_LIGHTNING : SPELL_CHAIN_LIGHTNING_H);
-                    m_uiChain_Lightning_Timer = 2300;
+                    m_uiChain_Lightning_Timer = 3000;
                 }
             }
             else
@@ -505,8 +505,8 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
             if (m_uiTendrils_Change < uiDiff)
             {
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                AttackStart(pTarget);
-                m_uiTendrils_Change = 6000;
+                    m_creature->AddThreat(pTarget, 100000000.0f);
+                m_uiTendrils_Change = 5000;
             }
             else
                 m_uiTendrils_Change -= uiDiff;
@@ -516,10 +516,11 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                 m_creature->RemoveAurasDueToSpell(SPELL_LIGHTNING_TENDRILS);
                 m_creature->RemoveAurasDueToSpell(SPELL_LIGHTNING_TENDRILS_H);
                 m_creature->RemoveAurasDueToSpell(LIGHTNING_TENDRILS_VISUAL);
-                m_uiTendrils_start_Timer = 90000;
+                DoResetThreat();
+                m_uiTendrils_start_Timer = 60000;
                 m_creature->SetSpeedRate(MOVE_RUN, 1.8f);
                 m_bIsTendrils = false;
-                m_uiChain_Lightning_Timer = 5000;
+                m_uiChain_Lightning_Timer = 3000;
                 m_uiOverload_Timer = 35000;
                 m_uiWhirl_Timer = 10000;
             }
@@ -570,8 +571,6 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                             {
                                 m_bHasSupercharge2 = true;
                                 m_uiTendrils_start_Timer = 40000;
-                                m_uiTendrils_end_Timer = 60000;
-                                m_uiTendrils_Change = 6000;
                                 m_creature->CastStop();
                                 DoCast(m_creature, SPELL_STORMSHIELD);
                             }
@@ -594,8 +593,6 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                             {
                                 m_bHasSupercharge2 = true;
                                 m_uiTendrils_start_Timer = 40000;
-                                m_uiTendrils_end_Timer = 60000;
-                                m_uiTendrils_Change = 6000;
                                 m_creature->CastStop();
                                 DoCast(m_creature, SPELL_STORMSHIELD);
                             }
