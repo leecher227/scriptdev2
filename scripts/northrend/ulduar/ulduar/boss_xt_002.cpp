@@ -79,9 +79,11 @@ enum
     NPC_HEART				= 33329,
     NPC_SCRAPBOT			= 33343,
     NPC_BOOMBOT				= 33346,
-    NPC_PUMMELER			= 33344, 
+    NPC_PUMMELER			= 33344,
 
-    // Achievs
+    GROUND_Z                = 410,
+
+    // Achievements
     ACHIEV_HEARTBREAKER         = 3058,
     ACHIEV_HEARTBREAKER_H       = 3059,
     ACHIEV_DECONSTRUCT_FAST     = 2937,
@@ -165,36 +167,6 @@ CreatureAI* GetAI_mob_xt002voidzone(Creature* pCreature)
     return new mob_xt002voidzoneAI(pCreature);
 }
 
-// lifespark
-struct MANGOS_DLL_DECL mob_lifesparkAI : public ScriptedAI
-{
-    mob_lifesparkAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        Reset();
-    }
-
-    bool m_bIsRegularMode;
-
-    void Reset()
-    {  
-        DoCast(m_creature, m_bIsRegularMode ? SPELL_STATIC_CHARGED : SPELL_STATIC_CHARGED_H);
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        DoMeleeAttackIfReady();
-    }
-};
-
-CreatureAI* GetAI_mob_lifespark(Creature* pCreature)
-{
-    return new mob_lifesparkAI(pCreature);
-}
-
 // XM-024 Pummeller
 struct MANGOS_DLL_DECL mob_pummelerAI : public ScriptedAI
 {
@@ -254,7 +226,7 @@ struct MANGOS_DLL_DECL mob_boombotAI : public ScriptedAI
 
     void Reset()
     {
-        m_uiCheckTimer = 1000;
+        m_uiCheckTimer = 0;
         m_creature->SetSpeedRate(MOVE_RUN, 0.5, true);
     }
 
@@ -287,6 +259,11 @@ struct MANGOS_DLL_DECL mob_boombotAI : public ScriptedAI
                         int32 uiBP1 = 1;
                         m_creature->CastCustomSpell(m_creature, SPELL_BOOM, &uiBP0, &uiBP1, NULL, true);
                     }
+                    else
+                    {
+                        m_creature->GetMotionMaster()->Clear();
+                        m_creature->GetMotionMaster()->MovePoint(0, pXT002->GetPositionX(), pXT002->GetPositionY(), GROUND_Z);
+                    }
                 }
             }
             m_uiCheckTimer = 1000;
@@ -315,7 +292,7 @@ struct MANGOS_DLL_DECL mob_scrapbotAI : public ScriptedAI
 
     void Reset()
     {
-        m_uiCheckTimer = 1000;
+        m_uiCheckTimer = 0;
         m_creature->SetSpeedRate(MOVE_RUN, 0.5, true);
     }
 
@@ -335,6 +312,11 @@ struct MANGOS_DLL_DECL mob_scrapbotAI : public ScriptedAI
                     {
                         pXT002->CastSpell(m_creature, SPELL_SCRAP_REPAIR, true);
                         m_creature->ForcedDespawn(2000);
+                    }
+                    else
+                    {
+                        m_creature->GetMotionMaster()->Clear();
+                        m_creature->GetMotionMaster()->MovePoint(0, pXT002->GetPositionX(), pXT002->GetPositionY(), GROUND_Z);
                     }
                 }
             }
@@ -672,7 +654,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
                 m_uiBoombotCount        = 0;   
                 m_uiPummellerCount      = 0;
 
-                if (Creature* pHeart = DoSpawnCreature(NPC_HEART, 0.0f, 0.0f, 2.0f, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+                if (Creature* pHeart = m_creature->SummonCreature(NPC_HEART, m_creature->GetPositionX(), m_creature->GetPositionY(), GROUND_Z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                     pHeart->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             }
 
@@ -687,7 +669,13 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
                 if (m_uiLifeSparkTimer < uiDiff)
                 {
                     if (Unit* pTarget = m_creature->GetMap()->GetUnit(pLightBombTarGUID))
-                        m_creature->SummonCreature(NPC_LIFESPARK, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
+                    {
+                        if (Creature* pLifeSpark = m_creature->SummonCreature(NPC_LIFESPARK, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000))
+                        {
+                            pLifeSpark->CastSpell(pLifeSpark, m_bIsRegularMode ? SPELL_STATIC_CHARGED : SPELL_STATIC_CHARGED_H, false);
+                            pLifeSpark->SetInCombatWithZone();
+                        }
+                    }
                     m_uiLifeSparkTimer = 60000;
                 }
                 else
@@ -715,8 +703,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
                     if (m_uiPummellerCount == 0)
                         DoScriptText(SAY_ADDS, m_creature);
                     uint8 i = urand(0, 4);
-                    if (Creature* pTemp = m_creature->SummonCreature(NPC_PUMMELER, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
-                        pTemp->SetInCombatWithZone();
+                    m_creature->SummonCreature(NPC_PUMMELER, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
                     ++m_uiPummellerCount;
                     m_uiPummellerTimer = 4000;
                 }
@@ -730,8 +717,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
                 if (m_uiBoombotTimer < uiDiff)
                 {
                     uint8 i = urand(0, 4);
-                    if (Creature* pTemp = m_creature->SummonCreature(NPC_BOOMBOT, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
-                        pTemp->GetMotionMaster()->MoveFollow(m_creature, 0, 0);
+                    m_creature->SummonCreature(NPC_BOOMBOT, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
                     ++m_uiBoombotCount;
                     m_uiBoombotTimer = 4000;
                 }
@@ -746,10 +732,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
                 {
                     uint8 i = urand(0, 4);
                     for (int j = 0; j < 5; ++j)
-                    {
-                        if (Creature* pTemp = m_creature->SummonCreature(NPC_SCRAPBOT, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
-                            pTemp->GetMotionMaster()->MoveFollow(m_creature, 0, 0);
-                    }
+                        m_creature->SummonCreature(NPC_SCRAPBOT, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
                     ++m_uiScrapbotGroupCount;
                     m_uiScrapbotTimer = 2500;
                 }
@@ -825,10 +808,5 @@ void AddSC_boss_xt002()
     NewScript = new Script;
     NewScript->Name = "mob_xt002voidzone";
     NewScript->GetAI = &GetAI_mob_xt002voidzone;
-    NewScript->RegisterSelf();
-
-    NewScript = new Script;
-    NewScript->Name = "mob_lifespark";
-    NewScript->GetAI = &GetAI_mob_lifespark;
     NewScript->RegisterSelf();
 }

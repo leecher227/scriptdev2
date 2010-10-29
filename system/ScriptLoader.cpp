@@ -348,7 +348,7 @@ extern void AddSC_instance_halls_of_stone();
 //extern void AddSC_boss_hodir();
 extern void AddSC_boss_ignis();
 extern void AddSC_boss_iron_council();
-//extern void AddSC_boss_kologarn();
+extern void AddSC_boss_kologarn();
 extern void AddSC_boss_leviathan();
 //extern void AddSC_boss_mimiron();
 extern void AddSC_boss_razorscale();
@@ -809,7 +809,7 @@ void AddScripts()
     //AddSC_boss_hodir();
     AddSC_boss_ignis();
     AddSC_boss_iron_council();
-    //AddSC_boss_kologarn();
+    AddSC_boss_kologarn();
     AddSC_boss_leviathan();
     //AddSC_boss_mimiron();
     AddSC_boss_razorscale();

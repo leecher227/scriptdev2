@@ -23,7 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "ulduar.h"
-/*
+
 enum
 {
     //yells
@@ -249,12 +249,6 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
     {
         if (pVictim) 
             pVictim->RemoveAurasDueToSpell(m_bIsRegularMode ? SPELL_STONE_GRIP : SPELL_STONE_GRIP_H);
-    }
-
-    void JustReachedHome()
-    {
-        //if (m_pInstance)
-            //m_pInstance->DoRemoveAurasDueToSpellOnPlayers(m_bIsRegularMode ? SPELL_STONE_GRIP : SPELL_STONE_GRIP_H);
     }
 
     void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
@@ -631,4 +625,3 @@ void AddSC_boss_kologarn()
     NewScript->GetAI = &GetAI_boss_right_arm;
     NewScript->RegisterSelf();
 }
-*/
