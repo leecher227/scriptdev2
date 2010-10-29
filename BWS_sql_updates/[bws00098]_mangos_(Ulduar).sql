@@ -37,6 +37,10 @@ update gameobject_template set flags=flags|16 where entry=194543;
 -- CUSTOM remove harpoons dummy
 delete from creature where id=33282;
 
+REPLACE INTO spell_script_target (entry, type, targetEntry) VALUES
+(63659, 1, 33186),
+(62505, 1, 33186);
+
 UPDATE gameobject_template SET ScriptName='go_razorscale_harpoon_launcher' WHERE entry=194543;
 UPDATE creature_template SET AIName='', ScriptName='boss_razorscale' WHERE entry=33186;
 UPDATE creature_template SET AIName='', ScriptName='mob_mole_machine' WHERE entry=33245;
@@ -175,21 +179,14 @@ UPDATE creature_template SET AIName='', ScriptName='mob_rune_of_summoning' WHERE
 UPDATE creature_template SET AIName='', ScriptName='mob_ulduar_lightning_elemental' WHERE entry=32958;
 -- Assembly of Iron END
 
-/*
 -- Kologarn
-DELETE FROM creature WHERE id IN (32933, 32934);
--- fix arms position because of the missing vehicles
-INSERT INTO creature (id, map, spawnMask, phaseMask, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, currentwaypoint, curhealth, curmana, DeathState, MovementType) VALUES (32933, 603, 3, 65535, 0, 0, 1799.68, -24.3599, 452.227, 3.14747, 604800, 0, 0, 543855, 0, 0, 0);
-INSERT INTO creature (id, map, spawnMask, phaseMask, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, currentwaypoint, curhealth, curmana, DeathState, MovementType) VALUES (32934, 603, 3, 65535, 0, 0, 1799.68, -24.3599, 452.227, 3.14747, 604800, 0, 0, 543855, 0, 0, 0);
-UPDATE creature_model_info SET bounding_radius=15, combat_reach=15 WHERE modelid IN (28638, 28822, 28821);
-UPDATE creature_template SET mechanic_immune_mask=617299803, unit_flags = 0, scriptname='boss_kologarn' WHERE entry=32930;
-UPDATE creature_template SET mechanic_immune_mask=652951551, scriptname='boss_right_arm' WHERE entry=32934;
-UPDATE creature_template SET mechanic_immune_mask=652951551, scriptname='boss_left_arm' WHERE entry=32933;
-UPDATE creature_template SET ScriptName = 'mob_ulduar_rubble' WHERE entry IN (33768, 33809, 33908, 33942);
-UPDATE `gameobject` SET `position_y` = -35.6824, `position_x` = 1837.59 WHERE `id` IN (195047);
-UPDATE `creature_template` SET `RegenHealth` = 1 WHERE `entry` = 33910;
-UPDATE `creature_template` SET `RegenHealth` = 1 WHERE `entry` = 33911;
+UPDATE creature_template SET AIName='', ScriptName='boss_kologarn' WHERE entry=32930;
+UPDATE creature_template SET AIName='', ScriptName='boss_right_arm' WHERE entry=32934;
+UPDATE creature_template SET AIName='', ScriptName='boss_left_arm' WHERE entry=32933;
+UPDATE creature_template SET AIName='', ScriptName='mob_ulduar_rubble' WHERE entry=33768;
+-- Kologarn END
 
+/*
 -- Auriaya
 UPDATE creature_template SET mechanic_immune_mask=583745371, equipment_id = 103000, scriptname='boss_auriaya' WHERE entry=33515;
 UPDATE creature_template SET mechanic_immune_mask=619395071, scriptname='mob_feral_defender' WHERE entry=34035;
