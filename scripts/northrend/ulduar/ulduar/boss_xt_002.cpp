@@ -477,6 +477,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         DespawnCreatures(NPC_PUMMELER);
         DespawnCreatures(NPC_VOIDZONE);
         DespawnCreatures(NPC_LIFESPARK);
+        m_creature->UpdateEntry(NPC_XT002);
         m_creature->RemoveAurasDueToSpell(SPELL_HEARTBREAK);
         m_creature->RemoveAurasDueToSpell(SPELL_HEARTBREAK_H);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
