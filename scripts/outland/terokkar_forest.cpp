@@ -542,7 +542,7 @@ struct MANGOS_DLL_DECL npc_skywingAI : public npc_escortAI
                 if (Creature* Imprisoner = m_creature->SummonCreature(C_LUANGA_THE_IMPRISONER,LuangaSpawnPoint[0],LuangaSpawnPoint[1],LuangaSpawnPoint[2],0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,30000))
                 {
                     DoScriptText(SAY_IMPRISONER,Imprisoner);
-                    Imprisoner->SetOwnerGUID(m_creature->GetGUID());
+                    Imprisoner->SetOwnerGuid(m_creature->GetGUID());
                     Imprisoner->AI()->AttackStart(m_creature);
                 }
                 SpawnTimer=0;
@@ -683,7 +683,7 @@ struct MANGOS_DLL_DECL mob_luanga_the_imprisonerAI : public ScriptedAI
 
     void JustDied(Unit* /*who*/)
     {
-        Unit* Owner = m_creature->GetMap()->GetUnit(m_creature->GetOwnerGUID());
+        Unit* Owner = m_creature->GetMap()->GetUnit(m_creature->GetOwnerGuid());
         if (Owner)
             if (Owner->GetEntry()==C_SKYWING)
                 ((npc_skywingAI*)((Creature*)Owner)->AI())->LuangaDead();

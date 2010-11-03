@@ -204,7 +204,6 @@ scripts/eastern_kingdoms/sunwell_plateau/boss_kiljaeden.cpp \
 scripts/eastern_kingdoms/sunwell_plateau/instance_sunwell_plateau.cpp \
 scripts/eastern_kingdoms/sunwell_plateau/sunwell_plateau.h \
 scripts/eastern_kingdoms/uldaman/boss_archaedas.cpp \
-scripts/eastern_kingdoms/uldaman/boss_ironaya.cpp \
 scripts/eastern_kingdoms/uldaman/uldaman.cpp \
 scripts/eastern_kingdoms/uldaman/uldaman.h \
 scripts/eastern_kingdoms/uldaman/instance_uldaman.cpp \
@@ -355,7 +354,10 @@ scripts/northrend/crusaders_coliseum/trial_of_the_crusader/trial_of_the_crusader
 scripts/northrend/draktharon_keep/boss_novos.cpp \
 scripts/northrend/draktharon_keep/boss_tharonja.cpp \
 scripts/northrend/draktharon_keep/boss_trollgore.cpp \
+scripts/northrend/draktharon_keep/draktharon_keep.h \
+scripts/northrend/draktharon_keep/instance_draktharon_keep.cpp \
 scripts/northrend/gundrak/boss_colossus.cpp \
+scripts/northrend/gundrak/boss_eck.cpp \
 scripts/northrend/gundrak/boss_galdarah.cpp \
 scripts/northrend/gundrak/boss_moorabi.cpp \
 scripts/northrend/gundrak/boss_sladran.cpp \

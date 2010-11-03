@@ -3398,8 +3398,8 @@ struct MANGOS_DLL_DECL mob_scarlet_ghoulAI : public ScriptedAI
     {
         m_bIsSpawned = false;
         fDist = (float)urand(1, 5);
-        m_uiCreatorGUID = m_creature->GetCreatorGUID();
-        if (Player* pOwner = m_creature->GetMap()->GetPlayer(m_uiCreatorGUID) )
+        m_uiCreatorGUID = m_creature->GetCreatorGuid();
+        if (Player* pOwner = m_creature->GetMap()->GetPlayer(m_uiCreatorGUID))
             fAngle = m_creature->GetAngle(pOwner);
 
         Reset();
@@ -3408,7 +3408,7 @@ struct MANGOS_DLL_DECL mob_scarlet_ghoulAI : public ScriptedAI
 
     Unit* pTarget;
 
-    uint64 m_uiCreatorGUID;
+    ObjectGuid m_uiCreatorGUID;
     uint64 m_uiTargetGUID;
     uint64 m_uiHarvesterGUID;
 

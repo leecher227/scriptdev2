@@ -35,6 +35,8 @@ enum
     SAY_SLAY2                 = -1533015,
     SAY_DEATH                 = -1533016,
 
+    EMOTE_BOSS_GENERIC_FRENZY = -1000005,
+
     //SOUND_RANDOM_AGGRO        = 8955,                              //soundId containing the 4 aggro sounds, we not using this
 
     SPELL_POSIONBOLT_VOLLEY   = 28796,
