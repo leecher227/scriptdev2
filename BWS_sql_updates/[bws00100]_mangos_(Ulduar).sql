@@ -1,5 +1,5 @@
 -- Instance Ulduar
-UPDATE instance_template SET script='instance_ulduar' WHERE map=603;
+UPDATE instance_template SET ScriptName='instance_ulduar' WHERE map=603;
 DELETE FROM areatrigger_scripts WHERE entry=5398;
 INSERT INTO areatrigger_scripts (entry, ScriptName) VALUES (5398, 'at_ulduar');
 UPDATE gameobject_template SET ScriptName='go_ulduar_teleporter' WHERE entry=194569;
@@ -184,6 +184,7 @@ UPDATE creature_template SET AIName='', ScriptName='boss_kologarn' WHERE entry=3
 UPDATE creature_template SET AIName='', ScriptName='boss_right_arm' WHERE entry=32934;
 UPDATE creature_template SET AIName='', ScriptName='boss_left_arm' WHERE entry=32933;
 UPDATE creature_template SET AIName='', ScriptName='mob_ulduar_rubble' WHERE entry=33768;
+UPDATE creature_template SET AIName='', ScriptName='mob_focused_eyebeam' WHERE entry in (33632, 33802);
 -- Kologarn END
 
 /*

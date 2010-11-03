@@ -559,12 +559,8 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             // loot
             // Kologarn
         case GO_CACHE_OF_LIVING_STONE:
-            if(Regular)
-                m_uiKologarnLootGUID = pGo->GetGUID();
-            break;
         case GO_CACHE_OF_LIVING_STONE_H:
-            if(!Regular)
-                m_uiKologarnLootGUID = pGo->GetGUID();
+            m_uiKologarnLootGUID = pGo->GetGUID();
             break;
 
             // Hodir
@@ -739,7 +735,6 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             if (uiData == DONE)
             {
                 DoRespawnGameObject(m_uiKologarnLootGUID, 30*MINUTE);
-                if(m_auiEncounter[5] == DONE)
                 if (GameObject* pGo = instance->GetGameObject(m_uiKologarnBridgeGUID))
                 {
                     pGo->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
