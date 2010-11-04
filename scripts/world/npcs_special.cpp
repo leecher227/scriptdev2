@@ -47,6 +47,7 @@ npc_tabard_vendor        50%    allow recovering quest related tabards, achievem
 npc_locksmith            75%    list of keys needs to be confirmed
 npc_experience_eliminator       Don't want to gain experience anymore
 npc_death_knight_gargoyle       AI for summoned gargoyle of deathknights
+npc_runeblade    
 EndContentData */
 
 
@@ -2089,6 +2090,63 @@ CreatureAI* GetAI_npc_death_knight_gargoyle(Creature* pCreature)
     return new npc_death_knight_gargoyle(pCreature);
 }
 
+/*########
+# npc_rune_blade
+#########*/
+
+struct MANGOS_DLL_DECL npc_rune_blade : public ScriptedAI
+{
+    npc_rune_blade(Creature* pCreature) : ScriptedAI(pCreature) {Reset();}
+
+    Unit* owner;
+
+    void Reset()
+    {
+        owner = m_creature->GetOwner();
+        if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+            return;
+
+        // Cannot be Selected or Attacked
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+
+        m_creature->SetLevel(owner->getLevel());
+        m_creature->setFaction(owner->getFaction());
+
+        // Add visible weapon
+        if (Item const * item = ((Player *)owner)->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
+            m_creature->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, item->GetProto()->ItemId);
+
+        // Add stats scaling
+        int32 damageDone=owner->CalculateDamage(BASE_ATTACK, true); // might be average damage instead ?
+        int32 meleeSpeed=owner->m_modAttackSpeedPct[BASE_ATTACK];
+        m_creature->CastCustomSpell(m_creature, 51906, &damageDone, &meleeSpeed, NULL, true);
+
+        // Visual Glow
+        m_creature->CastSpell(m_creature, 53160, true);
+
+        SetCombatMovement(true);
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (!owner) return;
+
+        if (!m_creature->getVictim())
+        {
+            if (owner->getVictim())
+                AttackStart(owner->getVictim());
+        }
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_rune_blade(Creature* pCreature)
+{
+    return new npc_rune_blade(pCreature);
+}
+
 void AddSC_npcs_special()
 {
     Script* newscript;
@@ -2193,5 +2251,10 @@ void AddSC_npcs_special()
     newscript = new Script;
     newscript->Name = "npc_death_knight_gargoyle";
     newscript->GetAI = &GetAI_npc_death_knight_gargoyle;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_runeblade";
+    newscript->GetAI = &GetAI_npc_rune_blade;
     newscript->RegisterSelf();
 }
