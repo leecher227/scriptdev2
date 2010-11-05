@@ -36,7 +36,7 @@ EndScriptData */
 #define MOB_FALLOUT_SLIME           16290
 #define MOB_GROBBULUS_POISON_CLOUD  16363
 
-#define SPELL_POISON_CLOUD          30914
+#define SPELL_POISON_CLOUD_HACK     30914
 #define SPELL_AOE_NATURE_DMG        30915
 
 struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
@@ -166,7 +166,7 @@ struct MANGOS_DLL_DECL npc_grobbulus_poison_cloudAI : public ScriptedAI
         SetCombatMovement(false);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.85f);
-        if (SpellEntry* TempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_POISON_CLOUD))
+        if (SpellEntry* TempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_POISON_CLOUD_HACK))
         {
             TempSpell->EffectTriggerSpell[0] = 204;
             m_creature->CastCustomSpell(m_creature, TempSpell, NULL, NULL, NULL, true);
