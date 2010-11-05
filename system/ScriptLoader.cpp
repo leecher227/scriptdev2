@@ -344,7 +344,7 @@ extern void AddSC_boss_sjonnir();
 extern void AddSC_halls_of_stone();
 extern void AddSC_instance_halls_of_stone();
 //extern void AddSC_boss_algalon();                           //Ulduar raid
-//extern void AddSC_boss_auriaya();
+extern void AddSC_boss_auriaya();
 //extern void AddSC_boss_freya();
 //extern void AddSC_boss_hodir();
 extern void AddSC_boss_ignis();
@@ -806,7 +806,7 @@ void AddScripts()
     AddSC_halls_of_stone();
     AddSC_instance_halls_of_stone();
     //AddSC_boss_algalon();                                   //Ulduar raid
-    //AddSC_boss_auriaya();
+    AddSC_boss_auriaya();
     //AddSC_boss_freya();
     //AddSC_boss_hodir();
     AddSC_boss_ignis();
