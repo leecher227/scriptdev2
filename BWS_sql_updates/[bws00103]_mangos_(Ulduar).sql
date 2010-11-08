@@ -187,55 +187,14 @@ UPDATE creature_template SET AIName='', ScriptName='mob_ulduar_rubble' WHERE ent
 UPDATE creature_template SET AIName='', ScriptName='mob_focused_eyebeam' WHERE entry in (33632, 33802);
 -- Kologarn END
 
-/*
 -- Auriaya
-UPDATE creature_template SET mechanic_immune_mask=583745371, equipment_id = 103000, scriptname='boss_auriaya' WHERE entry=33515;
-UPDATE creature_template SET mechanic_immune_mask=619395071, scriptname='mob_feral_defender' WHERE entry=34035;
-UPDATE creature_template SET minlevel=80, maxlevel=80, faction_h=14, faction_a=14, scriptname='mob_seeping_feral_essence' WHERE entry=34098;
-UPDATE creature_template SET ScriptName = 'mob_sanctum_sentry' WHERE entry = 34014;
-UPDATE `creature_template` SET `mechanic_immune_mask` = 619397115 WHERE `entry` IN (33515, 34175);
-DELETE FROM creature_equip_template WHERE entry = 103000;
-INSERT INTO creature_equip_template values (103000, 45315, 0, 0);
--- 2 more defenders for 25 man
-DELETE FROM creature WHERE guid IN (800010, 800011);
-INSERT INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`modelid`,`equipment_id`,`position_x`,`position_y`,`position_z`,`orientation`,`spawntimesecs`,`spawndist`,`currentwaypoint`,`curhealth`,`curmana`,`DeathState`,`MovementType`) VALUES
-(800010, 34014, 603, 2, 65535, 0, 0, 1945.2, 37.2442, 411.356, 3.62107, 7200, 0, 0, 334680, 0, 0, 0),
-(800011, 34014, 603, 2, 65535, 0, 0, 1936.11, 49.8233, 411.352, 3.85276, 7200, 0, 0, 334680, 0, 0, 0);
-DELETE FROM `creature_movement` WHERE `id`=94378;
-INSERT INTO `creature_movement` (`id`,`point`,`position_x`,`position_y`,`position_z`,`waittime`,`textid1`,`textid2`,`textid3`,`textid4`,`textid5`,`emote`,`spell`,`wpguid`,`orientation`,`model1`,`model2`) VALUES
--- UPDATED CREATURE MOVEMENT FOR AURIAYA, SHOULD MOVE AROUND THE CENTER SPIRE
-#(94378, 4, 1916.56, -69.9669, 417.718, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.2268, 0, 0),	-- after hodir up
-#(94378, 3, 1900.26, -24.0211, 417.722, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.15909, 0, 0),	-- center kolgoran
-#(94378, 2, 1916.97, 21.1583, 417.748, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.86988, 0, 0),	-- before yogg up
+UPDATE creature_template SET AIName='', ScriptName='boss_auriaya' WHERE entry=33515;
+UPDATE creature_template SET AIName='', ScriptName='mob_feral_defender' WHERE entry=34035;
+UPDATE creature_template SET AIName='', ScriptName='mob_seeping_feral_essence' WHERE entry=34098;
+UPDATE creature_template SET AIName='', ScriptName='mob_sanctum_sentry' WHERE entry = 34014;
+-- Auriaya END
 
-(94378, 1, 1925.012, 30.0067, 411.356, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.69685, 0, 0),	-- before yogg down
-(94378, 2, 1957.04, 49.3067, 411.355, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.37071, 0, 0),	-- after yogg down
-(94378, 3, 1967.38, 51.4931, 417.561, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.09545, 0, 0),	-- after yogg up
-(94378, 4, 2013.07, 44.3788, 417.715, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5.71365, 0, 0), 	-- before mimiron up
-(94378, 5, 2021.35, 37.9771, 411.387, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5.25205, 0, 0), 	-- before mimiron down
-(94378, 6, 2046.36, 8.56725, 411.524, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5.203, 0, 0),		-- after mimiron down 
-(94378, 7, 2053.32, -7.1366, 421.78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.85107, 0, 0),		-- before freya up
-(94378, 8, 2052.87, -40.8556, 421.706, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.4223, 0, 0), 	-- after freya up
-(94378, 9, 2045.00, -56.79369, 411.359, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.20538, 0, 0),	-- before thorim down
-(94378, 10, 2022.18, -86.5468, 411.355, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.60096, 0, 0),	-- after thorim down
-(94378, 11, 2012.94, -92.7106, 417.717, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.28968, 0, 0),	-- after thorim up
-(94378, 12, 1968.83, -101.0946, 417.722, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.662873, 0, 0),-- before hodir up
-(94378, 13, 1958.08, -96.7855, 411.864, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.763719, 0, 0),	-- before hodir down
-(94378, 14, 1924.12, -78.5404, 411.488, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.210024, 0, 0),	-- after hodir down
-
-(94378, 15, 1958.08, -96.7855, 411.864, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.763719, 0, 0),	-- before hodir down
-(94378, 16, 1968.83, -101.0946, 417.722, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.662873, 0, 0),-- before hodir up
-(94378, 17, 2012.94, -92.7106, 417.717, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.28968, 0, 0),	-- after thorim up
-(94378, 18, 2022.18, -86.5468, 411.355, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.60096, 0, 0),	-- after thorim down
-(94378, 19, 2045.00, -56.79369, 411.359, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.20538, 0, 0),	-- before thorim down
-(94378, 20, 2052.87, -40.8556, 421.706, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.4223, 0, 0), 	-- after freya up
-(94378, 21, 2053.32, -7.1366, 421.78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.85107, 0, 0),	-- before freya up
-(94378, 22, 2046.36, 8.56725, 411.524, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5.203, 0, 0),		-- after mimiron down
-(94378, 23, 2021.35, 37.9771, 411.387, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5.25205, 0, 0), 	-- before mimiron down
-(94378, 24, 2013.07, 44.3788, 417.715, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5.71365, 0, 0), 	-- before mimiron up
-(94378, 25, 1967.38, 51.4931, 417.561, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.09545, 0, 0),	-- after yogg up
-(94378, 26, 1957.04, 49.3067, 411.355, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.37071, 0, 0);	-- after yogg down
-
+/*
 -- Freya
 UPDATE creature_template SET ScriptName = 'boss_freya' WHERE entry = 32906;
 UPDATE creature_template SET ScriptName = 'boss_elder_brightleaf' WHERE entry = 32915;
