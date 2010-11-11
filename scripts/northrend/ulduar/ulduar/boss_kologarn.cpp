@@ -161,6 +161,8 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
 
     void Reset()
     {
+        m_creature->SetVisibility(VISIBILITY_OFF);
+        m_creature->ExitVehicle();
         m_uiArmSweep_Timer = 10000;
     }
 
@@ -173,13 +175,21 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIGHT_ARM)))
-                if (pTemp->isAlive())
-                    pTemp->SetInCombatWithZone();
-            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
-                if (pTemp->isAlive())
-                    pTemp->SetInCombatWithZone();
+            if (Creature* pRightArm = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIGHT_ARM)))
+            {
+                if (pRightArm->isAlive())
+                    pRightArm->SetInCombatWithZone();
+            }
+            if (Creature* pKologarn = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
+            {
+                if (pKologarn->isAlive())
+                {
+                    m_creature->EnterVehicle(pKologarn->GetVehicleKit(), 0);
+                    pKologarn->SetInCombatWithZone();
+                }
+            }
         }
+        m_creature->SetVisibility(VISIBILITY_ON);
         m_creature->SetInCombatWithZone();
     }
 
@@ -198,15 +208,6 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-        if (!m_creature->GetVehicle() && m_pInstance)
-        {
-            if (Creature* pKologarn = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
-            {
-                if (pKologarn->isAlive())
-                    m_creature->EnterVehicle(pKologarn->GetVehicleKit(), 0);
-            }
-        }
-
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
@@ -258,6 +259,8 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
 
     void Reset()
     {
+        m_creature->SetVisibility(VISIBILITY_OFF);
+        m_creature->ExitVehicle();
         m_uiStone_Grip_Timer = 16000;
         m_uiMaxTargets = m_bIsRegularMode ? 1 : 3;
         for (uint8 i = 0; i < m_uiMaxTargets; ++i)
@@ -276,13 +279,21 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_LEFT_ARM)))
-                if (pTemp->isAlive())
-                    pTemp->SetInCombatWithZone();
-            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
-                if (pTemp->isAlive())
-                    pTemp->SetInCombatWithZone();
+            if (Creature* pLeftArm = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_LEFT_ARM)))
+            {
+                if (pLeftArm->isAlive())
+                    pLeftArm->SetInCombatWithZone();
+            }
+            if (Creature* pKologarn = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
+            {
+                if (pKologarn->isAlive())
+                {
+                    m_creature->EnterVehicle(pKologarn->GetVehicleKit(), 1);
+                    pKologarn->SetInCombatWithZone();
+                }
+            }
         }
+        m_creature->SetVisibility(VISIBILITY_ON);
         m_creature->SetInCombatWithZone();
     }
 
@@ -316,14 +327,14 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-        if (!m_creature->GetVehicle() && m_pInstance)
+/*        if (!m_creature->GetVehicle() && m_pInstance)
         {
             if (Creature* pKologarn = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
             {
                 if (pKologarn->isAlive())
                     m_creature->EnterVehicle(pKologarn->GetVehicleKit(), 1);
             }
-        }
+        }*/
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -393,15 +404,11 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         SetCombatMovement(false);
-        m_creature->SetStandState(UNIT_STAND_STATE_SUBMERGED);
-        m_bIsStand = false;
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
-
-    bool m_bIsStand;
 
     uint32 m_uiSpell_Timer;
     uint32 m_uiCheck_Timer;
@@ -420,6 +427,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 
     void Reset()
     {
+        m_creature->SetStandState(UNIT_STAND_STATE_SUBMERGED);
         if (m_pInstance)
         {
             if (m_pInstance->GetData(TYPE_KOLOGARN) == DONE)
@@ -470,12 +478,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
-        if (!m_bIsStand)
-        {
-            m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-            m_bIsStand = true;
-        }
-
+        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
         DoScriptText(SAY_AGGRO, m_creature);
         m_creature->SetInCombatWithZone();
 
