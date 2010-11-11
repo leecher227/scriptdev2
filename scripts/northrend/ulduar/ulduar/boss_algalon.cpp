@@ -920,4 +920,3 @@ void AddSC_boss_algalon()
     newscript->RegisterSelf();
 }
 */
-

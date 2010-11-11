@@ -638,4 +638,3 @@ void AddSC_boss_ignis()
     NewScript->GetAI = &GetAI_mob_iron_construct;
     NewScript->RegisterSelf();
 }
-

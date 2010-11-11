@@ -38,6 +38,8 @@ DELETE FROM scripted_areatrigger WHERE entry IN (2026, 2046);
 INSERT INTO scripted_areatrigger VALUES
 (2026, 'at_blackrock_spire'),
 (2046, 'at_blackrock_spire');
+DELETE FROM scripted_areatrigger WHERE entry=5030;
+INSERT INTO scripted_areatrigger VALUES (5030,'at_spearborn_encampment');
 
 /* BATTLEGROUNDS */
 UPDATE creature_template SET ScriptName='npc_spirit_guide' WHERE entry IN (13116, 13117);
@@ -648,6 +650,7 @@ UPDATE creature_template SET ScriptName='npc_00x09hl' WHERE entry=7806;
 UPDATE creature_template SET ScriptName='npc_rinji' WHERE entry=7780;
 
 /* HOWLING FJORD */
+UPDATE creature_template SET ScriptName='npc_daegarn' WHERE entry=24151;
 UPDATE creature_template SET ScriptName='npc_deathstalker_razael' WHERE entry=23998;
 UPDATE creature_template SET ScriptName='npc_dark_ranger_lyana' WHERE entry=23778;
 UPDATE creature_template SET ScriptName='npc_mcgoyver' WHERE entry=24040;
@@ -660,6 +663,11 @@ UPDATE creature_template SET ScriptName='npc_mcgoyver' WHERE entry=24040;
 UPDATE creature_template SET ScriptName='boss_bronjahm' WHERE entry=36497;
 UPDATE creature_template SET ScriptName='boss_devourer_of_souls' WHERE entry=36502;
 UPDATE instance_template SET ScriptName='instance_forge_of_souls' WHERE map=632;
+
+/* HALLS OF REFLECTION */
+
+/* PIT OF SARON */
+UPDATE instance_template SET ScriptName='instance_pit_of_saron' WHERE map=658;
 
 /* ICECROWN */
 UPDATE creature_template SET ScriptName='npc_arete' WHERE entry=29344;

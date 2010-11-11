@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: boss_kologarn
 SD%Complete:
-SDComment: stone grip and arms need vehicles
+SDComment:
 SDCategory: Ulduar
 EndScriptData */
 
