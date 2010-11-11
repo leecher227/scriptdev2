@@ -327,15 +327,6 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-/*        if (!m_creature->GetVehicle() && m_pInstance)
-        {
-            if (Creature* pKologarn = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
-            {
-                if (pKologarn->isAlive())
-                    m_creature->EnterVehicle(pKologarn->GetVehicleKit(), 1);
-            }
-        }*/
-
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
