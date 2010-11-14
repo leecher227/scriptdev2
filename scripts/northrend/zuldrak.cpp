@@ -28,6 +28,10 @@ EndContentData */
 
 #include "precompiled.h"
 
+/*######
+## npc_gurgthock
+######*/
+
 enum
 {
     QUEST_FROM_BEYOND = 12934,
