@@ -1967,23 +1967,20 @@ bool GossipSelect_npc_experience_eliminator(Player* pPlayer, Creature* pCreature
 # mob_death_knight_gargoyle AI
 #########*/
 
-// UPDATE `creature_template` SET `ScriptName` = 'mob_death_knight_gargoyle' WHERE `entry` = '27829';
-
 enum GargoyleSpells
 {
-    SPELL_GARGOYLE_STRIKE = 51963      // Don't know if this is the correct spell, it does about 700-800 damage points
+    SPELL_GARGOYLE_STRIKE = 51963
 };
 
 struct MANGOS_DLL_DECL npc_death_knight_gargoyle : public ScriptedAI
 {
     npc_death_knight_gargoyle(Creature* pCreature) : ScriptedAI(pCreature)
-    {
+      {
         Reset();
-    }
+      }
     uint32 m_uiGargoyleStrikeTimer;
     bool inCombat;
     Unit *owner;
-
 
     void Reset() 
     {
@@ -2000,13 +1997,12 @@ struct MANGOS_DLL_DECL npc_death_knight_gargoyle : public ScriptedAI
      m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
 
      inCombat = false;
-     m_uiGargoyleStrikeTimer = urand(3000, 5000);
+     m_uiGargoyleStrikeTimer = urand(2000, 2000);
 
      float fPosX, fPosY, fPosZ;
      owner->GetPosition(fPosX, fPosY, fPosZ);
 
      m_creature->NearTeleportTo(fPosX, fPosY, fPosZ+10.0f, m_creature->GetAngle(owner));
-
 
      if (owner && !m_creature->hasUnitState(UNIT_STAT_FOLLOW))
         {
@@ -2019,7 +2015,6 @@ struct MANGOS_DLL_DECL npc_death_knight_gargoyle : public ScriptedAI
       if(owner->IsFFAPvP())
                  m_creature->SetFFAPvP(true);
     }
-
     void EnterEvadeMode()
     {
      if (m_creature->IsInEvadeMode() || !m_creature->isAlive())
@@ -2035,11 +2030,9 @@ struct MANGOS_DLL_DECL npc_death_knight_gargoyle : public ScriptedAI
             m_creature->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST + 3.0f, m_creature->GetAngle(owner));
         }
     }
-
     void AttackStart(Unit* pWho)
     {
       if (!pWho) return;
-
       if (m_creature->Attack(pWho, true))
         {
             m_creature->clearUnitState(UNIT_STAT_FOLLOW);
@@ -2051,16 +2044,14 @@ struct MANGOS_DLL_DECL npc_death_knight_gargoyle : public ScriptedAI
             inCombat = true;
         }
     }
-
     void UpdateAI(const uint32 uiDiff)
     {
 
         if (!owner || !owner->IsInWorld())
-        {
+          {
             m_creature->ForcedDespawn();
             return;
-        }
-
+          }
         if (!m_creature->getVictim())
             if (owner && owner->getVictim())
                 AttackStart(owner->getVictim());
@@ -2069,18 +2060,17 @@ struct MANGOS_DLL_DECL npc_death_knight_gargoyle : public ScriptedAI
                 AttackStart(owner->getVictim());
 
         if (inCombat && !m_creature->getVictim())
-        {
+          {
             EnterEvadeMode();
             return;
-        }
-
+          }
         if (!inCombat) return;
 
         if (m_uiGargoyleStrikeTimer <= uiDiff)
-        {
+          {
             DoCastSpellIfCan(m_creature->getVictim(), SPELL_GARGOYLE_STRIKE);
-            m_uiGargoyleStrikeTimer = urand(3000, 5000);
-        }
+            m_uiGargoyleStrikeTimer = urand(2000, 2000);
+          }
         else m_uiGargoyleStrikeTimer -= uiDiff;
     }
 };
