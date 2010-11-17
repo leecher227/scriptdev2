@@ -933,6 +933,8 @@ bool GOHello_go_warmaul_prison(Player* pPlayer, GameObject* pGo)
 
 void AddSC_nagrand()
 {
+    Script* pNewScript;
+
     pNewScript = new Script;
     pNewScript->Name = "mob_shattered_rumbler";
     pNewScript->GetAI = &GetAI_mob_shattered_rumbler;
