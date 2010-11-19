@@ -83,7 +83,11 @@ struct MANGOS_DLL_DECL mob_sladran_constrictorAI : public ScriptedAI
 
         if (m_uiGripOfSladranTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_GRIP_OF_SLADRAN_H);
+            if (Unit* pVictim = m_creature->getVictim())
+            {
+                if (!pVictim->HasAura(SPELL_SNAKE_WRAP))
+                    DoCastSpellIfCan(pVictim, SPELL_GRIP_OF_SLADRAN_H);
+            }
             m_uiGripOfSladranTimer = 2000;
         }
         else
@@ -93,7 +97,7 @@ struct MANGOS_DLL_DECL mob_sladran_constrictorAI : public ScriptedAI
         {
             if (Unit* pVictim = m_creature->getVictim())
             {
-                if (pVictim->HasAura(SPELL_GRIP_OF_SLADRAN_H))
+                if (!pVictim->HasAura(SPELL_SNAKE_WRAP) && pVictim->HasAura(SPELL_GRIP_OF_SLADRAN_H))
                 {
                     if (SpellAuraHolder* pAura = pVictim->GetSpellAuraHolder(SPELL_GRIP_OF_SLADRAN_H))
                     {
