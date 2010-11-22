@@ -102,7 +102,10 @@ struct MANGOS_DLL_DECL mob_sladran_constrictorAI : public ScriptedAI
                     if (SpellAuraHolder* pAura = pVictim->GetSpellAuraHolder(SPELL_GRIP_OF_SLADRAN_H))
                     {
                         if (pAura->GetStackAmount() >= 5)
+                        {
                             pVictim->CastSpell(pVictim, SPELL_SNAKE_WRAP, true);
+                            pVictim->RemoveAurasDueToSpell(SPELL_GRIP_OF_SLADRAN_H);
+                        }
                     }
                 }
             }
