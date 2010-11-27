@@ -570,7 +570,7 @@ UPDATE gameobject_template SET ScriptName='go_gnomeface_button' WHERE entry BETW
 UPDATE instance_template SET ScriptName='instance_gnomeregan' WHERE map=90;
 
 /* GRIZZLY HILLS */
-
+UPDATE creature_template SET ScriptName='npc_depleted_war_golem' WHERE entry=27017;
 
 /* GRUUL'S LAIR */
 UPDATE instance_template SET ScriptName='instance_gruuls_lair' WHERE map =565;
@@ -821,6 +821,7 @@ UPDATE creature_template SET ScriptName='npc_protectorate_nether_drake' WHERE en
 UPDATE creature_template SET ScriptName='npc_veronia' WHERE entry=20162;
 UPDATE creature_template SET ScriptName='npc_bessy' WHERE entry=20415;
 UPDATE creature_template SET ScriptName='npc_maxx_a_million' WHERE entry=19589;
+UPDATE creature_template SET ScriptName='npc_zeppit' WHERE entry=22484;
 
 /*  */
 /* THE NEXUS */
@@ -936,6 +937,13 @@ UPDATE creature_template SET ScriptName='mob_enslaved_netherwing_drake' WHERE en
 UPDATE creature_template SET ScriptName='npc_karynaku' WHERE entry=22112;
 UPDATE creature_template SET ScriptName='npc_wilda' WHERE entry=21027;
 UPDATE creature_template SET ScriptName='mob_torloth' WHERE entry=22076;
+UPDATE creature_template SET ScriptName='npc_totem_of_spirits' WHERE entry=21071;
+DELETE FROM scripted_event_id WHERE id IN (13513,13514,13515,13516);
+INSERT INTO scripted_event_id VALUES
+(13513,'event_spell_soul_captured_credit'),
+(13514,'event_spell_soul_captured_credit'),
+(13515,'event_spell_soul_captured_credit'),
+(13516,'event_spell_soul_captured_credit');
 UPDATE creature_template SET ScriptName='npc_lord_illidan_stormrage' WHERE entry=22083;
 UPDATE gameobject_template SET ScriptName='go_crystal_prison' WHERE entry=185126;
 
@@ -1111,6 +1119,7 @@ UPDATE creature_template SET ScriptName='mob_rotting_forest_rager' WHERE entry=2
 UPDATE creature_template SET ScriptName='mob_unkor_the_ruthless' WHERE entry=18262;
 UPDATE creature_template SET ScriptName='npc_akuno' WHERE entry=22377;
 UPDATE creature_template SET ScriptName='npc_floon' WHERE entry=18588;
+UPDATE creature_template SET ScriptName='npc_hungry_nether_ray' WHERE entry=23439;
 UPDATE creature_template SET ScriptName='npc_letoll' WHERE entry=22458;
 UPDATE creature_template SET ScriptName='npc_mana_bomb_exp_trigger' WHERE entry=20767;
 UPDATE gameobject_template SET ScriptName='go_mana_bomb' WHERE entry=184725;

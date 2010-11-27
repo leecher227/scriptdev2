@@ -18,7 +18,7 @@
 SDName: Terokkar_Forest
 
 SD%Complete: 80
-SDComment: Quest support: 9889, 10009, 10873, 10896, 10898, 10446/10447, 10852, 10887, 10922, 11096. Skettis->Ogri'la Flight
+SDComment: Quest support: 9889, 10009, 10873, 10896, 10898, 10446/10447, 10852, 10887, 10922, 11096, 11093. Skettis->Ogri'la Flight
 SDCategory: Terokkar Forest
 EndScriptData */
 
@@ -31,6 +31,7 @@ npc_akuno
 npc_floon
 npc_skywing
 mob_luanga_the_imprisoner
+npc_hungry_nether_ray
 npc_letoll
 npc_mana_bomb_exp_trigger
 go_mana_bomb
@@ -42,6 +43,7 @@ EndContentData */
 
 #include "precompiled.h"
 #include "escort_ai.h"
+#include "pet_ai.h"
 
 /*######
 ## mob_unkor_the_ruthless
@@ -726,6 +728,42 @@ bool GossipSelect_npc_skyguard_handler_deesak(Player* pPlayer, Creature* pCreatu
 }
 
 /*######
+## npc_hungry_nether_ray
+######*/
+
+enum
+{
+    EMOTE_FEED                  = -1000628,
+    NPC_BLACK_WARP_CHASER       = 23219,
+    SPELL_FEED_CREDIT           = 41427,                    // credit for quest 11093
+};
+
+struct MANGOS_DLL_DECL npc_hungry_nether_rayAI : public ScriptedPetAI
+{
+    npc_hungry_nether_rayAI(Creature* pCreature) : ScriptedPetAI(pCreature) { Reset(); }
+
+    void Reset() { }
+
+    void OwnerKilledUnit(Unit* pVictim)
+    {
+        if (pVictim->GetTypeId() == TYPEID_UNIT && pVictim->GetEntry() == NPC_BLACK_WARP_CHASER)
+        {
+            // Distance expected?
+            if (m_creature->IsWithinDistInMap(pVictim, 10.0f))
+            {
+                DoScriptText(EMOTE_FEED, m_creature);
+                m_creature->CastSpell(m_creature, SPELL_FEED_CREDIT, true);
+            }
+        }
+    }
+};
+
+CreatureAI* GetAI_npc_hungry_nether_ray(Creature* pCreature)
+{
+    return new npc_hungry_nether_rayAI(pCreature);
+}
+
+/*######
 ## npc_letoll
 ######*/
 
@@ -1215,6 +1253,11 @@ void AddSC_terokkar_forest()
     newscript->GetAI = &GetAI_npc_floon;
     newscript->pGossipHello =  &GossipHello_npc_floon;
     newscript->pGossipSelect = &GossipSelect_npc_floon;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_hungry_nether_ray";
+    newscript->GetAI = &GetAI_npc_hungry_nether_ray;
     newscript->RegisterSelf();
 
     newscript = new Script;
