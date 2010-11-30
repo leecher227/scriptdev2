@@ -112,7 +112,7 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
                     if (GameObject* pExitPortal = instance->GetGameObject(m_uiExitPortalGUID))
                         pExitPortal->SetPhaseMask(1, true);
                     if (GameObject* pPlatform = instance->GetGameObject(m_uiPlatformGUID))
-                        pPlatform->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK_11);
+                        pPlatform->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
                 }
                 if (uiData == IN_PROGRESS)
                 {
