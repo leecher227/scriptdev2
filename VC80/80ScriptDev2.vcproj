@@ -1072,23 +1072,23 @@
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_kalecgos.cpp"
+						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_eredar_twins.cpp"
 						>
 					</File>
 					<File
 						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_felmyst.cpp"
 						>
 					</File>
- 					<File
-						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_eredar_twins.cpp"
+					<File
+						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_kalecgos.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_muru_entropius.cpp"
+						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_kiljaeden.cpp"
 						>
 					</File>
- 					<File
-						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_kiljaeden.cpp"
+					<File
+						RelativePath="..\scripts\eastern_kingdoms\sunwell_plateau\boss_muru.cpp"
 						>
 					</File>
 					<File
