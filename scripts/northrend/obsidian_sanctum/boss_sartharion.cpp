@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Boss Sartharion
 SD%Complete: 100%
-SDComment: It's alive! ;)
+SDComment:
 SDCategory: Obsidian Sanctum
 EndScriptData */
 
@@ -489,7 +489,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
             uiTsunamiWavesAmount = 2;
         for (uint8 i = uiTsunamiDirection*3; i < uiTsunamiDirection*3+uiTsunamiWavesAmount; ++i)
         {
-            m_creature->SummonCreature(NPC_FLAME_TSUNAMI, m_afTsunamiStartLoc[i][0], m_afTsunamiStartLoc[i][1], m_afTsunamiStartLoc[i][2], m_afTsunamiStartLoc[i][3], TEMPSUMMON_TIMED_DESPAWN, 18000);
+            m_creature->SummonCreature(NPC_FLAME_TSUNAMI, m_afTsunamiStartLoc[i][0], m_afTsunamiStartLoc[i][1], m_afTsunamiStartLoc[i][2], m_afTsunamiStartLoc[i][3], TEMPSUMMON_TIMED_DESPAWN, 16000);
         }
     }
 
@@ -530,20 +530,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
         if (!m_bIsBerserk && m_creature->GetHealthPercent() <= 35.0f)
         {
             DoScriptText(SAY_SARTHARION_BERSERK, m_creature);
-            //DoCast(m_creature, SPELL_BERSERK);
-            if (m_pInstance)
-            {
-                Creature* pTemp = NULL;
-                pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_TENEBRON));
-                if (pTemp && pTemp->isAlive())
-                    pTemp->CastSpell(pTemp, 27680, true);
-                pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_SHADRON));
-                if (pTemp && pTemp->isAlive())
-                    pTemp->CastSpell(pTemp, 27680, true);
-                pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(DATA_VESPERON));
-                if (pTemp && pTemp->isAlive())
-                    pTemp->CastSpell(pTemp, 27680, true);
-            }
+            DoCast(m_creature, SPELL_BERSERK);
             m_bIsBerserk = true;
         }
 
@@ -782,8 +769,6 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-
         m_uiWaypointId = 0;
         m_uiMoveNextTimer = 500;
         m_bCanMoveFree = false;
@@ -1116,11 +1101,16 @@ struct MANGOS_DLL_DECL mob_tenebronAI : public dummy_dragonAI
         m_uiCheckTimer = 2000;
         m_uiTailSweepTimer = 5000;
         m_lEggsGUIDList.clear();
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
+        m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
     void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_TENEBRON_AGGRO, m_creature);
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+        m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -1216,11 +1206,16 @@ struct MANGOS_DLL_DECL mob_shadronAI : public dummy_dragonAI
         m_uiCheckTimer = 2000;
         m_uiTailSweepTimer = 5000;
         m_uiAcolyteShadronGUID = 0;
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
+        m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
     void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_SHADRON_AGGRO,m_creature);
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+        m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -1316,11 +1311,16 @@ struct MANGOS_DLL_DECL mob_vesperonAI : public dummy_dragonAI
         m_uiCheckTimer = 2000;
         m_uiTailSweepTimer = 5000;
         m_uiAcolyteVesperonGUID = 0;
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
+        m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
     void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_VESPERON_AGGRO,m_creature);
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+        m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -1671,34 +1671,18 @@ struct MANGOS_DLL_DECL mob_flame_tsunamiAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
 
-    uint32 m_uiTickTimer;
     uint32 m_uiMovementStartTimer;
-    uint64 m_uiDummyDamagerGUID;
     
     void Reset()
     {
-        m_creature->SetDisplayId(11686);
+        m_creature->setFaction(103);
         DoCast(m_creature, SPELL_FLAME_TSUNAMI, true);
         m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
-        m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
-        m_uiMovementStartTimer = 4000;
-        m_uiTickTimer = 1000;
-        m_uiDummyDamagerGUID = 0;
-        if (Creature* pDummyDamager = DoSpawnCreature(31103, 0, 0, 0, 0, TEMPSUMMON_TIMED_DESPAWN, 18000))
-        {
-            pDummyDamager->SetDisplayId(11686);
-            pDummyDamager->setFaction(14);
-            pDummyDamager->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
-            pDummyDamager->SetSpeedRate(MOVE_RUN, m_creature->GetSpeedRate(MOVE_RUN));
-            m_uiDummyDamagerGUID = pDummyDamager->GetGUID();
-        }
+        m_creature->SetSpeedRate(MOVE_WALK, 3.5f);
+        m_uiMovementStartTimer = 3000;
     }
 
     void AttackStart(Unit* pWho)
-    {
-    }
-
-    void MoveInLineOfSight(Unit* pWho)
     {
     }
 
@@ -1706,63 +1690,17 @@ struct MANGOS_DLL_DECL mob_flame_tsunamiAI : public ScriptedAI
     {
         if (m_uiMovementStartTimer < uiDiff)
         {
+            DoCast(m_creature, SPELL_FLAME_TSUNAMI_DMG_AURA, true);
             int8 uiDirection = 1;
             if (m_creature->GetPositionX() > 3240.0f)
                 uiDirection = -1;
             m_creature->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX()+uiDirection*86.5f, m_creature->GetPositionY(), m_creature->GetPositionZ());
-            if (m_pInstance)
-                if (Creature* pDummyDamager = m_pInstance->instance->GetCreature(m_uiDummyDamagerGUID))
-                    pDummyDamager->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX()+uiDirection*86.5f, m_creature->GetPositionY(), m_creature->GetPositionZ());
             m_uiMovementStartTimer = 30000;
         }
         else
             m_uiMovementStartTimer -= uiDiff;
 
-        if (m_uiTickTimer < uiDiff)
-        {
-            if (m_pInstance)
-                if (Creature* pDummyDamager = m_pInstance->instance->GetCreature(m_uiDummyDamagerGUID))
-                    pDummyDamager->CastSpell(pDummyDamager, SPELL_FLAME_TSUNAMI_DMG, false);
-
-            std::list<Creature*> lLavaBlazes;
-            GetCreatureListWithEntryInGrid(lLavaBlazes, m_creature, NPC_LAVA_BLAZE, 6.0f);
-            if (!lLavaBlazes.empty())
-            {
-                SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_FLAME_TSUNAMI_BUFF);
-                if (pTempSpell)
-                {
-                    pTempSpell->EffectImplicitTargetA[0] = TARGET_SELF;
-                    pTempSpell->EffectImplicitTargetB[0] = 0;
-                    pTempSpell->EffectImplicitTargetA[1] = TARGET_SELF;
-                    pTempSpell->EffectImplicitTargetB[1] = 0;
-                    pTempSpell->EffectImplicitTargetA[2] = TARGET_SELF;
-                    pTempSpell->EffectImplicitTargetB[2] = 0;
-                    for (std::list<Creature*>::iterator iter = lLavaBlazes.begin(); iter != lLavaBlazes.end(); ++iter)
-                    {
-                        (*iter)->CastSpell(*iter, pTempSpell, false);
-                        (*iter)->SetHealth((*iter)->GetHealth()*4);
-                    }
-                }
-            }
-
-            Map* pMap = m_creature->GetMap();
-            if (pMap && pMap->IsDungeon())
-            {
-                Map::PlayerList const &PlayerList = pMap->GetPlayers();
-
-                if (!PlayerList.isEmpty())
-                    for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
-                        if (i->getSource()->isAlive() && m_creature->GetDistance2d(i->getSource()) <= 5.0f)
-                        {
-                            i->getSource()->SetOrientation(m_creature->GetOrientation());
-                            i->getSource()->CastSpell(i->getSource(), SPELL_FLAME_TSUNAMI_LEAP, true);
-                        }
-            }
-
-            m_uiTickTimer = 1000;
-        }
-        else
-            m_uiTickTimer -= uiDiff;
+        m_creature->SetUInt32Value(UNIT_FIELD_TARGET, 0);
     }
 };
 
