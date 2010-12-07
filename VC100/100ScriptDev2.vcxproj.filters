@@ -1131,6 +1131,9 @@
     <ClCompile Include="..\scripts\northrend\crusaders_coliseum\trial_of_the_crusader\trial_of_the_crusader.cpp">
       <Filter>scripts\northrend\crusaders_coliseum\trial_of_the_crusader</Filter>
     </ClCompile>
+    <ClCompile Include="..\scripts\northrend\draktharon_keep\boss_dred.cpp">
+      <Filter>scripts\northrend\draktharon_keep</Filter>
+    </ClCompile>
     <ClCompile Include="..\scripts\northrend\draktharon_keep\boss_novos.cpp">
       <Filter>scripts\northrend\draktharon_keep</Filter>
     </ClCompile>

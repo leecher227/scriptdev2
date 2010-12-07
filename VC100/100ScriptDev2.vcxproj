@@ -498,6 +498,7 @@
     <ClCompile Include="..\scripts\northrend\crusaders_coliseum\trial_of_the_crusader\boss_twin_valkyr.cpp" />
     <ClCompile Include="..\scripts\northrend\crusaders_coliseum\trial_of_the_crusader\instance_trial_of_the_crusader.cpp" />
     <ClCompile Include="..\scripts\northrend\crusaders_coliseum\trial_of_the_crusader\trial_of_the_crusader.cpp" />
+    <ClCompile Include="..\scripts\northrend\draktharon_keep\boss_dred.cpp" />
     <ClCompile Include="..\scripts\northrend\draktharon_keep\boss_novos.cpp" />
     <ClCompile Include="..\scripts\northrend\draktharon_keep\boss_tharonja.cpp" />
     <ClCompile Include="..\scripts\northrend\draktharon_keep\boss_trollgore.cpp" />

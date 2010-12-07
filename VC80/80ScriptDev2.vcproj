@@ -1836,6 +1836,10 @@
 					Name="draktharon_keep"
 					>
 					<File
+						RelativePath="..\scripts\northrend\draktharon_keep\boss_dred.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\scripts\northrend\draktharon_keep\boss_novos.cpp"
 						>
 					</File>
