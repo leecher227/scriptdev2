@@ -35,9 +35,9 @@ enum
     SAY_KILL                        = -1600004,
 
     SPELL_CRUSH                     = 49639,
-    SPELL_INFECTED_WOUND            = 49367,
+    SPELL_INFECTED_WOUND            = 49637,
     SPELL_CORPSE_EXPLODE_N          = 49555,
-    SPELL_CORPSE_EXPLODE_H          = 59087,
+    SPELL_CORPSE_EXPLODE_H          = 59807,
     SPELL_CONSUME_N                 = 49380,
     SPELL_CONSUME_H                 = 59803,
     SPELL_CONSUME_BUFF_N            = 49381,
@@ -54,9 +54,7 @@ enum
     SPELL_INVADER_C                 = 49458,
 
     NPC_FLY_BAT                     = 27724, //vehicle :p
-    NPC_INVADER_A                   = 27709,
-    NPC_INVADER_B                   = 27753,
-    NPC_INVADER_C                   = 27754,
+    NPC_INVADER                     = 27709,
 };
 
 struct Locations
@@ -96,18 +94,22 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
 
     void Reset()
     {
-        m_uiCorpseExplodeTimer = urand(10000, 15000);
-        m_uiConsumeTimer = urand(5000, 8000);
+        m_uiCorpseExplodeTimer = 13000;
+        m_uiConsumeTimer = 10000;
         m_uiCrushTimer = urand(7000, 10000);
-        m_uiWaveTimer = 6000;
+        m_uiInfectedWoundTimer = urand(5000, 8000);
+        m_uiWaveTimer = 2000;
+    }
 
-        if(m_pInstance)
-           m_pInstance->SetData(TYPE_TROLLGORE, NOT_STARTED);
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_TROLLGORE, FAIL);
     }
 
     void Aggro(Unit* pWho)
     {
-        if(m_pInstance)
+        if (m_pInstance)
            m_pInstance->SetData(TYPE_TROLLGORE, IN_PROGRESS);
  
         DoScriptText(SAY_AGGRO, m_creature);
@@ -123,29 +125,14 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
     {
         DoScriptText(SAY_DEATH, m_creature);
 
-        if(m_pInstance)
-           m_pInstance->SetData(TYPE_TROLLGORE, DONE);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_TROLLGORE, DONE);
     }
 
-    void DamageTaken(Unit *done_by, uint32 &damage) 
+    void DamageTaken(Unit* pDoneBy, uint32& uiDamage) 
     {
-        if(done_by->GetTypeId() != TYPEID_PLAYER)
-           damage = damage / 3;
-    }
-
-    void SummonWaves()
-    {
-        m_creature->SummonCreature(NPC_INVADER_A,InvaderSummon[0].x,InvaderSummon[0].y,InvaderSummon[0].z,InvaderSummon[0].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 1000);
-        m_creature->SummonCreature(NPC_INVADER_B,InvaderSummon[1].x,InvaderSummon[1].y,InvaderSummon[1].z,InvaderSummon[1].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 1000);
-        m_creature->SummonCreature(NPC_INVADER_C,InvaderSummon[2].x,InvaderSummon[2].y,InvaderSummon[2].z,InvaderSummon[2].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 1000);
-    }
-
-    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell)
-    {
-        if(pSpell->Id == (m_bIsRegularMode ? SPELL_CONSUME_N : SPELL_CONSUME_H))
-        {
-           m_creature->CastSpell(m_creature, m_bIsRegularMode ? SPELL_CONSUME_BUFF_N : SPELL_CONSUME_BUFF_H, true);
-        }
+        if (pDoneBy->GetTypeId() != TYPEID_PLAYER)
+            uiDamage = uiDamage / 3;
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -157,32 +144,56 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
         {
             DoCast(m_creature->getVictim(), SPELL_CRUSH);
             m_uiCrushTimer = urand(5000, 10000);
-        }else m_uiCrushTimer -= uiDiff;
+        }
+        else
+            m_uiCrushTimer -= uiDiff;
+
+        if (m_uiInfectedWoundTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                DoCast(pTarget, SPELL_INFECTED_WOUND);
+            m_uiInfectedWoundTimer = urand(10000, 11000);
+        }
+        else
+            m_uiInfectedWoundTimer -= uiDiff;
+
+        if (m_uiCorpseExplodeTimer < uiDiff)
+        {
+            DoCast(m_creature, m_bIsRegularMode ? SPELL_CORPSE_EXPLODE_N : SPELL_CORPSE_EXPLODE_H);
+            m_uiCorpseExplodeTimer = 10000;
+        }
+        else
+            m_uiCorpseExplodeTimer -= uiDiff;
 
         if (m_uiWaveTimer < uiDiff)
         {
-            SummonWaves();
+            for (uint8 i=0; i<3; ++i)
+                m_creature->SummonCreature(NPC_INVADER, InvaderSummon[i].x, InvaderSummon[i].y, InvaderSummon[i].z, InvaderSummon[i].o, TEMPSUMMON_DEAD_DESPAWN, 0);
             m_uiWaveTimer = 30000;
-        }else m_uiWaveTimer -= uiDiff;
+        }
+        else
+            m_uiWaveTimer -= uiDiff;
 
         if (m_uiConsumeTimer < uiDiff)
         {
             DoScriptText(SAY_CONSUME, m_creature);
             m_creature->CastSpell(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CONSUME_N : SPELL_CONSUME_H, true);
-            m_uiConsumeTimer = urand(10000, 15000);
-        }else m_uiConsumeTimer -= uiDiff;
+            m_uiConsumeTimer = 10000;
+        }
+        else
+            m_uiConsumeTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
 };
 
 /*######
-## npc_drakkari_invaider
+## npc_drakkari_invader
 ######*/
 
-struct MANGOS_DLL_DECL npc_drakkari_invaiderAI : public ScriptedAI
+struct MANGOS_DLL_DECL npc_drakkari_invaderAI : public ScriptedAI
 {
-    npc_drakkari_invaiderAI(Creature* pCreature) : ScriptedAI(pCreature)
+    npc_drakkari_invaderAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
@@ -192,20 +203,13 @@ struct MANGOS_DLL_DECL npc_drakkari_invaiderAI : public ScriptedAI
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    uint32 m_uiBoomTimer;
     uint32 m_uiMoveTimer;
-
     uint64 m_uiVehicleGUID;
-
-    bool m_bIsSpellHit;
     bool m_bIsMovePhase;
 
     void Reset()
     {
-        m_creature->SetRespawnDelay(DAY);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_uiBoomTimer = 7000;
-        m_bIsSpellHit = false;
         m_bIsMovePhase = false;
         m_uiMoveTimer = 1000;
         m_uiVehicleGUID = 0;
@@ -214,122 +218,123 @@ struct MANGOS_DLL_DECL npc_drakkari_invaiderAI : public ScriptedAI
 
     void VehicleInit()
     {
-       if(Creature* pTemp = m_creature->SummonCreature(NPC_FLY_BAT, m_creature->GetPositionX(),  m_creature->GetPositionY(),  m_creature->GetPositionZ(),  m_creature->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 20000))
-       {
-          pTemp->AddSplineFlag(SPLINEFLAG_FLYING);
-          pTemp->SetSpeedRate(MOVE_WALK, 3.0f, true);
-          m_uiVehicleGUID = pTemp->GetGUID();
-          MoveBat(pTemp);  
-       }
+        if (Creature* pTemp = m_creature->SummonCreature(NPC_FLY_BAT, m_creature->GetPositionX(),  m_creature->GetPositionY(),  m_creature->GetPositionZ(),  m_creature->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 20000))
+        {
+            pTemp->AddSplineFlag(SPLINEFLAG_FLYING);
+            pTemp->SetSpeedRate(MOVE_WALK, 3.0f, true);
+            m_uiVehicleGUID = pTemp->GetGUID();
+            MoveBat(pTemp);  
+        }
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
-        if(pSpell->Id == (m_bIsRegularMode ? SPELL_CORPSE_EXPLODE_N : SPELL_CORPSE_EXPLODE_H))
+        
+        if (pSpell->Id == (m_bIsRegularMode ? SPELL_CORPSE_EXPLODE_N : SPELL_CORPSE_EXPLODE_H))
         {
-           if(m_pInstance)
-              if(Creature* pTrollGore = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_TROLLGORE)))
-                 DoScriptText(SAY_EXPLODE, pTrollGore);
-           m_bIsSpellHit = true;
+            if (m_pInstance)
+            {
+                if(Creature* pTrollGore = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_TROLLGORE)))
+                    DoScriptText(SAY_EXPLODE, pTrollGore);
+            }
         }
     }
 
-    void AttackStart(Unit* who)
+    void AttackStart(Unit* pWho)
     {
-        if (!who)
+        if (!pWho)
             return;
 
         if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
             return;
 
-        ScriptedAI::AttackStart(who);
+        ScriptedAI::AttackStart(pWho);
     }
 
     void SummonedMovementInform(Creature* pSummoned, uint32 uiType, uint32 uiPointId)
     {
         if (uiType == POINT_MOTION_TYPE && uiPointId == 1)
         {
-           m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-           if(m_creature->GetVehicle())
-              m_creature->ExitVehicle();
-           if(m_pInstance)
-              if(Creature* pTrollGore = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_TROLLGORE)))
-                 ScriptedAI::AttackStart(pTrollGore);
-           m_bIsMovePhase = true;
+            m_creature->ExitVehicle();
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            if (m_pInstance)
+            {
+                if (Creature* pTrollgore = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_TROLLGORE)))
+                    ScriptedAI::AttackStart(pTrollgore);
+            }
+            m_bIsMovePhase = true;
         }
     }
 
-    void DamageTaken(Unit *done_by, uint32 &uiDamage)
+    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
-       if(m_creature->GetHealth() < uiDamage)
-       {
-           uiDamage = 0;
-           if(!m_creature->HasFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE))
-           {
-              m_creature->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE);
-              m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
-              m_creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
-              m_creature->RemoveAllAuras();
-              m_creature->InterruptNonMeleeSpells(false);
-              m_creature->SetHealth(1);
-              m_creature->GetMotionMaster()->Clear(false);
-              m_creature->GetMotionMaster()->MoveIdle();
-              m_creature->AttackStop();
-              m_creature->StopMoving();
-           }
-       }
+        if (m_creature->GetHealth() < uiDamage)
+        {
+            uiDamage = 0;
+            if (!m_creature->HasFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE))
+            {
+                m_creature->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE);
+                m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+                m_creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
+                m_creature->RemoveAllAuras();
+                m_creature->InterruptNonMeleeSpells(false);
+                m_creature->SetHealth(1);
+                m_creature->GetMotionMaster()->Clear(false);
+                m_creature->GetMotionMaster()->MoveIdle();
+                m_creature->AttackStop();
+                m_creature->StopMoving();
+                m_creature->getHostileRefManager().clearReferences();
+            }
+        }
     }
 
     void MoveBat(Creature* pBat)
     {
-       float fDis = 44.0f;
-       float fAng = pBat->GetOrientation();
-       float X = pBat->GetPositionX()+fDis*cos(fAng);
-       float Y = pBat->GetPositionY()+fDis*sin(fAng);
-       float Z = 26.534f;
-       pBat->GetMotionMaster()->MovePoint(1, X, Y, Z);
+        float fDis = 44.0f;
+        float fAng = pBat->GetOrientation();
+        float X = pBat->GetPositionX()+fDis*cos(fAng);
+        float Y = pBat->GetPositionY()+fDis*sin(fAng);
+        float Z = 26.534f;
+        pBat->GetMotionMaster()->MovePoint(1, X, Y, Z);
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(!m_pInstance)
-           return;
+        if (!m_pInstance)
+            return;
 
-        if(m_pInstance->GetData(TYPE_TROLLGORE) != IN_PROGRESS)
-           m_creature->DealDamage(m_creature, m_creature->GetMaxHealth(),NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+        if (m_pInstance->GetData(TYPE_TROLLGORE) != IN_PROGRESS)
+            m_creature->ForcedDespawn();
 
-        if(m_bIsSpellHit)
+        if (m_bIsMovePhase)
         {
-           if(m_uiBoomTimer < uiDiff)
-               m_creature->DealDamage(m_creature, m_creature->GetMaxHealth(),NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-           else m_uiBoomTimer -= uiDiff;
+            if (m_uiMoveTimer < uiDiff)
+            {
+                if (Creature* pSummoned = m_creature->GetMap()->GetCreature(m_uiVehicleGUID))
+                    pSummoned->GetMotionMaster()->MovePoint(0, -192.944f, -657.083f, 62.696f);
+                m_bIsMovePhase = false;
+            }
+            else
+                m_uiMoveTimer -= uiDiff;
         }
 
-        if(m_bIsMovePhase)
+        if (!m_creature->GetVehicle() && m_creature->GetPositionZ() > 40.0f && m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
         {
-           if(m_uiMoveTimer < uiDiff)
-           {
-              if(Creature* pSummoned = m_creature->GetMap()->GetCreature(m_uiVehicleGUID))
-                 pSummoned->GetMotionMaster()->MovePoint(0, -192.944f, -657.083f, 62.696f);
-              m_bIsMovePhase = false;
-           } else m_uiMoveTimer -= uiDiff;
-        }
-
-        if(!m_creature->GetVehicle() && m_creature->GetPositionZ() > 40.0f && m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
-        {
-           if(Creature* pTemp = m_creature->GetMap()->GetCreature(m_uiVehicleGUID))
-           {
-              if(pTemp->CreateVehicleKit(40))
-                 if(VehicleKit* pKit = pTemp->GetVehicleKit())
-                    m_creature->EnterVehicle(pKit, 0);
-           }
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_uiVehicleGUID))
+            {
+                if (pTemp->CreateVehicleKit(40))
+                {
+                    if (VehicleKit* pKit = pTemp->GetVehicleKit())
+                        m_creature->EnterVehicle(pKit, 0);
+                }
+            }
         }
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
            return;
 
-        if(!m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
-           DoMeleeAttackIfReady();
+        if (!m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+            DoMeleeAttackIfReady();
     }
 };
 
@@ -338,22 +343,22 @@ CreatureAI* GetAI_boss_trollgore(Creature* pCreature)
     return new boss_trollgoreAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_drakkari_invaider(Creature* pCreature)
+CreatureAI* GetAI_npc_drakkari_invader(Creature* pCreature)
 {
-    return new npc_drakkari_invaiderAI(pCreature);
+    return new npc_drakkari_invaderAI(pCreature);
 }
 
 void AddSC_boss_trollgore()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_trollgore";
-    newscript->GetAI = &GetAI_boss_trollgore;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_trollgore";
+    pNewScript->GetAI = &GetAI_boss_trollgore;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_drakkari_invaider";
-    newscript->GetAI = &GetAI_npc_drakkari_invaider;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_drakkari_invader";
+    pNewScript->GetAI = &GetAI_npc_drakkari_invader;
+    pNewScript->RegisterSelf();
 }
