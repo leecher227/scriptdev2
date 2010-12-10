@@ -36,16 +36,12 @@ enum
 
     SPELL_CRUSH                     = 49639,
     SPELL_INFECTED_WOUND            = 49637,
-    SPELL_CORPSE_EXPLODE_N          = 49555,
-    SPELL_CORPSE_EXPLODE_H          = 59807,
+    SPELL_CORPSE_EXPLODE_N          = 49555,                // implemented in core in spell Consume script effect
+    SPELL_CORPSE_EXPLODE_H          = 59807,                //
     SPELL_CONSUME_N                 = 49380,
     SPELL_CONSUME_H                 = 59803,
     SPELL_CONSUME_BUFF_N            = 49381,
     SPELL_CONSUME_BUFF_H            = 59805,
-
-    SPELL_CORPSE_EXPLODE_PROC_N     = 49618,
-    SPELL_CORPSE_EXPLODE_PROC_H     = 59809,
-    SPELL_CORPSE_EXPLODE_BONE       = 51270,
 
     SPELL_INVADER_TAUNT             = 49405,
 
@@ -53,7 +49,7 @@ enum
     SPELL_INVADER_B                 = 49457,
     SPELL_INVADER_C                 = 49458,
 
-    NPC_FLY_BAT                     = 27724, //vehicle :p
+    NPC_FLY_BAT                     = 27724,                //vehicle :p
     NPC_INVADER                     = 27709,
 };
 
@@ -90,12 +86,10 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
     uint32 m_uiCrushTimer;
     uint32 m_uiInfectedWoundTimer;
     uint32 m_uiWaveTimer;
-    uint32 m_uiCorpseExplodeTimer;
 
     void Reset()
     {
-        m_uiCorpseExplodeTimer = 13000;
-        m_uiConsumeTimer = 10000;
+        m_uiConsumeTimer = urand(10000, 15000);
         m_uiCrushTimer = urand(7000, 10000);
         m_uiInfectedWoundTimer = urand(5000, 8000);
         m_uiWaveTimer = 2000;
@@ -157,18 +151,10 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
         else
             m_uiInfectedWoundTimer -= uiDiff;
 
-        if (m_uiCorpseExplodeTimer < uiDiff)
-        {
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_CORPSE_EXPLODE_N : SPELL_CORPSE_EXPLODE_H);
-            m_uiCorpseExplodeTimer = 10000;
-        }
-        else
-            m_uiCorpseExplodeTimer -= uiDiff;
-
         if (m_uiWaveTimer < uiDiff)
         {
             for (uint8 i=0; i<3; ++i)
-                m_creature->SummonCreature(NPC_INVADER, InvaderSummon[i].x, InvaderSummon[i].y, InvaderSummon[i].z, InvaderSummon[i].o, TEMPSUMMON_DEAD_DESPAWN, 0);
+                m_creature->SummonCreature(NPC_INVADER, InvaderSummon[i].x, InvaderSummon[i].y, InvaderSummon[i].z, InvaderSummon[i].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
             m_uiWaveTimer = 30000;
         }
         else
@@ -178,7 +164,7 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
         {
             DoScriptText(SAY_CONSUME, m_creature);
             m_creature->CastSpell(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CONSUME_N : SPELL_CONSUME_H, true);
-            m_uiConsumeTimer = 10000;
+            m_uiConsumeTimer = urand(10000, 15000);
         }
         else
             m_uiConsumeTimer -= uiDiff;
@@ -234,7 +220,7 @@ struct MANGOS_DLL_DECL npc_drakkari_invaderAI : public ScriptedAI
         {
             if (m_pInstance)
             {
-                if(Creature* pTrollGore = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_TROLLGORE)))
+                if (Creature* pTrollGore = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_TROLLGORE)))
                     DoScriptText(SAY_EXPLODE, pTrollGore);
             }
         }
