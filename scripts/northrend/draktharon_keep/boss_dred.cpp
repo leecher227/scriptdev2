@@ -82,16 +82,6 @@ struct MANGOS_DLL_DECL boss_dredAI : public ScriptedAI
         m_bIsNeedSummon = false;
     }
 
-    void Aggro(Unit* pWho)
-    {
-       
-    }
-
-    void KilledUnit(Unit* pVictim)
-    {
-        
-    }
-
     void JustDied(Unit* pKiller)
     {
         Map* pMap = m_creature->GetMap();
@@ -179,7 +169,7 @@ struct MANGOS_DLL_DECL boss_dredAI : public ScriptedAI
         if (m_uiCallForRaptorTimer < uiDiff)
         {    
             DoScriptText(SAY_CALL_FOR_RAPTOR, m_creature);
-            m_creature->CastSpell(m_creature, SAY_CALL_FOR_RAPTOR, true);
+            m_creature->CastSpell(m_creature, SPELL_RAPTOR_CALL, true);
             m_uiCallForRaptorTimer = 25000;
             m_uiCallForRaptorSpawnTimer = 1000;
             m_bIsNeedSummon = true;
