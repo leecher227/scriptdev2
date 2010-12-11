@@ -49,9 +49,6 @@ enum
     SPELL_FIREBALL            = 54095,
     SPELL_FIREBALL_H          = 54096,
     SPELL_WIDOWS_EMBRACE      = 28732,
-
-    NPC_NAXXRAMAS_WORSHIPPER  = 16506,
-    NPC_NAXXRAMAS_FOLLOWER    = 16505,
 };
 
 struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
@@ -267,14 +264,14 @@ CreatureAI* GetAI_boss_faerlina(Creature* pCreature)
 
 void AddSC_boss_faerlina()
 {
-    Script* NewScript;
-    NewScript = new Script;
-    NewScript->Name = "boss_faerlina";
-    NewScript->GetAI = &GetAI_boss_faerlina;
-    NewScript->RegisterSelf();
+    Script* pNewScript;
+    pNewScript = new Script;
+    pNewScript->Name = "boss_faerlina";
+    pNewScript->GetAI = &GetAI_boss_faerlina;
+    pNewScript->RegisterSelf();
 
-    NewScript = new Script;
-    NewScript->Name = "mob_worshipper";
-    NewScript->GetAI = &GetAI_mob_worshipper;
-    NewScript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "mob_worshipper";
+    pNewScript->GetAI = &GetAI_mob_worshipper;
+    pNewScript->RegisterSelf();
 }
