@@ -51,7 +51,7 @@ enum
     SPELL_GIFT_OF_THARONJA             = 52509,
 
     SPELL_LIGHTNING_BREATH_N           = 49537,
-    SPELL_LIGHTNING_BREATH_H           = 59936,
+    SPELL_LIGHTNING_BREATH_H           = 59963,
     SPELL_EYE_BEAM_N                   = 49544,
     SPELL_EYE_BEAM_H                   = 59965,
     SPELL_POISON_CLOUD_N               = 49548,
@@ -91,6 +91,7 @@ struct MANGOS_DLL_DECL boss_tharonjaAI : public ScriptedAI
     uint32 m_uiChangePhase;
     uint32 m_uiPoisonCloudTimer;
     uint32 m_uiFleshSpellsTimer;
+    bool m_bTransform;
 
     void Reset()
     {
@@ -99,8 +100,9 @@ struct MANGOS_DLL_DECL boss_tharonjaAI : public ScriptedAI
         m_uiCurseOfLifeTimer = urand (5000, 10000);
         m_uiRandomSpellsTimer = urand(7000, 13000);
         m_uiPoisonCloudTimer = urand(2000, 5000);
-        m_uiTransformTimer = 28000;
         m_uiChangePhase = 25000;
+        m_uiTransformTimer = 3000;
+        m_bTransform = false;
     }
 
     void Aggro(Unit* pWho)
@@ -116,9 +118,9 @@ struct MANGOS_DLL_DECL boss_tharonjaAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
-        if(m_pInstance)
-           m_pInstance->SetData(TYPE_THARONJA, DONE);
-        m_creature->SummonCreature(NPC_DRAKURU, -236.739f, -618.786f, 116.474f, 4.68f, TEMPSUMMON_CORPSE_TIMED_DESPAWN,500); //huck
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_THARONJA, DONE);
+        m_creature->SummonCreature(NPC_DRAKURU, -236.739f, -618.786f, 116.474f, 4.68f, TEMPSUMMON_CORPSE_TIMED_DESPAWN,500); //hack
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -126,113 +128,139 @@ struct MANGOS_DLL_DECL boss_tharonjaAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        switch(m_uiPhase)
+        switch (m_uiPhase)
         {
-           case 1:
-              if(m_uiCurseOfLifeTimer < uiDiff)
-              {
-                 DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CURSE_OF_LIFE_N : SPELL_CURSE_OF_LIFE_H);
-                 m_uiCurseOfLifeTimer = urand (5000, 10000);
-              }else m_uiCurseOfLifeTimer -= uiDiff;
-
-              if(m_uiRandomSpellsTimer < uiDiff)
-              {     
-                 switch(urand(0, 2))
-                 {
-                    case 0: 
-                        DoCast(m_creature->getVictim(),  m_bIsRegularMode ? SPELL_SHADOW_VOLLEY_N : SPELL_SHADOW_VOLLEY_H);
-                        break;
-                    case 1: 
-                        DoCast(m_creature->getVictim(),  m_bIsRegularMode ? SPELL_SHADOW_VOLLEY_N : SPELL_SHADOW_VOLLEY_H);
-                        break;
-                    case 2: 
-                        DoCast(m_creature->getVictim(),  m_bIsRegularMode ? SPELL_RAIN_OF_FIRE_N : SPELL_RAIN_OF_FIRE_H);
-                        break;
-                 }
-                 m_uiRandomSpellsTimer = urand (5000, 10000);
-              }else m_uiRandomSpellsTimer -= uiDiff;
-
-              if (m_uiChangePhase < uiDiff)
-              {
-                 m_creature->InterruptNonMeleeSpells(false);
-                 DoScriptText(urand(0, 1) ? SAY_FLESH_1 : SAY_FLESH_2, m_creature);
-                 if(SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_DECAY_FLESH))
-                 {
-                     pTempSpell->EffectImplicitTargetA[0] = 6;
-                     pTempSpell->EffectImplicitTargetB[0] = 0;
-                     pTempSpell->EffectImplicitTargetA[1] = 6;
-                     pTempSpell->EffectImplicitTargetB[1] = 0;
-                     pTempSpell->EffectImplicitTargetA[2] = 6;
-                     pTempSpell->EffectImplicitTargetB[2] = 0;
-                     m_creature->CastSpell(m_creature->getVictim(), pTempSpell, false);
-                 }
-
-                 //m_creature->CastSpell(m_creature, SPELL_DECAY_FLESH, false);
-                 m_uiChangePhase = 25000;
-              }else m_uiChangePhase -= uiDiff;
-            
-              if (m_uiTransformTimer < uiDiff)
-              {
-                 m_creature->SetDisplayId(27073);
-                 m_creature->CastSpell(m_creature, SPELL_GIFT_OF_THARONJA, true);
-                 m_creature->CastSpell(m_creature, SPELL_FLESH_VISUAL, false);
-                 m_uiTransformTimer = 25000;
-                 m_uiPhase = 2;
-              }else m_uiTransformTimer -= uiDiff;
-
-              DoMeleeAttackIfReady();
-              break;
-          case 2:
-              if (m_uiPoisonCloudTimer < uiDiff)
-              {
-                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCast(pTarget,  m_bIsRegularMode ? SPELL_POISON_CLOUD_N : SPELL_POISON_CLOUD_H);
-                 m_uiPoisonCloudTimer = 10000;
-              }else m_uiPoisonCloudTimer -= uiDiff;
-
-              if (m_uiRandomSpellsTimer < uiDiff)
-              {     
-                switch(urand(0, 1))
+            case 1:
+            {
+                if (m_bTransform)
                 {
-                    case 0:
-                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                           DoCast(pTarget,  m_bIsRegularMode ? SPELL_LIGHTNING_BREATH_N : SPELL_LIGHTNING_BREATH_H);
-                        break;
-                    case 1: 
-                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                           DoCast(pTarget,  m_bIsRegularMode ? SPELL_EYE_BEAM_N : SPELL_EYE_BEAM_H);
-                        break;
+                    if (m_uiTransformTimer < uiDiff)
+                    {
+                        m_creature->SetDisplayId(27073);
+                        m_creature->CastSpell(m_creature, SPELL_GIFT_OF_THARONJA, true);
+                        m_creature->CastSpell(m_creature, SPELL_FLESH_VISUAL, false);
+                        m_bTransform = false;
+                        m_uiPhase = 2;
+                    }
+                    else
+                        m_uiTransformTimer -= uiDiff;
+
+                    return;
                 }
-                m_uiRandomSpellsTimer = 4500;
-              }else m_uiRandomSpellsTimer -= uiDiff;
-        
-              if (m_uiChangePhase < uiDiff)
-              {
-                 m_creature->InterruptNonMeleeSpells(false);
-                 DoScriptText(urand(0, 1) ? SAY_SKELETON_1 : SAY_SKELETON_2, m_creature);
-                 if(SpellEntry* pTempSpell = (SpellEntry*)GetSpellStore()->LookupEntry(SPELL_RETURN_FLESH))
-                 {
-                     pTempSpell->EffectImplicitTargetA[0] = 6;
-                     pTempSpell->EffectImplicitTargetB[0] = 0;
-                     pTempSpell->EffectImplicitTargetA[1] = 6;
-                     pTempSpell->EffectImplicitTargetB[1] = 0;
-                     pTempSpell->EffectImplicitTargetA[2] = 6;
-                     pTempSpell->EffectImplicitTargetB[2] = 0;
-                     m_creature->CastSpell(m_creature->getVictim(), pTempSpell, false);
-                 }
-                 //m_creature->CastSpell(m_creature, SPELL_RETURN_FLESH, false);
-                 m_uiChangePhase = 28000;
-              }else m_uiChangePhase -= uiDiff;
+
+                if (m_uiChangePhase < uiDiff)
+                {
+                    m_creature->InterruptNonMeleeSpells(false);
+                    DoScriptText(urand(0, 1) ? SAY_FLESH_1 : SAY_FLESH_2, m_creature);
+                    m_creature->CastSpell(m_creature, SPELL_DECAY_FLESH, false);
+                    m_uiChangePhase = 25000;
+                    m_bTransform = true;
+                    m_uiTransformTimer = 3000;
+                    return;
+                }
+                else
+                    m_uiChangePhase -= uiDiff;
             
-              if (m_uiTransformTimer < uiDiff)
-              {
-                 m_creature->SetDisplayId(27072);
-                 m_creature->CastSpell(m_creature, SPELL_FLESH_VISUAL, false);
-                 m_uiTransformTimer = 28000;
-                 m_uiPhase = 1;
-              }else m_uiTransformTimer -= uiDiff;
-              break;
+                if (m_uiCurseOfLifeTimer < uiDiff)
+                {
+                    if (!m_creature->IsNonMeleeSpellCasted(false))
+                    {
+                        DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CURSE_OF_LIFE_N : SPELL_CURSE_OF_LIFE_H);
+                        m_uiCurseOfLifeTimer = urand (5000, 10000);
+                    }
+                }
+                else
+                    m_uiCurseOfLifeTimer -= uiDiff;
+
+                if (m_uiRandomSpellsTimer < uiDiff)
+                {     
+                    if (!m_creature->IsNonMeleeSpellCasted(false))
+                    {
+                        switch(urand(0, 2))
+                        {
+                            case 0: 
+                            case 1: 
+                                DoCast(m_creature->getVictim(),  m_bIsRegularMode ? SPELL_SHADOW_VOLLEY_N : SPELL_SHADOW_VOLLEY_H);
+                                break;
+                            case 2: 
+                                DoCast(m_creature->getVictim(),  m_bIsRegularMode ? SPELL_RAIN_OF_FIRE_N : SPELL_RAIN_OF_FIRE_H);
+                                break;
+                        }
+                        m_uiRandomSpellsTimer = urand (5000, 10000);
+                    }
+                }
+                else
+                    m_uiRandomSpellsTimer -= uiDiff;
+
+                break;
+            }
+            case 2:
+            {
+                if (m_bTransform)
+                {
+                    if (m_uiTransformTimer < uiDiff)
+                    {
+                        m_creature->SetDisplayId(27072);
+                        m_creature->CastSpell(m_creature, SPELL_FLESH_VISUAL, false);
+                        m_bTransform = false;
+                        m_uiPhase = 1;
+                    }
+                    else
+                        m_uiTransformTimer -= uiDiff;
+
+                    return;
+                }
+
+                if (m_uiChangePhase < uiDiff)
+                {
+                    m_creature->InterruptNonMeleeSpells(false);
+                    DoScriptText(urand(0, 1) ? SAY_SKELETON_1 : SAY_SKELETON_2, m_creature);
+                    m_creature->CastSpell(m_creature, SPELL_RETURN_FLESH, false);
+                    m_uiChangePhase = 28000;
+                    m_bTransform = true;
+                    m_uiTransformTimer = 3000;
+                    return;
+                }
+                else
+                    m_uiChangePhase -= uiDiff;
+            
+                if (m_uiPoisonCloudTimer < uiDiff)
+                {
+                    if (!m_creature->IsNonMeleeSpellCasted(false))
+                    {
+                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                            DoCast(pTarget,  m_bIsRegularMode ? SPELL_POISON_CLOUD_N : SPELL_POISON_CLOUD_H);
+                        m_uiPoisonCloudTimer = 10000;
+                    }
+                }
+                else
+                    m_uiPoisonCloudTimer -= uiDiff;
+
+                if (m_uiRandomSpellsTimer < uiDiff)
+                {     
+                    if (!m_creature->IsNonMeleeSpellCasted(false))
+                    {
+                        switch (urand(0, 1))
+                        {
+                            case 0:
+                                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                                    DoCast(pTarget,  m_bIsRegularMode ? SPELL_LIGHTNING_BREATH_N : SPELL_LIGHTNING_BREATH_H);
+                                break;
+                            case 1: 
+                                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                                    DoCast(pTarget,  m_bIsRegularMode ? SPELL_EYE_BEAM_N : SPELL_EYE_BEAM_H);
+                                break;
+                        }
+                        m_uiRandomSpellsTimer = 4500;
+                    }
+                }
+                else
+                    m_uiRandomSpellsTimer -= uiDiff;
+
+                break;
+            }
         }
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -336,8 +364,8 @@ struct MANGOS_DLL_DECL npc_drakuru_dtAI : public ScriptedAI
 
     void Reset()
     {
-        if(m_pInstance->GetData(TYPE_THARONJA) != DONE)
-           m_creature->ForcedDespawn();
+        if (m_pInstance->GetData(TYPE_THARONJA) != DONE)
+            m_creature->ForcedDespawn();
         m_uiStep = 0;
         m_uiLichKingGUID = 0;
         m_uiStepTimer = 100;
@@ -358,55 +386,64 @@ struct MANGOS_DLL_DECL npc_drakuru_dtAI : public ScriptedAI
 
     void MovementInform(uint32 uiType, uint32 uiPointId)
     {
-        if(uiType != POINT_MOTION_TYPE)
-           return;
+        if (uiType != POINT_MOTION_TYPE)
+            return;
 
-        switch(uiPointId)
+        switch (uiPointId)
         {
-           case 1:
-              DoScriptText(SAY_DRAKURU_01, m_creature);
-              NextPoint(4000);
-              break;
-           case 2:
-              NextPoint(100);
-              break;
-           case 3:
-              NextPoint(100);
-              break;
-           case 4:
-              m_creature->HandleEmoteCommand(25);
-              NextPoint(9000);
-              break;
-           case 5:
-              DoScriptText(SAY_DRAKURU_03, m_creature);
-              m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
-              if(GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_EYE_OF_PROPHET)))
-                 pGo->SetPhaseMask(1, true);
-              NextPoint(4000);
-              break;
-           case 6:
-              m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
-              if(GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_HEART_OF_ASCIENT)))
-                 pGo->SetPhaseMask(1, true);
-              NextPoint(4000);
-              break;
-           case 7:
-              DoScriptText(SAY_DRAKURU_04, m_creature);
-              m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
-              if(GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_RUNE_OF_DRAKKARI)))
-                 pGo->SetPhaseMask(1, true);
-              NextPoint(4000);
-              break;
-           case 8:
-              NextPoint(100);
-              break;
-           case 9:
-              DoScriptText(SAY_DRAKURU_05, m_creature);
-              m_bIsTalk = true;
-              m_uiStepTimer = 2000;
-              m_uiStep = 1;
-              break;
-       }
+            case 1:
+                DoScriptText(SAY_DRAKURU_01, m_creature);
+                NextPoint(4000);
+                break;
+            case 2:
+                NextPoint(100);
+                break;
+            case 3:
+                NextPoint(100);
+                break;
+            case 4:
+                m_creature->HandleEmoteCommand(25);
+                NextPoint(9000);
+                break;
+            case 5:
+                DoScriptText(SAY_DRAKURU_03, m_creature);
+                m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+                if (m_pInstance)
+                {
+                    if (GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_EYE_OF_PROPHET)))
+                        pGo->SetPhaseMask(1, true);
+                }
+                NextPoint(4000);
+                break;
+            case 6:
+                m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+                if (m_pInstance)
+                {
+                    if (GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_HEART_OF_ASCIENT)))
+                        pGo->SetPhaseMask(1, true);
+                }
+                NextPoint(4000);
+                break;
+            case 7:
+                DoScriptText(SAY_DRAKURU_04, m_creature);
+                m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+                if (m_pInstance)
+                {
+                    if (GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_RUNE_OF_DRAKKARI)))
+                    pGo->SetPhaseMask(1, true);
+                }
+                NextPoint(4000);
+                break;
+            case 8:
+                NextPoint(100);
+                break;
+            case 9:
+                DoScriptText(SAY_DRAKURU_05, m_creature);
+                m_bIsTalk = true;
+                m_uiStepTimer = 2000;
+                m_uiStep = 1;
+                break;
+        }
     }
 
     void JumpNextStep(uint32 Timer)
@@ -417,201 +454,213 @@ struct MANGOS_DLL_DECL npc_drakuru_dtAI : public ScriptedAI
 
     void Event()
     {
-        switch(m_uiStep)
-        { 
-           case 1:
-              DoCast(m_creature, SPELL_SUMMON_PORTAL);
-              JumpNextStep(5000);
-              break;
-           case 2:
-              RedLightning();
-              JumpNextStep(3000);
-              break;
-           case 3:
-              if (Creature* pPortal = m_creature->SummonCreature(NPC_INVISMAN,-237.215f, -698.836f, 131.170f,1.55f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,84500))
-              {
-                  pPortal->SetDisplayId(MODEL_ID_INVISIBLE);
-                  pPortal->CastSpell(pPortal, SPELL_ARTHAS_PORTAL, false);
-              }
-              JumpNextStep(2000);
-              break;
-           case 4:
-              DoScriptText(SAY_DRAKURU_06, m_creature);
-              m_creature->InterruptNonMeleeSpells(false);
-              JumpNextStep(5000);
-              break;
-           case 5:
-              if(Creature* pLich = m_creature->SummonCreature(NPC_LICH_KING,-237.215f, -698.836f, 131.170f,1.55f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,73500))
-              {
-                 m_uiLichKingGUID = pLich->GetGUID();
-                 pLich->GetMotionMaster()->MovePoint(0, -237.304f, -686.504f, 132.174f);
-              }
-              JumpNextStep(5000);
-              break;
-           case 6:
-              m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
-              JumpNextStep(3000);
-              break;
-           case 7:
-              DoScriptText(SAY_DRAKURU_07, m_creature);
-              JumpNextStep(5000);
-              break;
-           case 8:
-              DoScriptText(SAY_DRAKURU_08, m_creature);
-              JumpNextStep(6000);
-              break;
-           case 9:
-              if(Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
-                 DoScriptText(SAY_LICHKING_09, pLich);
-              JumpNextStep(5000);
-              break;
-           case 10:
-              if(Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
-                 DoScriptText(SAY_LICHKING_10, pLich);
-              JumpNextStep(9000);
-              break;
-           case 11:
-              if(Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
-                 DoScriptText(SAY_LICHKING_11, pLich);
-              JumpNextStep(3000);
-              break;
-           case 12:
-              if(Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
-                 DoScriptText(SAY_LICHKING_12, pLich);
-              JumpNextStep(2500);
-              break;
-           case 13:
-              m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-              if(Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
-                 pLich->CastSpell(m_creature, SPELL_ARTHAS_GIFT, false);
-              JumpNextStep(5000);
-              break;
-           case 14:
-              m_creature->HandleEmoteCommand(15);
-              JumpNextStep(4000);
-              break;
-           case 15:
-              if(Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
-                 DoScriptText(SAY_LICHKING_13, pLich);
-              JumpNextStep(7000);
-              break;
-           case 16:
-              DoScriptText(SAY_DRAKURU_14, m_creature);
-              JumpNextStep(3000);
-              break;
-           case 17:
-              if(Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
-                 DoScriptText(SAY_LICHKING_15, pLich);
-              JumpNextStep(4000);
-              break;
-           case 18:
-              if(Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
-                 DoScriptText(SAY_LICHKING_16, pLich);
-              JumpNextStep(7000);
-              break;
-           case 19:
-              if(Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
-                 pLich->GetMotionMaster()->MovePoint(0, -237.215f, -698.836f, 131.170f);
-              JumpNextStep(7000);
-              break;
-           case 20:
-              DoScriptText(SAY_DRAKURU_17, m_creature);
-              JumpNextStep(6000);
-              break;
-           case 21:
-              DoScriptText(SAY_DRAKURU_18, m_creature);
-              JumpNextStep(4000);
-              break;
-           case 22:
-              DoScriptText(SAY_DRAKURU_19, m_creature);
-              JumpNextStep(8000);
-              break;
-           case 23:
-              DoScriptText(SAY_DRAKURU_20, m_creature);
-              JumpNextStep(7000);
-              break;
-           case 24:
-              DoScriptText(SAY_DRAKURU_21, m_creature);
-              JumpNextStep(6000);
-              break;
-           case 25:
-              m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
-              m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-              JumpNextStep(600);
-              break;
+        if (!m_pInstance)
+        {
+            JumpNextStep(2000);
+            return;
+        }
 
+        switch (m_uiStep)
+        { 
+            case 1:
+                DoCast(m_creature, SPELL_SUMMON_PORTAL);
+                JumpNextStep(5000);
+                break;
+            case 2:
+                RedLightning();
+                JumpNextStep(3000);
+                break;
+            case 3:
+                if (Creature* pPortal = m_creature->SummonCreature(NPC_INVISMAN,-237.215f, -698.836f, 131.170f,1.55f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,84500))
+                {
+                    pPortal->SetDisplayId(MODEL_ID_INVISIBLE);
+                    pPortal->CastSpell(pPortal, SPELL_ARTHAS_PORTAL, false);
+                }
+                JumpNextStep(2000);
+                break;
+            case 4:
+                DoScriptText(SAY_DRAKURU_06, m_creature);
+                m_creature->InterruptNonMeleeSpells(false);
+                JumpNextStep(5000);
+                break;
+            case 5:
+                if (Creature* pLich = m_creature->SummonCreature(NPC_LICH_KING,-237.215f, -698.836f, 131.170f,1.55f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,73500))
+                {
+                    m_uiLichKingGUID = pLich->GetGUID();
+                    pLich->GetMotionMaster()->MovePoint(0, -237.304f, -686.504f, 132.174f);
+                }
+                JumpNextStep(5000);
+                break;
+            case 6:
+                m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+                JumpNextStep(3000);
+                break;
+            case 7:
+                DoScriptText(SAY_DRAKURU_07, m_creature);
+                JumpNextStep(5000);
+                break;
+            case 8:
+                DoScriptText(SAY_DRAKURU_08, m_creature);
+                JumpNextStep(6000);
+                break;
+            case 9:
+                if (Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_LICHKING_09, pLich);
+                JumpNextStep(5000);
+                break;
+            case 10:
+                if (Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_LICHKING_10, pLich);
+                JumpNextStep(9000);
+                break;
+            case 11:
+                if (Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_LICHKING_11, pLich);
+                JumpNextStep(3000);
+                break;
+            case 12:
+                if (Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_LICHKING_12, pLich);
+                JumpNextStep(2500);
+                break;
+            case 13:
+                m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+                if (Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
+                    pLich->CastSpell(m_creature, SPELL_ARTHAS_GIFT, false);
+                JumpNextStep(5000);
+                break;
+            case 14:
+                m_creature->HandleEmoteCommand(15);
+                JumpNextStep(4000);
+                break;
+            case 15:
+                if (Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
+                DoScriptText(SAY_LICHKING_13, pLich);
+                JumpNextStep(7000);
+                break;
+            case 16:
+                DoScriptText(SAY_DRAKURU_14, m_creature);
+                JumpNextStep(3000);
+                break;
+            case 17:
+                if (Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_LICHKING_15, pLich);
+                JumpNextStep(4000);
+                break;
+            case 18:
+                if (Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_LICHKING_16, pLich);
+                JumpNextStep(7000);
+                break;
+            case 19:
+                if (Creature* pLich = m_pInstance->instance->GetCreature(m_uiLichKingGUID))
+                    pLich->GetMotionMaster()->MovePoint(0, -237.215f, -698.836f, 131.170f);
+                JumpNextStep(7000);
+                break;
+            case 20:
+                DoScriptText(SAY_DRAKURU_17, m_creature);
+                JumpNextStep(6000);
+                break;
+            case 21:
+                DoScriptText(SAY_DRAKURU_18, m_creature);
+                JumpNextStep(4000);
+                break;
+            case 22:
+                DoScriptText(SAY_DRAKURU_19, m_creature);
+                JumpNextStep(8000);
+                break;
+            case 23:
+                DoScriptText(SAY_DRAKURU_20, m_creature);
+                JumpNextStep(7000);
+                break;
+            case 24:
+                DoScriptText(SAY_DRAKURU_21, m_creature);
+                JumpNextStep(6000);
+                break;
+            case 25:
+                m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                JumpNextStep(600);
+                break;
         }
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
-        if(pSpell->Id == SPELL_ARTHAS_GIFT)
-           DoCast(m_creature, SPELL_DRAKURU_TRANSFORM);
+        if (pSpell->Id == SPELL_ARTHAS_GIFT)
+            DoCast(m_creature, SPELL_DRAKURU_TRANSFORM);
     }
 
     void RedLightning()
     {
-           if(GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_HEART_OF_ASCIENT)))
-           {
-              if(Creature* pTrigger = pGo->SummonCreature(NPC_INVISMAN,pGo->GetPositionX(),pGo->GetPositionY(),pGo->GetPositionZ(),0,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,3000))
-              {
-                  pTrigger->SetDisplayId(MODEL_ID_INVISIBLE);
-                  pTrigger->CastSpell(pTrigger, SPELL_DRAKURU_RED_LIGHTNING, false);
-              }
-              pGo->SetPhaseMask(0, true);
-           }
-           if(GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_RUNE_OF_DRAKKARI)))
-           {
-              if(Creature* pTrigger = pGo->SummonCreature(NPC_INVISMAN,pGo->GetPositionX(),pGo->GetPositionY(),pGo->GetPositionZ(),0,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,3000))
-              {
-                  pTrigger->SetDisplayId(MODEL_ID_INVISIBLE);
-                  pTrigger->CastSpell(pTrigger, SPELL_DRAKURU_RED_LIGHTNING, false);
-              }
-              pGo->SetPhaseMask(0, true);
-           }
-           if(GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_EYE_OF_PROPHET)))
-           {
-              if(Creature* pTrigger = pGo->SummonCreature(NPC_INVISMAN,pGo->GetPositionX(),pGo->GetPositionY(),pGo->GetPositionZ(),0,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,3000))
-              {
-                  pTrigger->SetDisplayId(MODEL_ID_INVISIBLE);
-                  pTrigger->CastSpell(pTrigger, SPELL_DRAKURU_RED_LIGHTNING, false);
-              }
-              pGo->SetPhaseMask(0, true);
-           }
+        if (m_pInstance)
+        {
+            if (GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_HEART_OF_ASCIENT)))
+            {
+                if(Creature* pTrigger = pGo->SummonCreature(NPC_INVISMAN,pGo->GetPositionX(),pGo->GetPositionY(),pGo->GetPositionZ(),0,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,3000))
+                {
+                    pTrigger->SetDisplayId(MODEL_ID_INVISIBLE);
+                    pTrigger->CastSpell(pTrigger, SPELL_DRAKURU_RED_LIGHTNING, false);
+                }
+                pGo->SetPhaseMask(0, true);
+            }
+            if (GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_RUNE_OF_DRAKKARI)))
+            {
+                if(Creature* pTrigger = pGo->SummonCreature(NPC_INVISMAN,pGo->GetPositionX(),pGo->GetPositionY(),pGo->GetPositionZ(),0,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,3000))
+                {
+                    pTrigger->SetDisplayId(MODEL_ID_INVISIBLE);
+                    pTrigger->CastSpell(pTrigger, SPELL_DRAKURU_RED_LIGHTNING, false);
+                }
+                pGo->SetPhaseMask(0, true);
+            }
+            if (GameObject* pGo = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_EYE_OF_PROPHET)))
+            {
+                if(Creature* pTrigger = pGo->SummonCreature(NPC_INVISMAN,pGo->GetPositionX(),pGo->GetPositionY(),pGo->GetPositionZ(),0,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,3000))
+                {
+                    pTrigger->SetDisplayId(MODEL_ID_INVISIBLE);
+                    pTrigger->CastSpell(pTrigger, SPELL_DRAKURU_RED_LIGHTNING, false);
+                }
+                pGo->SetPhaseMask(0, true);
+            }
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(!m_pInstance) return;
+        if (!m_pInstance)
+            return;
 
-        if(m_pInstance->GetData(TYPE_THARONJA) == DONE)
+        if (m_pInstance->GetData(TYPE_THARONJA) == DONE)
         {
-           if(m_bIsTalk)
-           {
-              if(m_uiStepTimer <= uiDiff)
-                 Event();
-              else m_uiStepTimer -= uiDiff;
-           }
+            if (m_bIsTalk)
+            {
+                if (m_uiStepTimer <= uiDiff)
+                    Event();
+                else
+                    m_uiStepTimer -= uiDiff;
+            }
 
-           if(m_bIsPause && !m_bIsTalk)
-           {
-              if(m_uiPauseTimer <= uiDiff)
-              {
-                 m_bIsPause = false;
-                 switch(m_uiPoint)
-                 {
-                    case 5:
-                       DoScriptText(SAY_DRAKURU_02, m_creature);
-                       break;
-                    case 6:
-                    case 7:
-                    case 8:
-                       m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-                       break;
-                 }
-                 m_creature->GetMotionMaster()->MovePoint(m_uiPoint, DrakuruPoint[m_uiPoint].x, DrakuruPoint[m_uiPoint].y, DrakuruPoint[m_uiPoint].z);
-              } else m_uiPauseTimer -= uiDiff;
-           }
+            if (m_bIsPause && !m_bIsTalk)
+            {
+                if (m_uiPauseTimer <= uiDiff)
+                {
+                    m_bIsPause = false;
+                    switch (m_uiPoint)
+                    {
+                        case 5:
+                            DoScriptText(SAY_DRAKURU_02, m_creature);
+                            break;
+                        case 6:
+                        case 7:
+                        case 8:
+                            m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+                            break;
+                    }
+                    m_creature->GetMotionMaster()->MovePoint(m_uiPoint, DrakuruPoint[m_uiPoint].x, DrakuruPoint[m_uiPoint].y, DrakuruPoint[m_uiPoint].z);
+                }
+                else
+                    m_uiPauseTimer -= uiDiff;
+            }
         }
     }
 };
@@ -628,15 +677,15 @@ CreatureAI* GetAI_npc_drakuru_dt(Creature* pCreature)
 
 void AddSC_boss_tharonja()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_tharonja";
-    newscript->GetAI = &GetAI_boss_tharonja;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_tharonja";
+    pNewScript->GetAI = &GetAI_boss_tharonja;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_drakuru_dt";
-    newscript->GetAI = &GetAI_npc_drakuru_dt;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_drakuru_dt";
+    pNewScript->GetAI = &GetAI_npc_drakuru_dt;
+    pNewScript->RegisterSelf();
 }
