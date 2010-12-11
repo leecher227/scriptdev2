@@ -50,23 +50,21 @@ enum
     SPELL_EFFECT                    = 52106, //need config support ;P
     SPELL_DEAD_EFFECT               = 47336,
 
-    //shadow riser
-    SPELL_SHADOW_BOLT_N             = 51363,
-    SPELL_SHADOW_BOLT_H             = 59016,
-    
     //crystal handler
-    SPELL_SHADOW_LIGHT_N            = 49668,
-    SPELL_SHADOW_LIGHT_H            = 59004,
+    SPELL_FLASH_OF_DARKNESS_N       = 49668,
+    SPELL_FLASH_OF_DARKNESS_H       = 59004,
 
-    POS                             = 3,
+    POINT_ID_WP                     = 1,
+
+    ACHIEV_OH_NOVOS                 = 2057,
 };
 
-const float PosSummonHandler[POS][3] =
-{
-    {-337.78f, -720.39f, 28.58f},
-    {-379.31f, -818.36f, 59.70f},
-    {-412.45f, -726.96f, 28.58f},
-};
+#define SUMMON_X    -378.99f
+#define SUMMON_Y    -811.81f
+#define SUMMON_Z    59.75f
+#define SUMMON_O    1.59f
+
+#define FLOOR_Z     28.59f
 
 /*######
 ## boss_novos
@@ -91,6 +89,8 @@ struct MANGOS_DLL_DECL boss_novosAI : public ScriptedAI
     uint32 m_uiArcaneBlastTimer;
     uint32 m_uiSpecialCastTimer;
     uint32 m_uiSummonMinionTimer;
+    uint32 m_uiCheckTimer;
+    bool m_bAchiev;
     
     void Reset()
     {
@@ -101,11 +101,12 @@ struct MANGOS_DLL_DECL boss_novosAI : public ScriptedAI
         m_uiFrostBoltTimer = 500;
         m_uiArcaneBlastTimer = urand(5000, 30000);
         m_uiSpecialCastTimer = urand(7000, 20000);
+        m_uiCheckTimer = 2000;
         if (m_pInstance)
             m_pInstance->SetData(TYPE_CRYSTALS, 0);
         ActiveTrigger(false);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        
+        m_bAchiev = true;
     }
 
     void ActivatedCrystal()
@@ -160,15 +161,15 @@ struct MANGOS_DLL_DECL boss_novosAI : public ScriptedAI
         if (pCreatures.empty())
             return;
 
-        if(Active)
+        if (Active)
         {
-           for(std::list<Creature*>::iterator iter = pCreatures.begin(); iter != pCreatures.end(); ++iter)
-              (*iter)->CastSpell(m_creature, SPELL_EFFECT, false);
+            for (std::list<Creature*>::iterator iter = pCreatures.begin(); iter != pCreatures.end(); ++iter)
+                (*iter)->CastSpell(m_creature, SPELL_EFFECT, false);
         }
         else 
         {
-           for(std::list<Creature*>::iterator iter = pCreatures.begin(); iter != pCreatures.end(); ++iter)
-              (*iter)->InterruptNonMeleeSpells(false);
+            for (std::list<Creature*>::iterator iter = pCreatures.begin(); iter != pCreatures.end(); ++iter)
+                (*iter)->InterruptNonMeleeSpells(false);
         }
     }
 
@@ -180,6 +181,12 @@ struct MANGOS_DLL_DECL boss_novosAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
+
+        if (m_pInstance)
+        {
+            if (!m_bIsRegularMode && m_bAchiev)
+                m_pInstance->DoCompleteAchievement(ACHIEV_OH_NOVOS);
+        }
     }
 
     void PhaseTwo()
@@ -192,8 +199,28 @@ struct MANGOS_DLL_DECL boss_novosAI : public ScriptedAI
     void JustSummoned(Creature* pSummoned)
     { 
         pSummoned->SetRespawnDelay(DAY);
-        if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-           pSummoned->AI()->AttackStart(pTarget);
+        pSummoned->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        pSummoned->GetMotionMaster()->MovePoint(POINT_ID_WP, pSummoned->GetPositionX(), pSummoned->GetPositionY()+40.17f, pSummoned->GetPositionZ()-31.16);
+    }
+
+    void SummonedMovementInform(Creature* pSummoned, uint32 uiMotionType, uint32 uiPointId)
+    {
+        if (uiMotionType == POINT_MOTION_TYPE && uiPointId == POINT_ID_WP)
+            pSummoned->SetInCombatWithZone();
+    }
+
+    void CheckAchiev(uint32 uiEntry)
+    {
+        std::list<Creature*> lList;
+        GetCreatureListWithEntryInGrid(lList, m_creature, uiEntry, 100.0f);
+        if (!lList.empty())
+        {
+            for (std::list<Creature*>::iterator iter = lList.begin(); iter != lList.end(); ++iter)
+            {
+                if ((*iter)->GetPositionZ() <= FLOOR_Z)
+                    m_bAchiev = false;
+            }
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -201,118 +228,97 @@ struct MANGOS_DLL_DECL boss_novosAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        switch(m_uiPhase)
+        if (m_bAchiev)
         {
-           case 2:
-              if(m_uiArcaneBlastTimer < uiDiff)
-              {     
-                  m_creature->InterruptNonMeleeSpells(false);
-                  m_creature->CastSpell(m_creature,  m_bIsRegularMode ? SPELL_ARCANE_BLAST_N : SPELL_ARCANE_BLAST_H, true);
-                  m_uiArcaneBlastTimer = urand(25000, 30000);
-              }else m_uiArcaneBlastTimer -= uiDiff;
+            if (m_uiCheckTimer < uiDiff)
+            {     
+                CheckAchiev(NPC_CRYSTAL_HANDLER);
+                CheckAchiev(NPC_HULKING_CORPSE);
+                CheckAchiev(NPC_FETID_TROLL_CORPSE);
+                CheckAchiev(NPC_RISEN_SHADOWCASTER);
+                m_uiCheckTimer = 2000;
+            }
+            else
+                m_uiCheckTimer -= uiDiff;
+        }
 
-              if (m_uiSpecialCastTimer < uiDiff)
-              {
-                 m_creature->InterruptNonMeleeSpells(false);
-                 switch(urand(0, 1))
-                 {
-                     case 0: 
-                         if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                            DoCast(pTarget,  m_bIsRegularMode ? SPELL_WRATH_OF_MISERY_N : SPELL_WRATH_OF_MISERY_H);
-                         break;
-                     case 1: 
-                         if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                            DoCast(pTarget,  m_bIsRegularMode ? SPELL_BLIZZARD_N : SPELL_BLIZZARD_H);
-                         break;
-                 }
-                 m_uiSpecialCastTimer = urand(10000, 15000);
-              }else m_uiSpecialCastTimer -= uiDiff;
+        switch (m_uiPhase)
+        {
+            case 2:
+            {
+                if (m_uiArcaneBlastTimer < uiDiff)
+                {     
+                    m_creature->InterruptNonMeleeSpells(false);
+                    m_creature->CastSpell(m_creature,  m_bIsRegularMode ? SPELL_ARCANE_BLAST_N : SPELL_ARCANE_BLAST_H, true);
+                    m_uiArcaneBlastTimer = urand(25000, 30000);
+                }
+                else
+                    m_uiArcaneBlastTimer -= uiDiff;
+
+                if (m_uiSpecialCastTimer < uiDiff)
+                {
+                    m_creature->InterruptNonMeleeSpells(false);
+                    switch (urand(0, 1))
+                    {
+                        case 0: 
+                            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                                DoCast(pTarget,  m_bIsRegularMode ? SPELL_WRATH_OF_MISERY_N : SPELL_WRATH_OF_MISERY_H);
+                            break;
+                        case 1: 
+                            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                                DoCast(pTarget,  m_bIsRegularMode ? SPELL_BLIZZARD_N : SPELL_BLIZZARD_H);
+                            break;
+                    }
+                    m_uiSpecialCastTimer = urand(10000, 15000);
+                }
+                else
+                    m_uiSpecialCastTimer -= uiDiff;
             
-              if (m_uiFrostBoltTimer < uiDiff)
-              {
-                  if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                     DoCast(pTarget,  m_bIsRegularMode ? SPELL_FROSTBOLT_N : SPELL_FROSTBOLT_H);
-                  m_uiFrostBoltTimer = 1000;
-              }else m_uiFrostBoltTimer -= uiDiff;
+                if (m_uiFrostBoltTimer < uiDiff)
+                {
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        DoCast(pTarget,  m_bIsRegularMode ? SPELL_FROSTBOLT_N : SPELL_FROSTBOLT_H);
+                    m_uiFrostBoltTimer = 1000;
+                }
+                else
+                    m_uiFrostBoltTimer -= uiDiff;
             
-              if(!m_bIsRegularMode)
-              {
-                 if(m_uiSummonMinionTimer < uiDiff)
-                 {    
-                    m_uiSummonMinionTimer = urand (15000,20000);
-                    uint8 SummonLoc = rand()%POS;
-                    for(uint8 i = 0; i < 4; i++)
-                       m_creature->SummonCreature(NPC_FETID_TROLL_CORPSE, PosSummonHandler[SummonLoc][0],PosSummonHandler[SummonLoc][1],PosSummonHandler[SummonLoc][2],0, TEMPSUMMON_TIMED_DESPAWN, 120000);
-                 }else m_uiSummonMinionTimer -= uiDiff;
-              }
-              break;
-           case 1:
-              if(m_pInstance && m_pInstance->GetData(TYPE_CRYSTALS) > 3)
-                 PhaseTwo();
+                break;
+            }
+            case 1:
+            {
+                if (m_pInstance && m_pInstance->GetData(TYPE_CRYSTALS) > 3)
+                    PhaseTwo();
 
-              if (m_uiSummonAddsTimer < uiDiff)
-              {    
-                 uint8 SummonLoc = rand()%POS;
-                 m_creature->SummonCreature(NPC_HULKING_CORPSE, PosSummonHandler[SummonLoc][0],PosSummonHandler[SummonLoc][1],PosSummonHandler[SummonLoc][2],0, TEMPSUMMON_TIMED_DESPAWN, 120000);
-                 m_creature->SummonCreature(NPC_RISEN_SHADOWCASTER, PosSummonHandler[SummonLoc][0],PosSummonHandler[SummonLoc][1],PosSummonHandler[SummonLoc][2],0, TEMPSUMMON_TIMED_DESPAWN, 120000);
-                 m_creature->SummonCreature(NPC_FETID_TROLL_CORPSE, PosSummonHandler[SummonLoc][0],PosSummonHandler[SummonLoc][1],PosSummonHandler[SummonLoc][2],0, TEMPSUMMON_TIMED_DESPAWN, 120000);
-                 m_creature->SummonCreature(NPC_FETID_TROLL_CORPSE, PosSummonHandler[SummonLoc][0],PosSummonHandler[SummonLoc][1],PosSummonHandler[SummonLoc][2],0, TEMPSUMMON_TIMED_DESPAWN, 120000);
-                 m_uiSummonAddsTimer = 17500;
-              }else m_uiSummonAddsTimer -= uiDiff;
+                if (m_uiSummonAddsTimer < uiDiff)
+                {    
+                    m_creature->SummonCreature(NPC_HULKING_CORPSE, SUMMON_X+urand(0, 5)-urand(0, 5), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN, 120000);
+                    m_creature->SummonCreature(NPC_RISEN_SHADOWCASTER, SUMMON_X+urand(0, 5)-urand(0, 5), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN, 120000);
+                    m_creature->SummonCreature(NPC_FETID_TROLL_CORPSE, SUMMON_X+urand(0, 5)-urand(0, 5), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN, 120000);
+                    m_creature->SummonCreature(NPC_FETID_TROLL_CORPSE, SUMMON_X+urand(0, 5)-urand(0, 5), SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN, 120000);
+                    m_uiSummonAddsTimer = 17500;
+                }
+                else
+                    m_uiSummonAddsTimer -= uiDiff;
 
-              if (m_uiCrystalHandlerTimer < uiDiff)
-              {    
-                 DoScriptText(EMOTE_ASSISTANCE, m_creature);
-                 DoScriptText(SAY_ADDS, m_creature);
-                 uint8 SummonLoc = rand()%POS;
-                 m_creature->SummonCreature(NPC_CRYSTAL_HANDLER, PosSummonHandler[SummonLoc][0],PosSummonHandler[SummonLoc][1],PosSummonHandler[SummonLoc][2],0, TEMPSUMMON_TIMED_DESPAWN, 120000);
-                 m_uiCrystalHandlerTimer = 30000;
-              }else m_uiCrystalHandlerTimer -= uiDiff;
-              break;
-           }
+                if (m_uiCrystalHandlerTimer < uiDiff)
+                {    
+                    DoScriptText(EMOTE_ASSISTANCE, m_creature);
+                    DoScriptText(SAY_ADDS, m_creature);
+                    m_creature->SummonCreature(NPC_CRYSTAL_HANDLER, SUMMON_X, SUMMON_Y, SUMMON_Z, SUMMON_O, TEMPSUMMON_TIMED_DESPAWN, 120000);
+                    m_uiCrystalHandlerTimer = 30000;
+                }
+                else
+                    m_uiCrystalHandlerTimer -= uiDiff;
+                break;
+            }
+        }
     }
 };
 
 CreatureAI* GetAI_boss_novos(Creature* pCreature)
 {
     return new boss_novosAI(pCreature);
-}
-
-struct MANGOS_DLL_DECL npc_risen_shadowcasterAI : public ScriptedAI
-{
-    npc_risen_shadowcasterAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-    bool m_bIsRegularMode;
-    
-    uint32 m_uiCheckTimer;
-
-    void Reset()
-    {
-        m_uiCheckTimer = 1000;
-    }
-    
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_uiCheckTimer < uiDiff)
-        {
-            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SHADOW_BOLT_N : SPELL_SHADOW_BOLT_H);
-            m_uiCheckTimer = 1000;
-        }else m_uiCheckTimer -= uiDiff;
-    }
-};
-
-CreatureAI* GetAI_npc_risen_shadowcaster(Creature* pCreature)
-{
-    return new npc_risen_shadowcasterAI(pCreature);
 }
 
 struct MANGOS_DLL_DECL npc_crystal_handlerAI : public ScriptedAI
@@ -341,9 +347,11 @@ struct MANGOS_DLL_DECL npc_crystal_handlerAI : public ScriptedAI
 
         if (m_uiSpellTimer < uiDiff)
         {
-            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SHADOW_LIGHT_N : SPELL_SHADOW_LIGHT_H);
+            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FLASH_OF_DARKNESS_N : SPELL_FLASH_OF_DARKNESS_H);
             m_uiSpellTimer = urand(5000, 10000);
-        }else m_uiSpellTimer -= uiDiff;
+        }
+        else
+            m_uiSpellTimer -= uiDiff;
     }
 };
 
@@ -354,11 +362,11 @@ CreatureAI* GetAI_npc_crystal_handler(Creature* pCreature)
 
 bool GOHello_novos_crystal(Player* pPlayer, GameObject* pGo)
 {       
-    if(Creature* Trigger = GetClosestCreatureWithEntry(pGo, NPC_CRYSTAL_CHANNEL, 20.0f))
-       Trigger->InterruptNonMeleeSpells(false);
+    if (Creature* Trigger = GetClosestCreatureWithEntry(pGo, NPC_CRYSTAL_CHANNEL, 20.0f))
+        Trigger->InterruptNonMeleeSpells(false);
 
-    if(ScriptedInstance* m_pInstance = (ScriptedInstance*)pGo->GetInstanceData())
-       m_pInstance->SetData(TYPE_CRYSTALS, 1);
+    if (ScriptedInstance* m_pInstance = (ScriptedInstance*)pGo->GetInstanceData())
+        m_pInstance->SetData(TYPE_CRYSTALS, 1);
 
     pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
 
@@ -368,25 +376,20 @@ bool GOHello_novos_crystal(Player* pPlayer, GameObject* pGo)
 
 void AddSC_boss_novos()
 {
-    Script *newscript;
+    Script* pNewScript;
 
-    newscript = new Script;
-    newscript->Name = "boss_novos";
-    newscript->GetAI = &GetAI_boss_novos;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_novos";
+    pNewScript->GetAI = &GetAI_boss_novos;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_risen_shadowcaster";
-    newscript->GetAI = &GetAI_npc_risen_shadowcaster;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_crystal_handler";
+    pNewScript->GetAI = &GetAI_npc_crystal_handler;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_crystal_handler";
-    newscript->GetAI = &GetAI_npc_crystal_handler;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "go_novos_crystal";
-    newscript->pGOHello = &GOHello_novos_crystal;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "go_novos_crystal";
+    pNewScript->pGOHello = &GOHello_novos_crystal;
+    pNewScript->RegisterSelf();
 }

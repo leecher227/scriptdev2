@@ -4,7 +4,6 @@ UPDATE creature_template SET AIName='', ScriptName='boss_trollgore' WHERE entry=
 UPDATE creature_template SET AIName='', ScriptName='npc_drakkari_invader' WHERE entry=27709;
 UPDATE creature_template SET AIName='', ScriptName='boss_novos' WHERE entry=26631;
 UPDATE gameobject_template SET ScriptName='go_novos_crystal' WHERE entry IN (189301, 189300, 189302, 189299);
-UPDATE creature_template SET AIName='', ScriptName='npc_risen_shadowcaster' WHERE entry=27600;
 UPDATE creature_template SET AIName='', ScriptName='npc_crystal_handler' WHERE entry=26627;
 UPDATE creature_template SET AIName='', ScriptName='boss_dred' WHERE entry=27483;
 UPDATE creature_template SET AIName='', ScriptName='boss_tharonja' WHERE entry = 26632;

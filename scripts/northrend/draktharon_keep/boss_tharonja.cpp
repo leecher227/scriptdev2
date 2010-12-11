@@ -62,10 +62,6 @@ enum
     NPC_DRAKURU                        = 28016,
 
     MODEL_ID_INVISIBLE                 = 11686,
-
-    //achie hacks
-    ACHIEVEMENT_NORMAL                 = 482,
-    ACHIEVEMENT_HEROIC                 = 493
 };
 
 /*######

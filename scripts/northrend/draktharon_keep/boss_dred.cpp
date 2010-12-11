@@ -27,19 +27,21 @@ EndScriptData */
 
 enum
 {
-    SAY_KING_DRED_TALON                = -1600020,
-    SAY_CALL_FOR_RAPTOR                = -1600021,
+    SAY_KING_DRED_TALON             = -1600020,
+    SAY_CALL_FOR_RAPTOR             = -1600021,
     
-    SPELL_BELLOWING_ROAR               = 22686,
-    SPELL_FEARSOME_ROAR_N              = 48849,
-    SPELL_FEARSOME_ROAR_H              = 59422,
-    SPELL_GRIEVOUS_BITE                = 48920,
-    SPELL_MANGLING_SLASH               = 48873,
-    SPELL_PIERCING_SLASH               = 48878,
-    SPELL_RAPTOR_CALL                  = 59416,            //not yet implemented
+    SPELL_BELLOWING_ROAR            = 22686,
+    SPELL_FEARSOME_ROAR_N           = 48849,
+    SPELL_FEARSOME_ROAR_H           = 59422,
+    SPELL_GRIEVOUS_BITE             = 48920,
+    SPELL_MANGLING_SLASH            = 48873,
+    SPELL_PIERCING_SLASH            = 48878,
+    SPELL_RAPTOR_CALL               = 59416,                //not yet implemented
 
-    NPC_DRAKKARI_GUTRIPPER             = 26641,
-    NPC_DRAKKARI_SCYTHECLAW            = 26628
+    NPC_DRAKKARI_GUTRIPPER          = 26641,
+    NPC_DRAKKARI_SCYTHECLAW         = 26628,
+
+    ACHIEV_BETTER_OFF_DRED          = 2039,
 };
 
 /*######
@@ -66,6 +68,7 @@ struct MANGOS_DLL_DECL boss_dredAI : public ScriptedAI
     uint32 m_uiCheckTimer;
     uint32 m_uiCallForRaptorTimer;
     uint32 m_uiCallForRaptorSpawnTimer;
+    uint32 m_uiRaptorCount;
 
     bool m_bIsNeedSummon;
     
@@ -80,6 +83,7 @@ struct MANGOS_DLL_DECL boss_dredAI : public ScriptedAI
         m_uiCheckTimer = 15000;
         m_uiCallForRaptorTimer = 25000;
         m_bIsNeedSummon = false;
+        m_uiRaptorCount = 0;
     }
 
     void JustDied(Unit* pKiller)
@@ -98,6 +102,19 @@ struct MANGOS_DLL_DECL boss_dredAI : public ScriptedAI
                     i->getSource()->RemoveAurasDueToSpell(SPELL_GRIEVOUS_BITE);
             }
         }
+
+        if (m_pInstance && !m_bIsRegularMode && m_uiRaptorCount >= 6)
+            m_pInstance->DoCompleteAchievement(ACHIEV_BETTER_OFF_DRED);
+    }
+
+    void JustSummoned(Creature* pSummoned)
+    {
+        pSummoned->SetInCombatWithZone();
+    }
+
+    void SummonedCreatureJustDied(Creature* pSummoned)
+    {
+        ++m_uiRaptorCount;
     }
     
     void UpdateAI(const uint32 uiDiff)
@@ -181,26 +198,11 @@ struct MANGOS_DLL_DECL boss_dredAI : public ScriptedAI
         {
             if (m_uiCallForRaptorSpawnTimer < uiDiff)
             {    
-                switch (urand(0, 1))
-                {
-                    case 0:
-                    {
-                        if (Creature* pRaptor1 = m_creature->SummonCreature(NPC_DRAKKARI_GUTRIPPER, (m_creature->GetPositionX()-20)+rand()%40, (m_creature->GetPositionY()-20)+rand()%40, m_creature->GetPositionZ(), 0 , TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 240000))
-                        {
-                            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                                pRaptor1->AI()->AttackStart(pTarget);
-                        }
-                    }
-                    case 1:
-                    {
-                        if (Creature* pRaptor2 = m_creature->SummonCreature(NPC_DRAKKARI_SCYTHECLAW, (m_creature->GetPositionX()-20)+rand()%40, (m_creature->GetPositionY()-20)+rand()%40, m_creature->GetPositionZ(), 0 , TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 240000))
-                        {
-                            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                                pRaptor2->AI()->AttackStart(pTarget);
-                        }
-                    }
-                }
-                
+                if (urand(0, 1))
+                    m_creature->SummonCreature(NPC_DRAKKARI_GUTRIPPER, (m_creature->GetPositionX()-20)+rand()%40, (m_creature->GetPositionY()-20)+rand()%40, m_creature->GetPositionZ(), 0 , TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 240000);
+                else
+                    m_creature->SummonCreature(NPC_DRAKKARI_SCYTHECLAW, (m_creature->GetPositionX()-20)+rand()%40, (m_creature->GetPositionY()-20)+rand()%40, m_creature->GetPositionZ(), 0 , TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 240000);
+
                 m_bIsNeedSummon = false;
             }
             else

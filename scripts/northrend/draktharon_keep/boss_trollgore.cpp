@@ -51,6 +51,8 @@ enum
 
     NPC_FLY_BAT                     = 27724,                //vehicle :p
     NPC_INVADER                     = 27709,
+
+    ACHIEV_CONSUMPTION_JUNCTION     = 2151,
 };
 
 struct Locations
@@ -86,6 +88,7 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
     uint32 m_uiCrushTimer;
     uint32 m_uiInfectedWoundTimer;
     uint32 m_uiWaveTimer;
+    bool m_bAchiev;
 
     void Reset()
     {
@@ -93,6 +96,7 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
         m_uiCrushTimer = urand(7000, 10000);
         m_uiInfectedWoundTimer = urand(5000, 8000);
         m_uiWaveTimer = 2000;
+        m_bAchiev = true;
     }
 
     void JustReachedHome()
@@ -120,13 +124,29 @@ struct MANGOS_DLL_DECL boss_trollgoreAI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
 
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_TROLLGORE, DONE);
+            if (!m_bIsRegularMode && m_bAchiev)
+                m_pInstance->DoCompleteAchievement(ACHIEV_CONSUMPTION_JUNCTION);
+        }
     }
 
     void DamageTaken(Unit* pDoneBy, uint32& uiDamage) 
     {
         if (pDoneBy->GetTypeId() != TYPEID_PLAYER)
             uiDamage = uiDamage / 3;
+    }
+
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
+    {
+        if (m_bAchiev && pSpell->Id == SPELL_CONSUME_BUFF_H)
+        {
+            if (Aura* pConsume = m_creature->GetAura(SPELL_CONSUME_BUFF_H, EFFECT_INDEX_0))
+            {
+                if (pConsume->GetStackAmount() >= 10)
+                    m_bAchiev = false;
+            }
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -215,7 +235,6 @@ struct MANGOS_DLL_DECL npc_drakkari_invaderAI : public ScriptedAI
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
-        
         if (pSpell->Id == (m_bIsRegularMode ? SPELL_CORPSE_EXPLODE_N : SPELL_CORPSE_EXPLODE_H))
         {
             if (m_pInstance)
