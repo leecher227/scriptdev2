@@ -15,11 +15,10 @@
  */
 
 /* ScriptData
-SDName: Boss_Malygos
-SD%Complete: 98%
-SDComment: Hacks, hacks, hacks...
-SDAuthor: Tasssadar + PSZ + some corrections from MaxXx2021
-SDCategory: Nexus, Eye of Eternity
+SDName: boss_malygos
+SD%Complete: 0
+SDComment: Placeholder
+SDCategory: Eye of Eternity
 EndScriptData */
 
 #include "precompiled.h"

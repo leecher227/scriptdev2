@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -15,9 +15,9 @@
  */
 
 /* ScriptData
-SDName: Instance_Vault_of_Archavon
+SDName: instance_vault_of_archavon
 SD%Complete: 0
-SDComment:
+SDComment: Placeholder
 SDCategory: Vault of Archavon
 EndScriptData */
 
@@ -176,9 +176,10 @@ InstanceData* GetInstanceData_instance_vault_of_archavon(Map* pMap)
 
 void AddSC_instance_vault_of_archavon()
 {
-    Script *newscript;
-    newscript = new Script;
-    newscript->Name = "instance_vault_of_archavon";
-    newscript->GetInstanceData = &GetInstanceData_instance_vault_of_archavon;
-    newscript->RegisterSelf();
+    Script* pNewScript;
+
+    pNewScript = new Script;
+    pNewScript->Name = "instance_vault_of_archavon";
+    pNewScript->GetInstanceData = &GetInstanceData_instance_vault_of_archavon;
+    pNewScript->RegisterSelf();
 }
