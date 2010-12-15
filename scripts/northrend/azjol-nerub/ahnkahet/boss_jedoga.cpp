@@ -190,6 +190,11 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
                 (*iter)->ForcedDespawn(); 
     }
 
+    void JustReachedHome()
+    {
+        DoCast(m_creature, SPELL_SPHERE_VISUAL);
+    }
+
     void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_AGGRO, m_creature);
