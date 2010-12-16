@@ -359,6 +359,7 @@ extern void AddSC_boss_sapphiron();
 extern void AddSC_boss_thaddius();
 extern void AddSC_instance_naxxramas();
 extern void AddSC_boss_malygos();                           // nexus, eye_of_eternity
+extern void AddSC_instance_eye_of_eternity();
 extern void AddSC_boss_anomalus();                          // nexus, nexus
 extern void AddSC_boss_keristrasza();
 extern void AddSC_boss_ormorok();
@@ -370,8 +371,6 @@ extern void AddSC_boss_urom();
 extern void AddSC_boss_varos();
 extern void AddSC_instance_oculus();
 extern void AddSC_oculus();
-extern void AddSC_boss_malygos();                           //eye of eternity
-extern void AddSC_instance_eye_of_eternity();
 extern void AddSC_boss_sartharion();                        // obsidian_sanctum
 extern void AddSC_instance_obsidian_sanctum();
 extern void AddSC_boss_baltharus();                         // ruby_sanctum
@@ -875,6 +874,7 @@ void AddScripts()
     AddSC_boss_thaddius();
     AddSC_instance_naxxramas();
     AddSC_boss_malygos();                                   // nexus, eye_of_eternity
+    AddSC_instance_eye_of_eternity();
     AddSC_boss_anomalus();                                  // nexus, nexus
     AddSC_boss_keristrasza();
     AddSC_boss_ormorok();
@@ -886,8 +886,6 @@ void AddScripts()
     AddSC_boss_varos();
     AddSC_instance_oculus();
     AddSC_oculus();
-    AddSC_boss_malygos();                                   //eye of eternity
-    AddSC_instance_eye_of_eternity();
     AddSC_boss_sartharion();                                // obsidian_sanctum
     AddSC_instance_obsidian_sanctum();
     AddSC_boss_baltharus();                                 // ruby_sanctum
