@@ -50,8 +50,12 @@ enum
     NPC_AHNKAHAR_GUARDIAN_EGG     = 30173,
     NPC_AHNKAHAR_SWARM_EGG        = 30172,
     NPC_AHNKAHAR_GUARDIAN         = 30176,
-    NPC_AHNKAHAR_SWARMER          = 30178
+    NPC_AHNKAHAR_SWARMER          = 30178,
+
+    ACHIEV_RESPECT_YOUR_ELDERS    = 2038
 };
+
+bool m_bAchiev;
 
 /*######
 ## mob_ahnkahat_egg
@@ -84,6 +88,12 @@ struct MANGOS_DLL_DECL mob_ahnkahar_eggAI : public ScriptedAI
                 pSummoned->GetMotionMaster()->MovePoint(0, fPosX, fPosY, fPosZ);
             }
         }
+    }
+
+    void SummonedCreatureJustDied(Creature* pSummoned)
+    {
+        if (pSummoned->GetEntry() == NPC_AHNKAHAR_GUARDIAN)
+            m_bAchiev = false;
     }
 };
 
@@ -123,6 +133,7 @@ struct MANGOS_DLL_DECL boss_nadoxAI : public ScriptedAI
         m_uiSummonTimer = 5000;
         m_uiBroodPlagueTimer = 15000;
         m_uiBroodRageTimer = 20000;
+        m_bAchiev = true;
     }
 
     Creature* SelectRandomCreatureOfEntryInRange(uint32 uiEntry, float fRange)
@@ -157,6 +168,9 @@ struct MANGOS_DLL_DECL boss_nadoxAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
+
+        if (m_pInstance && !m_bIsRegularMode && m_bAchiev)
+            m_pInstance->DoCompleteAchievement(ACHIEV_RESPECT_YOUR_ELDERS);
     }
 
     void UpdateAI(const uint32 uiDiff)

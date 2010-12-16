@@ -60,12 +60,19 @@ enum
     SAY_SLAY_1                      = -1619035,
     SAY_SLAY_2                      = -1619036,
     SAY_SLAY_3                      = -1619037,
-    SAY_DEATH_1                     = -1619038,
-    SAY_DEATH_2                     = -1619039,
+    SAY_DEATH                       = -1619038,
+    SAY_WHISPER_AGGRO               = -1619133,
+    SAY_WHISPER_INSANITY            = -1619134,
+    SAY_WHISPER_SLAY_1              = -1619135,
+    SAY_WHISPER_SLAY_2              = -1619136,
+    SAY_WHISPER_SLAY_3              = -1619137,
+    SAY_WHISPER_DEATH               = -1619138,
 
     PHASE_FIGHT                     = 1,
     PHASE_INSANITY_1                = 2,  // Wait five seconds until cast is complete, set unattackable
-    PHASE_INSANITY_2                = 3, 
+    PHASE_INSANITY_2                = 3,
+
+    ACHIEV_VOLAZJS_QUICK_DEMISE     = 1862,
 
     //Class Spells
     //DRUID
@@ -182,6 +189,7 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     Unit* m_pShiverTarget;
     bool m_bShiverIsHere;
     uint32 m_uiShiverCastTimer;
+    uint32 m_uiAchievTimer;
 
     //Insanity
     uint32 m_uiCheckIllusionTimer;
@@ -212,6 +220,8 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
         //Insanity
         m_uiCheckIllusionTimer = 2000;
 
+        m_uiAchievTimer = 0;
+
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetPhaseMask(497, true);
     }
@@ -219,34 +229,39 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_AGGRO, m_creature);
+        DoWhisper(SAY_WHISPER_AGGRO);
     }
 
     void KilledUnit(Unit* pVictim)
     {
-        switch(urand(0, 2))
+        switch (urand(0, 2))
         {
-            case 0: DoScriptText(SAY_SLAY_1, m_creature); break;
-            case 1: DoScriptText(SAY_SLAY_2, m_creature); break;
-            case 2: DoScriptText(SAY_SLAY_3, m_creature); break;
+            case 0:
+                DoScriptText(SAY_SLAY_1, m_creature);
+                DoWhisper(SAY_WHISPER_SLAY_1);
+                break;
+            case 1:
+                DoScriptText(SAY_SLAY_2, m_creature);
+                DoWhisper(SAY_WHISPER_SLAY_2);
+                break;
+            case 2:
+                DoScriptText(SAY_SLAY_3, m_creature);
+                DoWhisper(SAY_WHISPER_SLAY_3);
+                break;
         }
     }
 
     void JustDied(Unit* pKiller)
     {
-        DoScriptText(urand(0, 1) ? SAY_DEATH_1 : SAY_DEATH_2, m_creature);
+        DoScriptText(SAY_DEATH, m_creature);
+        DoWhisper(SAY_WHISPER_DEATH);
+        
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_VOLAZJ, DONE);
-    }
-
-    void InsanityPhase()
-    {
-       m_uiPhase = PHASE_INSANITY_1;
-       m_uiAction = 0;
-       ++m_uiHP;
-       Move(false);
-       m_creature->CastSpell(m_creature, SPELL_INSANITY, false);
-       m_uiInsanityCastTimer = 5100;
-       m_bInsanityUse = true;
+            if (!m_bIsRegularMode && m_uiAchievTimer <= 120000)
+                m_pInstance->DoCompleteAchievement(ACHIEV_VOLAZJS_QUICK_DEMISE);
+        }
     }
 
     void AttackStart(Unit* pWho)
@@ -255,6 +270,35 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
             return;
         else
             ScriptedAI::AttackStart(pWho);
+    }
+
+    void DoWhisper(int32 iTextId)
+    {
+        Map* pMap = m_creature->GetMap();
+
+        if (pMap && pMap->IsDungeon())
+        {
+            Map::PlayerList const &PlayerList = pMap->GetPlayers();
+
+            if (!PlayerList.isEmpty())
+            {
+                for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+                    DoScriptText(iTextId, m_creature, i->getSource());
+            }
+        }
+    }
+
+    void InsanityPhase()
+    {
+        DoScriptText(SAY_INSANITY, m_creature);
+        DoWhisper(SAY_WHISPER_INSANITY);
+        m_uiPhase = PHASE_INSANITY_1;
+        m_uiAction = 0;
+        ++m_uiHP;
+        Move(false);
+        m_creature->CastSpell(m_creature, SPELL_INSANITY, false);
+        m_uiInsanityCastTimer = 5100;
+        m_bInsanityUse = true;
     }
 
     void Move(bool bNotDisable)
@@ -361,6 +405,8 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     {
         if (!m_creature->SelectHostileTarget() || (!m_creature->getVictim() && m_uiPhase != PHASE_INSANITY_2))
             return;
+
+        m_uiAchievTimer += uiDiff;
 
         if (m_bInsanityUse)
         {

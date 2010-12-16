@@ -73,7 +73,10 @@ enum
         SUBPHASE_SACRIFACE              = 44,
 
     VOLUNTEER_COUNT                     = 29,
+
+    ACHIEV_VOLUNTEER_WORK               = 2056
 };
+
 #define CENTER_X                        372.331f
 #define CENTER_Y                        -705.278f
 #define GROUND_Z                        -16.17f
@@ -136,6 +139,7 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
 
     uint32 m_uiEvadeCheckCooldown;
     bool m_bDelay;
+    bool m_bAchiev;
 
     bool m_bVolunteerDied;
     bool m_bIsIntroDone;
@@ -152,11 +156,11 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
     uint32 m_uiLightningBoltTimer;
     uint32 m_uiThundershockTimer;
 
-
     void Reset()
     {
         m_uiEvadeCheckCooldown = 2000;
         m_bDelay = false;
+        m_bAchiev = true;
         m_uiPhase = PHASE_FIGHT;
         m_uiSubPhase = 0;
         m_uiPreachingText = 0;
@@ -217,7 +221,7 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
                 m_creature->SetInCombatWithZone();
                 
                 //Spawn Volunteers
-                for(int i = 0; i < VOLUNTEER_COUNT; i++)
+                for (uint8 i = 0; i < VOLUNTEER_COUNT; i++)
                     if(Creature *pTemp = m_creature->SummonCreature(NPC_TWILIGHT_VOLUNTEER, VolunteerLoc[i].x, VolunteerLoc[i].y, VolunteerLoc[i].z, VolunteerLoc[i].o, TEMPSUMMON_CORPSE_DESPAWN, 0))
                         pTemp->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
@@ -244,14 +248,18 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
     {
         DoScriptText(SAY_DEATH, m_creature);
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_JEDOGA, DONE);
-
         std::list<Creature*> lUnitList;
         GetCreatureListWithEntryInGrid(lUnitList, m_creature, NPC_TWILIGHT_VOLUNTEER, 100.0f);
         if (!lUnitList.empty())
             for(std::list<Creature*>::iterator iter = lUnitList.begin(); iter != lUnitList.end(); ++iter)
                 (*iter)->ForcedDespawn(); 
+
+        if (m_pInstance)
+        {
+            m_pInstance->SetData(TYPE_JEDOGA, DONE);
+            if (!m_bIsRegularMode && m_bAchiev)
+                m_pInstance->DoCompleteAchievement(ACHIEV_VOLUNTEER_WORK);
+        }
     }
    
     uint64 SelectRandomVolunteer(float fRange)
@@ -473,6 +481,8 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
                         pVolunteer->DealDamage(pVolunteer, pVolunteer->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                     }
                 }
+                else
+                    m_bAchiev = false;
 
                 m_creature->RemoveAurasDueToSpell(SPELL_SPHERE_VISUAL);
                 m_creature->GetMap()->CreatureRelocation(m_creature, CENTER_X, CENTER_Y, GROUND_Z, JEDOGA_O);
