@@ -101,7 +101,10 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
             for (uint8 i = 0; i <= 1; i++)
             {
                 if (Creature* pTemp = m_creature->SummonCreature(NPC_CRYPT_GUARD, m_afCryptGuardPos[0], m_afCryptGuardPos[1]+20*iDirection, m_afCryptGuardPos[2], m_afCryptGuardPos[3], TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000))
+                {
                     m_lCryptGuardList.push_back(pTemp->GetGUID());
+                    pTemp->SetRespawnDelay(WEEK);
+                }
 
                 iDirection = -1;
             }
@@ -264,6 +267,7 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     pTemp->AI()->AttackStart(pTarget);
                 m_bSummonGuard = false;
+                pTemp->SetRespawnDelay(WEEK);
             }
         }
         else
