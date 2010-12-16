@@ -46,7 +46,9 @@ enum
     SPELL_BONE_ARMOR        = 59386,                        // casted on boss, heroic only
 
     NPC_FROST_TOMB          = 23965,
-    NPC_VRYKUL_SKELETON     = 23970
+    NPC_VRYKUL_SKELETON     = 23970,
+
+    ACHIEV_ON_THE_ROCKS     = 1919
 };
 
 const float RUN_DISTANCE = 20.0;
@@ -202,12 +204,15 @@ struct MANGOS_DLL_DECL boss_kelesethAI : public ScriptedAI
     uint32 m_uiSummonTimer;
     uint32 m_uiShadowboltTimer;
 
+    bool m_bAchiev;
+
     void Reset() 
     {
         // timers need confirmation
         m_uiFrostTombTimer = 20000;
         m_uiSummonTimer = 5000 ;
         m_uiShadowboltTimer = 0;
+        m_bAchiev = true;
 
         DespawnAdds();
     }
@@ -257,10 +262,18 @@ struct MANGOS_DLL_DECL boss_kelesethAI : public ScriptedAI
             pSummoned->ApplySpellImmune(0, IMMUNITY_DAMAGE, SPELL_SCHOOL_MASK_FROST, true);
     }
 
+    void SummonedCreatureJustDied(Creature* pSummoned)
+    {
+        if (pSummoned->GetEntry() == NPC_FROST_TOMB)
+            m_bAchiev = false;
+    }
+
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
         DespawnAdds();
+        if (m_pInstance && !m_bIsRegularMode && m_bAchiev)
+                m_pInstance->DoCompleteAchievement(ACHIEV_ON_THE_ROCKS);
     }
 
     void KilledUnit(Unit* pVictim)
