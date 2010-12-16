@@ -135,7 +135,7 @@ struct MANGOS_DLL_DECL boss_maexxnaAI : public ScriptedAI
             m_pInstance->SetData(TYPE_MAEXXNA, IN_PROGRESS);
     }
 
-    void DoCastWebWrap()
+    bool DoCastWebWrap()
     {
         float LocX, LocY, LocZ;
         switch(rand()%3)
@@ -178,6 +178,8 @@ struct MANGOS_DLL_DECL boss_maexxnaAI : public ScriptedAI
                     ((mob_webwrapAI*)pWrap->AI())->SetVictim(pTarget->GetGUID());
             }
         }
+
+        return true;
     }
 
     void UpdateAI(const uint32 diff)

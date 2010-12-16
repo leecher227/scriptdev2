@@ -15,10 +15,14 @@
  */
 
 /* ScriptData
-SDName: boss_zarithian
-SD%Complete:
-SDComment:placeholder
-SDCategory: Ruby Sanctum
+SDName: boss_falric
+SD%Complete: 0%
+SDComment:
+SDCategory: Halls of Reflection
 EndScriptData */
 
 #include "precompiled.h"
+
+void AddSC_boss_falric()
+{
+}

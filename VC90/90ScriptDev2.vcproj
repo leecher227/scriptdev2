@@ -2103,7 +2103,7 @@
 						>
 					</File>
 					<File
-						RelativePath="..\scripts\northrend\ruby_sanctum\boss_zarithian.cpp"
+						RelativePath="..\scripts\northrend\ruby_sanctum\boss_zarithrian.cpp"
 						>
 					</File>
 					<File
@@ -2457,7 +2457,7 @@
 							Name="halls_of_reflection"
 							>
 							<File
-								RelativePath="..\scripts\northrend\icecrown_citadel\frozen_halls\halls_of_reflection\boss_falryn.cpp"
+								RelativePath="..\scripts\northrend\icecrown_citadel\frozen_halls\halls_of_reflection\boss_falric.cpp"
 								>
 							</File>
 							<File
@@ -2946,10 +2946,6 @@
 					<Filter
 						Name="the_mechanar"
 						>
-						<File
-							RelativePath="..\scripts\outland\tempest_keep\the_mechanar\boss_gatewatcher_gyrokill.cpp"
-							>
-						</File>
 						<File
 							RelativePath="..\scripts\outland\tempest_keep\the_mechanar\boss_gatewatcher_ironhand.cpp"
 							>

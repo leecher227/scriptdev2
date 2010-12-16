@@ -15,8 +15,8 @@
  */
 
 /* ScriptData
-SDName: boss_iron_council
-SD%Complete: 
+SDName: assembly_of_iron
+SD%Complete: 0%
 SDComment:
 SDCategory: Ulduar
 EndScriptData */
@@ -1282,37 +1282,37 @@ CreatureAI* GetAI_boss_steelbreaker(Creature* pCreature)
     return new boss_steelbreakerAI(pCreature);
 }
 
-void AddSC_boss_iron_council()
+void AddSC_boss_assembly_of_iron()
 {
-    Script* NewScript;
+    Script* pNewScript;
 
-    NewScript = new Script;
-    NewScript->Name = "boss_brundir";
-    NewScript->GetAI = GetAI_boss_brundir;
-    NewScript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_brundir";
+    pNewScript->GetAI = GetAI_boss_brundir;
+    pNewScript->RegisterSelf();
 
-    NewScript = new Script;
-    NewScript->Name = "boss_molgeim";
-    NewScript->GetAI = GetAI_boss_molgeim;
-    NewScript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_molgeim";
+    pNewScript->GetAI = GetAI_boss_molgeim;
+    pNewScript->RegisterSelf();
 
-    NewScript = new Script;
-    NewScript->Name = "boss_steelbreaker";
-    NewScript->GetAI = GetAI_boss_steelbreaker;
-    NewScript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "boss_steelbreaker";
+    pNewScript->GetAI = GetAI_boss_steelbreaker;
+    pNewScript->RegisterSelf();
 
-    NewScript = new Script;
-    NewScript->Name = "mob_rune_of_power";
-    NewScript->GetAI = &GetAI_mob_rune_of_power;
-    NewScript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "mob_rune_of_power";
+    pNewScript->GetAI = &GetAI_mob_rune_of_power;
+    pNewScript->RegisterSelf();
 
-    NewScript = new Script;
-    NewScript->Name = "mob_rune_of_summoning";
-    NewScript->GetAI = &GetAI_mob_rune_of_summoning;
-    NewScript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "mob_rune_of_summoning";
+    pNewScript->GetAI = &GetAI_mob_rune_of_summoning;
+    pNewScript->RegisterSelf();
 
-    NewScript = new Script;
-    NewScript->Name = "mob_ulduar_lightning_elemental";
-    NewScript->GetAI = &GetAI_mob_ulduar_lightning_elemental;
-    NewScript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "mob_ulduar_lightning_elemental";
+    pNewScript->GetAI = &GetAI_mob_ulduar_lightning_elemental;
+    pNewScript->RegisterSelf();
 }

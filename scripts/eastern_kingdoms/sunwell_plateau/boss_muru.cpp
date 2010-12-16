@@ -468,7 +468,7 @@ CreatureAI* GetAI_mob_singularity(Creature *_Creature)
     return new mob_singularityAI(_Creature);
 }
 
-void AddSC_boss_muru_entropius()
+void AddSC_boss_muru()
 {
     Script *newscript;
         
