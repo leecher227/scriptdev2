@@ -23,7 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "ulduar.h"
-/*
+
 enum
 {
     SAY_INTRO1                      = -1603270,
@@ -919,4 +919,3 @@ void AddSC_boss_algalon()
     newscript->pGOHello = &GOHello_go_celestial_acces;
     newscript->RegisterSelf();
 }
-*/

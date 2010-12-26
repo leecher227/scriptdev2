@@ -23,7 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "ulduar.h"
-/*
+
 enum
 {
     //yells
@@ -416,14 +416,6 @@ static VisionLocXY SkullIcecrownLoc[]=
 // brain room portal loc: 
 // sara -> type_flags = 108; original
 
-// SanityAura, needs core support, not used here
-class MANGOS_DLL_DECL SanityAura : public Aura
-{
-public:
-	SanityAura(const SpellEntry *spell, SpellEffectIndex eff, int32 *bp, SpellAuraHolder *holder, Unit *target, Unit *caster) : Aura(spell, eff, bp, holder, target, caster, NULL)
-    {}
-};
-
 // Yogg Saron, main event controller
 struct MANGOS_DLL_DECL boss_yogg_saronAI : public ScriptedAI
 {
@@ -665,12 +657,13 @@ struct MANGOS_DLL_DECL boss_yogg_saronAI : public ScriptedAI
             {
                 if (i->getSource()->isAlive())
                 {
-                    if(i->getSource()->HasAura(SPELL_SANITY, EFFECT_INDEX_0))
-                        i->getSource()->GetAura(SPELL_SANITY, EFFECT_INDEX_0)->SetStackAmount(100);
+                    if (i->getSource()->HasAura(SPELL_SANITY, EFFECT_INDEX_0))
+                        i->getSource()->GetAura(SPELL_SANITY, EFFECT_INDEX_0)->GetHolder()->SetStackAmount(100);
                     else
                     {
-                        if(i->getSource()->AddAura(new SanityAura(spell, EFFECT_INDEX_0, NULL, i->getSource(), m_creature)))
-                            i->getSource()->GetAura(SPELL_SANITY, EFFECT_INDEX_0)->SetStackAmount(100);
+                        i->getSource()->_AddAura(SPELL_SANITY, 1200000);
+                        if (i->getSource()->HasAura(SPELL_SANITY, EFFECT_INDEX_0))
+                            i->getSource()->GetAura(SPELL_SANITY, EFFECT_INDEX_0)->GetHolder()->SetStackAmount(100);
                     }
                 }
             }
@@ -701,11 +694,11 @@ struct MANGOS_DLL_DECL boss_yogg_saronAI : public ScriptedAI
                             if(m_uiStacks == 100)
                                 DoCast(i->getSource(), SPELL_INSANE);
                             if(m_uiStacks > 1)
-                            i->getSource()->GetAura(SPELL_SANITY, EFFECT_INDEX_0)->SetStackAmount(stack - 1);
+                                i->getSource()->GetAura(SPELL_SANITY, EFFECT_INDEX_0)->GetHolder()->ModStackAmount(-1);
                             else
                             {
-                            i->getSource()->RemoveAurasDueToSpell(SPELL_SANITY);
-                            DoCast(i->getSource(), SPELL_INSANE);
+                                i->getSource()->RemoveAurasDueToSpell(SPELL_SANITY);
+                                DoCast(i->getSource(), SPELL_INSANE);
                             }
                         }
                     }
@@ -2760,4 +2753,3 @@ void AddSC_boss_yogg_saron()
     newscript->GetAI = &GetAI_mob_ominous_cloud;
     newscript->RegisterSelf();
 }
-*/

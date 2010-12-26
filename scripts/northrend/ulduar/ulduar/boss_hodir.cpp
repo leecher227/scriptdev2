@@ -23,7 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "ulduar.h"
-/*
+
 enum
 {
     SPELL_ENRAGE                = 26662,
@@ -1096,4 +1096,3 @@ void AddSC_boss_hodir()
     newscript->GetAI = &GetAI_npc_hodir_shaman;
     newscript->RegisterSelf();
 }
-*/
