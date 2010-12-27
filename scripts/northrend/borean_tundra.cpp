@@ -968,7 +968,7 @@ struct MANGOS_DLL_DECL npc_thassarianAI : public ScriptedAI
                     m_uiValanarGUID = pValanar->GetGUID();
                     pValanar->SetRespawnDelay(DAY);
                     pValanar->GetMotionMaster()->MovePoint(0, 3739.823f, 3570.564f, 477.442f);
-                    pValanar->UpdateEntry(NPC_VISUAL_FORM, 0); //huck! Replace spell (spell "Valanar Transformation" don't work!) He must update Valanar Entry and Change Name!
+                    pValanar->UpdateEntry(NPC_VISUAL_FORM); //hack! Replace spell (spell "Valanar Transformation" don't work!) He must update Valanar Entry and Change Name!
                     pValanar->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
                     pValanar->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                     pValanar->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, uint32(0));

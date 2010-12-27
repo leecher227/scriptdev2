@@ -60,7 +60,7 @@ static t_Locations PortalLoc[]=
 {-3050005, 1498.09f,  -24.246f,  420.967f, 0,     true, TYPE_XT002},
 {-3050006, 1859.45f,  -24.1f,    448.9f,   0,     true, TYPE_KOLOGARN},
 {-3050007, 2086.27f,  -24.3134f, 421.239f, 0,     true, TYPE_AURIAYA},
-{-3050008, 2517.398f, 2568.89f,  412.69f,  6.17f, true, TYPE_MIMIRON_TP},
+{-3050008, 2517.398f, 2568.89f,  412.69f,  6.17f, true, TYPE_AURIAYA/*TYPE_MIMIRON_TP*/},
 {-3050009, 1854.297f, -11.0173f, 334.4f,   0,     true, TYPE_VEZAX},
 };
 
