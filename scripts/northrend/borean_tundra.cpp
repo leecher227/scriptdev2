@@ -693,7 +693,7 @@ struct MANGOS_DLL_DECL npc_beryl_sorcererAI : public FollowerAI
     }
     void EnterCombat(Unit* pWho)
     {
-            AttackStart(pWho);
+         AttackStart(pWho);
     }
     
     void SpellHit(Unit* pCaster, SpellEntry const* pSpell)
@@ -831,6 +831,457 @@ CreatureAI* GetAI_npc_overseer_narvir(Creature* pCreature)
     return new npc_overseer_narvir (pCreature);
 }
 
+/**** Quest: Last Rites ****/
+enum
+{
+    /************* Speech and Sounds ***********************/
+    SAY_DIA01           = -1534071,
+    SAY_DIA02           = -1534072,
+    SAY_DIA03           = -1534073,
+    SAY_DIA04           = -1534074,
+    SAY_DIA05           = -1534075,
+    SAY_DIA06           = -1534076,
+    SAY_DIA07           = -1534077,
+    SAY_DIA08           = -1534078,
+    SAY_DIA09           = -1534079,
+    SAY_DIA10           = -1534080,
+    SAY_DIA11           = -1534081,
+    SAY_DIA12           = -1534082,
+    SAY_DIA13           = -1534083,
+    SAY_DIA14           = -1534084,
+    SAY_DIA15           = -1534085,
+    SAY_DIA16           = -1534086,
+    SAY_DIA17           = -1534087,
+    SAY_DIA18           = -1534088,
+    SAY_DIA19           = -1534089,
+    SAY_DIA20           = -1534090,
+
+    /************* Npc's ***********************/
+    NPC_THASSARIAN      = 26170,
+    NPC_LICH_KING       = 26203,
+    NPC_LERYSSA         = 25251,
+    NPC_ARLOS           = 25250,
+    NPC_VALANAR         = 28189,
+    NPC_VISUAL_FORM     = 25301,
+
+    /************* Other's ***********************/
+    QUEST_LAST_RITES    = 12019,
+    STAFF_ID            = 485,
+    AREA_ID             = 4128,
+};
+
+#define GOSSIP_ITEM_T   "Let's do this, Thassarian. It's now or never."
+
+struct MANGOS_DLL_DECL npc_thassarianAI : public ScriptedAI
+{
+    npc_thassarianAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+	
+    uint32 m_uiStepTimer;
+    uint32 m_uiStep;
+
+    uint64 m_uiValanarGUID;
+    uint64 m_uiLichKingGUID;
+    uint64 m_uiLeryssaGUID;
+    uint64 m_uiArlosGUID;
+
+    void Reset() 
+    {  
+        m_uiValanarGUID = 0;
+        m_uiLichKingGUID = 0;
+        m_uiLeryssaGUID = 0;
+        m_uiArlosGUID = 0;
+        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        if (m_creature->GetAreaId() == AREA_ID)
+            m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+        m_uiStep = 0;
+        m_uiStepTimer = 100;
+    }
+
+    void JustDied(Unit* pKiller)
+    {
+        if (Unit* Leryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
+	      Kill(Leryssa);
+        if (Unit* Arlos = m_creature->GetMap()->GetCreature(m_uiArlosGUID))
+            Kill(Arlos);
+        if (Unit* Valanar = m_creature->GetMap()->GetCreature(m_uiValanarGUID))
+            Valanar->RemoveFromWorld();
+    }
+
+    void EnterEvadeMode()
+    {
+        m_creature->RemoveAllAuras();
+        m_creature->DeleteThreatList();
+        m_creature->CombatStop(true);
+
+        m_creature->SetLootRecipient(NULL);
+
+        if (m_creature->isAlive() && m_uiStep > 20)
+        {
+            m_creature->GetMotionMaster()->MoveTargetedHome();
+            Reset();
+        }
+    }
+
+    void StartEvent(uint8 EventId)
+    {   
+        m_uiStep = EventId;
+        m_uiStepTimer = 100;
+    }
+
+    void JumpNextStep(uint32 Time)
+    {
+        m_uiStepTimer = Time;
+        m_uiStep++;
+    }
+
+    void Kill(Unit* Oo)
+    {
+        Oo->DealDamage(Oo, Oo->GetMaxHealth() ,NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+    }
+
+    void Event()
+    {
+        switch(m_uiStep)
+        {
+            case 1:
+               m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+               m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+               m_creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
+               m_creature->GetMotionMaster()->MovePoint(0, 3712.466f, 3570.2911f, 477.443f);
+               JumpNextStep(4000);
+               break;
+            case 2:
+               m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READY1H);
+               if (Creature* LichKing = m_creature->SummonCreature(NPC_LICH_KING,3730.15f,3519.43f,473.32f,1.37f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30))
+               {
+                   m_uiLichKingGUID = LichKing->GetGUID();
+                   LichKing->GetMotionMaster()->MovePoint(0, 3738.691f, 3564.734f, 477.442f);
+               }
+               JumpNextStep(3000);
+               break;
+            case 3:
+               if (Creature* Valanar = m_creature->SummonCreature(NPC_VALANAR,3748.80f,3615.27f,473.3232f,4.50f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,60000))
+               {
+                   m_uiValanarGUID = Valanar->GetGUID();
+                   Valanar->SetRespawnDelay(DAY);
+                   Valanar->GetMotionMaster()->MovePoint(0, 3739.823f, 3570.564f, 477.442f);
+                   ((Creature*)Valanar)->UpdateEntry(NPC_VISUAL_FORM, 0); //huck! Replace spell (spell "Valanar Transformation" don't work!) He must update Valanar Entry and Change Name!
+                   Valanar->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                   Valanar->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                   Valanar->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, uint32(0));
+               }
+               JumpNextStep(20000);
+               break;
+            case 4:
+               if (Unit* Valanar = m_creature->GetMap()->GetCreature(m_uiValanarGUID))
+               {
+                   ((Creature*)Valanar)->UpdateEntry(NPC_VALANAR);
+                   Valanar->SetStandState(UNIT_STAND_STATE_KNEEL);
+                   ((Creature*)Valanar)->LoadEquipment(STAFF_ID); 
+                   DoScriptText(SAY_DIA01, Valanar);
+               }
+               if (Creature* Leryssa = m_creature->SummonCreature(NPC_LERYSSA,3753.105f,3614.296f,473.32f,1.37f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+               {  
+                   m_uiLeryssaGUID = Leryssa->GetGUID();
+                   Leryssa->GetMotionMaster()->MovePoint(0, 3745.636f, 3572.464f, 477.442f);
+                   Leryssa->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                   Leryssa->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+               }
+               if (Creature* Arlos = m_creature->SummonCreature(NPC_ARLOS,3744.82f,3616.11f,473.32f,1.37f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+               {
+                   m_uiArlosGUID = Arlos->GetGUID();
+                   Arlos->GetMotionMaster()->MovePoint(0, 3734.854f, 3573.028f, 477.442f);
+                   Arlos->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                   Arlos->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+               }
+               JumpNextStep(8000);
+               break;
+            case 5:
+               if (Unit* Valanar = m_creature->GetMap()->GetCreature(m_uiValanarGUID))
+		       DoScriptText(SAY_DIA02, Valanar);
+               JumpNextStep(11000);
+               break;
+            case 6:
+               if (Unit* Leryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
+                   Leryssa->CastSpell(Leryssa,45066,false);
+               if (Unit* Arlos = m_creature->GetMap()->GetCreature(m_uiArlosGUID))
+                   Arlos->CastSpell(Arlos,45066,false);
+               if (Unit* LichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                   DoScriptText(SAY_DIA03, LichKing);
+               JumpNextStep(9000);
+               break;
+            case 7:
+               m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+               m_creature->GetMotionMaster()->MovePoint(0, 3722.271f, 3566.878f, 477.442f);
+               if (Unit* LichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                   m_creature->SetFacingToObject(LichKing);
+               DoScriptText(SAY_DIA04, m_creature);
+               JumpNextStep(2000);
+               break;
+            case 8:
+               if (Unit* Valanar = m_creature->GetMap()->GetCreature(m_uiValanarGUID))
+                   Valanar->SetStandState(UNIT_STAND_STATE_STAND);
+               if (Unit* LichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                   LichKing->SetFacingToObject(m_creature);
+               DoScriptText(SAY_DIA05, m_creature);
+               JumpNextStep(6000);
+               break;
+            case 9:
+               if (Unit* LichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                   DoScriptText(SAY_DIA06, LichKing);
+               JumpNextStep(17000);
+               break;
+            case 10:
+               DoScriptText(SAY_DIA07, m_creature);
+               JumpNextStep(9000);
+               break;
+            case 11:
+               if (Unit* Valanar = m_creature->GetMap()->GetCreature(m_uiValanarGUID))
+                   DoScriptText(SAY_DIA08, Valanar);
+               JumpNextStep(6000);
+               break;
+            case 12:
+               if (Unit* LichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+               {
+                   if(Unit* Valanar = m_creature->GetMap()->GetCreature(m_uiValanarGUID))
+                   {
+                       LichKing->SetFacingToObject(Valanar);
+		           DoScriptText(SAY_DIA09, LichKing);
+                   }
+               }
+               JumpNextStep(4000);
+               break;
+            case 13:
+               if (Unit* LichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                   LichKing->SetFacingToObject(m_creature);
+               JumpNextStep(500);
+               break;
+            case 14:
+               if (Unit* LichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                   LichKing->HandleEmoteCommand(25);
+               JumpNextStep(5500);
+               break;
+            case 15:
+               if (Unit* Valanar = m_creature->GetMap()->GetCreature(m_uiValanarGUID))
+               {
+                   DoScriptText(SAY_DIA10, Valanar);
+                   Valanar->SetFacingToObject(m_creature);
+                   Valanar->setFaction(14); 
+                   m_creature->AI()->AttackStart(Valanar);
+               }
+               if (Unit* LichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+		       Kill(LichKing);              
+               JumpNextStep(500);
+               break;
+	      case 17:
+               EnterEvadeMode();
+               m_creature->GetMotionMaster()->MovePoint(0, 3721.361f, 3566.910f, 477.442f);
+               m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, UNIT_STAND_STATE_STAND); 
+               if (Unit* Leryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
+               {
+                   DoScriptText(SAY_DIA14, Leryssa);
+                   Leryssa->RemoveAurasDueToSpell(45066);
+               }
+               if (Unit* Arlos = m_creature->GetMap()->GetCreature(m_uiArlosGUID))
+                   DoScriptText(SAY_DIA11, Arlos);
+               JumpNextStep(3000);
+               break;
+            case 18:
+               if (Unit* Leryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
+               {
+                   ((Creature*)Leryssa)->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                   Leryssa->GetMotionMaster()->MovePoint(0, 3726.749f, 3568.097f, 477.442f);
+                   Leryssa->SetFacingToObject(m_creature);
+                   Leryssa->SetStandState(UNIT_STAND_STATE_SIT);                            
+                   m_creature->SetFacingToObject(Leryssa);
+                   m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+               }
+               if (Unit* Arlos = m_creature->GetMap()->GetCreature(m_uiArlosGUID))
+               {
+                   DoScriptText(SAY_DIA12, Arlos);                                        
+                   Arlos->RemoveAurasDueToSpell(45066);
+                   Arlos->SetStandState(UNIT_STAND_STATE_DEAD);
+               }
+               JumpNextStep(5000);
+               break;
+            case 19: 
+               if (Unit* Leryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
+                   DoScriptText(SAY_DIA15, Leryssa);
+               JumpNextStep(5000);
+               break;
+            case 20:
+               DoScriptText(SAY_DIA13, m_creature);
+               JumpNextStep(3000);
+               break;
+            case 21:
+               DoScriptText(SAY_DIA16, m_creature);
+               JumpNextStep(6000);
+               break;
+            case 22:
+               if (Unit* Leryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
+                   DoScriptText(SAY_DIA17, Leryssa);
+               JumpNextStep(9000);
+               break;
+            case 23:
+               DoScriptText(SAY_DIA18, m_creature);
+               JumpNextStep(9000);
+               break;
+            case 24:
+               if (Unit* Leryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
+                   DoScriptText(SAY_DIA19, Leryssa);
+               JumpNextStep(8000);
+               break;
+            case 25:
+               DoScriptText(SAY_DIA20, m_creature);
+               JumpNextStep(6000);
+               break;
+            case 26:
+               m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+               JumpNextStep(60000);
+               break;
+            case 27:
+               if (Unit* Leryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
+	             Kill(Leryssa);
+               if (Unit* Arlos = m_creature->GetMap()->GetCreature(m_uiArlosGUID))
+                   Kill(Arlos);
+               JumpNextStep(6000);
+               EnterEvadeMode();
+               m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+               break;
+         }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+         if (m_uiStepTimer <= uiDiff)
+             Event();
+         else 
+             m_uiStepTimer -= uiDiff;
+
+         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+         DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_thassarian(Creature* pCreature)
+{
+    return new npc_thassarianAI(pCreature);
+}
+
+/*Prince Valanar AI*/
+
+enum
+{
+   SPELL_SHADOW_BOLT       = 15537,
+   SPELL_SOUL_BLAST        = 50992,
+   SPELL_SOUL_MIRROR       = 51009
+};
+
+struct MANGOS_DLL_DECL npc_valanarAI : public ScriptedAI
+{
+    npc_valanarAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+        SetCombatMovement(false);
+    }
+
+    uint32 m_uiShadowBoltTimer;
+    uint32 m_uiShadowBlastTimer;
+    uint32 m_uiSoulTimer;
+
+    void Reset() 
+    {
+        m_uiShadowBoltTimer = 1300;
+        m_uiShadowBlastTimer = 7300;
+        m_uiSoulTimer = 17300;
+    }
+ 
+    void JustDied(Unit* pKiller)
+    {
+        if (Creature* pTas = GetClosestCreatureWithEntry(m_creature, NPC_THASSARIAN, 80.0f))
+           ((npc_thassarianAI*)pTas->AI())->StartEvent(17);
+    }
+
+    void SpellHitTarget(Unit *target, const SpellEntry *spell)
+    {
+        if (spell->Id == SPELL_SOUL_BLAST)
+           m_creature->DealDamage(target, target->GetMaxHealth() / 5,NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+    }
+
+    void DamageTaken(Unit *done_by, uint32 &damage) 
+    {
+        if (done_by->HasAura(SPELL_SOUL_MIRROR))
+           m_creature->DealDamage(done_by, damage ,NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+    }
+
+    void UpdateAI(const uint32 diff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (m_uiShadowBoltTimer < diff)
+        {
+            if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
+               DoCast(pTarget, SPELL_SHADOW_BOLT);
+	      m_uiShadowBoltTimer = 3300;
+        }
+        else 
+            m_uiShadowBoltTimer -= diff;
+
+        if (m_uiShadowBlastTimer < diff)
+        {
+           m_creature->InterruptNonMeleeSpells(false);
+           if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
+              DoCast(pTarget,SPELL_SOUL_BLAST);
+	     m_uiShadowBlastTimer = urand(6000, 12000);
+        }
+        else 
+            m_uiShadowBlastTimer -= diff;
+
+        if (m_uiSoulTimer < diff)
+        {
+            m_creature->InterruptNonMeleeSpells(false);
+            DoCast(m_creature->getVictim(),SPELL_SOUL_MIRROR);
+            m_uiSoulTimer = urand(15000, 20000);
+        }
+        else 
+            m_uiSoulTimer -= diff;
+    }
+};
+
+bool GossipHello_npc_thassarian(Player *player, Creature *pCreature)
+{
+    if (pCreature->isQuestGiver())
+        player->PrepareQuestMenu(pCreature->GetGUID());
+
+    if (player->GetQuestStatus(QUEST_LAST_RITES) == QUEST_STATUS_INCOMPLETE)
+        if(((npc_thassarianAI*)pCreature->AI())->m_uiStep == 0 && pCreature->GetAreaId() == AREA_ID)
+            player->ADD_GOSSIP_ITEM(0, GOSSIP_ITEM_T, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+
+    player->PlayerTalkClass->SendGossipMenu(player->GetGossipTextId(pCreature),pCreature->GetGUID());
+    return true;
+}
+
+bool GossipSelect_npc_thassarian(Player *player, Creature *pCreature, uint32 sender, uint32 action )
+{
+    if (action == GOSSIP_ACTION_INFO_DEF+1)
+    {
+          ((npc_thassarianAI*)pCreature->AI())->StartEvent(1);
+          player->CLOSE_GOSSIP_MENU();
+    }
+    return true;
+}
+
+CreatureAI* GetAI_npc_valanar(Creature* pCreature)
+{
+    return new npc_valanarAI(pCreature);
+}
+
 void AddSC_borean_tundra()
 {
     Script *newscript;
@@ -904,5 +1355,17 @@ void AddSC_borean_tundra()
     newscript = new Script;
     newscript->Name = "npc_overseer_narvir";
     newscript->GetAI = &GetAI_npc_overseer_narvir;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_valanar";
+    newscript->GetAI = &GetAI_npc_valanar;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_thassarian";
+    newscript->GetAI = &GetAI_npc_thassarian;
+    newscript->pGossipHello = &GossipHello_npc_thassarian;
+    newscript->pGossipSelect = &GossipSelect_npc_thassarian;
     newscript->RegisterSelf();
 }
