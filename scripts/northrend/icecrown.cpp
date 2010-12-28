@@ -165,6 +165,7 @@ bool GossipSelect_npc_dame_evniki_kapsalis(Player* pPlayer, Creature* pCreature,
 SDAuthor: MaxXx2021 aka Mioka
 SDComplete: 80%
 SDComment: Need Core Support Chain Dest on Map Allow.
+*/
 
 enum
 {

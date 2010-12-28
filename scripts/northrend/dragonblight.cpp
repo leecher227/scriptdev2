@@ -189,6 +189,328 @@ bool GossipSelect_npc_torastrasza(Player* pPlayer, Creature* pCreature, uint32 u
     return true;
 }
 
+/*### Quest: My Old Enemy ###
+SDAuthor: MaxXx2021 aka Mioka
+SDComplete: 98%
+*/ 
+
+enum
+{
+    //Abbendis
+    SAY_ABBENDIS_YELL_01         = -1999423,
+    SAY_ABBENDIS_YELL_02         = -1999424,
+    SAY_ABBENDIS_YELL_03         = -1999425,
+    SAY_ABBENDIS_YELL_04         = -1999426,
+    SAY_ABBENDIS_50HP            = -1999427,
+
+    SPELL_FIRE_LAND              = 50915,
+    SPELL_ARMOR_SEAL             = 50905,
+    SPELL_BUFF                   = 50908,
+
+    //Westwind
+    SAY_WESTWIND_01              = -1999420,
+    SAY_WESTWIND_02              = -1999421,
+    SAY_WESTWIND_03              = -1999422,
+
+    SPELL_SHIELD                 = 50161,
+
+    NPC_ABBENDIS                 = 27210,
+    NPC_WESTWIND                 = 27951,
+    NPC_RAVEN_PRIEST             = 27202,
+    NPC_SCARLET_WARRIOR          = 27203,
+};
+
+struct Locations
+{
+    float x, y, z;
+    uint32 id;
+};
+
+static Locations AbbendisSummonPos[]=
+{
+    {2673.357f, -342.697f, 141.218f},
+    {2681.778f, -341.368f, 141.218f},
+    {2689.731f, -340.671f, 141.218f},
+
+    {2694.241f, -370.571f, 141.218f},
+    {2686.296f, -371.957f, 141.218f},
+    {2677.566f, -372.946f, 141.218f},
+};
+
+struct MANGOS_DLL_DECL npc_admiral_westwindAI : public ScriptedAI
+{  
+    npc_admiral_westwindAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+
+    uint32 m_uiStepTimer;
+    uint32 m_uiStep;
+    uint64 m_uiAbbendisGUID;
+
+    void Reset()
+    { 
+         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+         m_creature->CastSpell(m_creature, SPELL_SHIELD, false);
+         m_uiStepTimer = 3000;
+         m_uiStep = 0;
+         m_uiAbbendisGUID = 0;
+    }
+
+    void Event()
+    {
+        switch(m_uiStep)
+        {
+            case 1:
+                if (Creature* pAbbendis = m_creature->GetMap()->GetCreature(m_uiAbbendisGUID))
+                {
+                    float X, Y, Z, fAng;
+                    fAng = m_creature->GetAngle(pAbbendis);
+                    X = pAbbendis->GetPositionX()-1*cos(fAng);
+                    Y = pAbbendis->GetPositionY()-1*sin(fAng);
+                    Z = pAbbendis->GetPositionZ()+5;
+                    m_creature->UpdateAllowedPositionZ(X, Y, Z);
+                    m_creature->GetMotionMaster()->MovePoint(1, X, Y, Z);
+                } 
+                m_uiStepTimer = 1000;
+                m_uiStep++;
+                break;
+            case 3:
+                m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+                m_uiStepTimer = 2000;
+                m_uiStep++;
+                break;
+            case 4:
+                DoScriptText(SAY_WESTWIND_02, m_creature);
+                m_uiStepTimer = 5000;
+                m_uiStep++;
+                break;
+            case 5:
+                m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+                m_uiStepTimer = 2000;
+                m_uiStep++;
+                break;
+            case 6:
+                DoScriptText(SAY_WESTWIND_03, m_creature);
+                m_creature->GetMotionMaster()->MovePoint(0, 2688.124f, -356.010f, 141.216f);
+                m_uiStepTimer = 4000;
+                m_uiStep++;
+                break;
+            case 7:
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 2719.409f, -350.953f, 141.216f); 
+                m_creature->ForcedDespawn(14000);
+                m_uiStep++;
+                break;
+        }
+    }
+
+    void AttackStart(Unit* pWho) {}
+
+    void MovementInform(uint32 uiType, uint32 uiPointId)
+    {
+        if (uiType == POINT_MOTION_TYPE && uiPointId == 1)
+            m_uiStep = 3;
+    }
+
+    void StartEvent(uint8 EventId, uint64 AbbendisGUID)
+    {
+        m_uiStep = EventId;
+        m_uiAbbendisGUID = AbbendisGUID;
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+       if (m_uiStepTimer < uiDiff)
+           Event();
+       else 
+           m_uiStepTimer -= uiDiff;
+    }
+};
+
+CreatureAI* GetAI_npc_admiral_westwind(Creature* pCreature)
+{
+    return new npc_admiral_westwindAI(pCreature);
+}
+
+struct MANGOS_DLL_DECL boss_hight_general_abbendisAI : public ScriptedAI
+{
+    boss_hight_general_abbendisAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    { 
+        Reset();
+    }
+
+    uint8 m_uiStep;
+    uint8 m_uiPhase;
+   
+    uint32 m_uiStepTimer;
+    uint32 m_uiFireLandTimer;
+    uint32 m_uiArmorTimer;
+
+    uint64 m_uiWestwindGUID;
+
+    bool m_bHpLow;
+
+    void Reset()
+    {
+        m_uiStep = 0;
+        m_uiPhase = 0;
+        m_uiStepTimer = 3000;
+        m_uiFireLandTimer = 4000;
+        m_uiArmorTimer = 6000;
+        m_uiWestwindGUID = 0;
+        m_bHpLow = false;
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+    }
+
+    void MoveInLineOfSight(Unit* pWho)
+    {
+        if (m_uiPhase == 0 && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && m_creature->IsWithinDistInMap(pWho, 15.0f))
+        {
+            m_uiPhase = 1;
+            DoScriptText(SAY_ABBENDIS_YELL_01, m_creature);
+        }
+
+        ScriptedAI::MoveInLineOfSight(pWho);
+    }
+
+    void JustDied(Unit* pKiller)
+    {
+        if (Creature* pWestwind = m_creature->GetMap()->GetCreature(m_uiWestwindGUID))
+            ((npc_admiral_westwindAI*)pWestwind->AI())->StartEvent(1, m_creature->GetGUID());
+    }
+
+    void AggroSummon(Creature* pMonster)
+    {
+        Map *map = m_creature->GetMap(); // search players with in 50 yards for quest credit
+        Map::PlayerList const &PlayerList = map->GetPlayers();
+        if (!PlayerList.isEmpty())
+        {
+            for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+            { 
+                if (pMonster->isInCombat())
+                    return;
+
+                if (i->getSource()->isAlive() && m_creature->GetDistance2d(i->getSource()) < 50)
+                    pMonster->AI()->AttackStart(i->getSource());
+            }
+        }
+    }
+
+    void JumpNextStep(uint32 Timer)
+    {
+        m_uiStep++;
+        m_uiStepTimer = Timer;
+    }
+
+    void SummonScarletWarrior(uint32 uiAmount)
+    {
+        for (uint32 i = 0; i < uiAmount; ++i)
+        {
+            uint8 uiPos = urand(0, 5);
+            m_creature->SummonCreature(urand(0, 1) ? NPC_RAVEN_PRIEST : NPC_SCARLET_WARRIOR, AbbendisSummonPos[uiPos].x, AbbendisSummonPos[uiPos].y, AbbendisSummonPos[uiPos].z, 0.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 15000);
+        }
+    }
+
+    void JustSummoned(Creature* pCreature)
+    {
+        pCreature->SetRespawnDelay(DAY);
+        uint32 uiEntry = pCreature->GetEntry();
+        if (uiEntry == NPC_RAVEN_PRIEST || uiEntry == NPC_SCARLET_WARRIOR)
+            AggroSummon(pCreature);
+    }
+
+    void Event()
+    {
+        switch(m_uiStep)
+        {
+            case 0:
+                DoScriptText(SAY_ABBENDIS_YELL_02, m_creature);
+                JumpNextStep(5000);
+                break;
+            case 1:
+                SummonScarletWarrior(2);
+                JumpNextStep(15000);
+                break;
+            case 2:
+                DoScriptText(SAY_ABBENDIS_YELL_03, m_creature);
+                SummonScarletWarrior(3);
+                JumpNextStep(15000);
+                break;
+            case 3:
+                DoScriptText(SAY_ABBENDIS_YELL_04, m_creature);
+                SummonScarletWarrior(4);
+                JumpNextStep(15000);
+                break;
+            case 4:
+               if (Creature* pWestwind = GetClosestCreatureWithEntry(m_creature, NPC_WESTWIND, 30.0f))
+               {
+                   m_uiWestwindGUID = pWestwind->GetGUID();
+                   DoScriptText(SAY_WESTWIND_01, pWestwind);
+               }
+               JumpNextStep(2000);
+               break;
+            case 5:
+               AggroSummon(m_creature);
+               m_uiPhase = 2;
+               break;
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        switch(m_uiPhase)
+        {
+            case 1:
+                if (m_uiStepTimer < uiDiff)
+                    Event();
+                else 
+                    m_uiStepTimer -= uiDiff;
+                break;
+            case 2:
+                if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+                {
+                    m_creature->AI()->EnterEvadeMode();
+                    return;
+                }
+
+                if (!m_creature->HasAura(SPELL_BUFF) && m_bHpLow)
+                    m_creature->CastSpell(m_creature, SPELL_BUFF, false);
+
+                if (!m_bHpLow && m_creature->GetHealthPercent() < 50)
+                {
+                    m_bHpLow = true;
+                    DoScriptText(SAY_ABBENDIS_50HP, m_creature);
+                }
+
+                if (m_uiFireLandTimer <= uiDiff)
+                {
+                    DoCast(m_creature->getVictim(), SPELL_FIRE_LAND);
+                    m_uiFireLandTimer = urand(7000, 15000);
+                }
+                else 
+                    m_uiFireLandTimer -= uiDiff;
+
+                if (m_uiArmorTimer <= uiDiff)
+                {
+                    DoCast(m_creature->getVictim(), SPELL_ARMOR_SEAL);
+                    m_uiArmorTimer = urand(5000, 10000);
+                }
+                else 
+                    m_uiArmorTimer -= uiDiff;
+
+                DoMeleeAttackIfReady();
+                break;
+        }
+    }
+};
+
+CreatureAI* GetAI_boss_hight_general_abbendis(Creature* pCreature)
+{
+    return new boss_hight_general_abbendisAI(pCreature);
+}
+
 void AddSC_dragonblight()
 {
     Script *newscript;
@@ -215,5 +537,15 @@ void AddSC_dragonblight()
     newscript->Name = "npc_torastrasza";
     newscript->pGossipHello = &GossipHello_npc_torastrasza;
     newscript->pGossipSelect = &GossipSelect_npc_torastrasza;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "boss_hight_general_abbendis";
+    newscript->GetAI = &GetAI_boss_hight_general_abbendis;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_admiral_westwind";
+    newscript->GetAI = &GetAI_npc_admiral_westwind;
     newscript->RegisterSelf();
 }
