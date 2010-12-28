@@ -902,12 +902,12 @@ struct MANGOS_DLL_DECL npc_thassarianAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        if (Unit* Leryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
-            Kill(Leryssa);
-        if (Unit* Arlos = m_creature->GetMap()->GetCreature(m_uiArlosGUID))
-            Kill(Arlos);
-        if (Unit* Valanar = m_creature->GetMap()->GetCreature(m_uiValanarGUID))
-            Valanar->RemoveFromWorld();
+        if (Creature* pLeryssa = m_creature->GetMap()->GetCreature(m_uiLeryssaGUID))
+            Kill(pLeryssa);
+        if (Creature* pArlos = m_creature->GetMap()->GetCreature(m_uiArlosGUID))
+            Kill(pArlos);
+        if (Creature* pValanar = m_creature->GetMap()->GetCreature(m_uiValanarGUID))
+            pValanar->RemoveFromWorld();
     }
 
     void EnterEvadeMode()
@@ -937,7 +937,7 @@ struct MANGOS_DLL_DECL npc_thassarianAI : public ScriptedAI
         m_uiStep++;
     }
 
-    void Kill(Unit* pVictim)
+    void Kill(Creature* pVictim)
     {
         pVictim->DealDamage(pVictim, pVictim->GetMaxHealth() ,NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
     }

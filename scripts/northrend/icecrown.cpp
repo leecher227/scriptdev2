@@ -161,6 +161,337 @@ bool GossipSelect_npc_dame_evniki_kapsalis(Player* pPlayer, Creature* pCreature,
     return true;
 }
 
+/*##### QUEST: ORBAZ FATE #####
+SDAuthor: MaxXx2021 aka Mioka
+SDComplete: 80%
+SDComment: Need Core Support Chain Dest on Map Allow.
+
+enum
+{
+    SAY_ORBAZ_YELL01      = -1954301,
+    SAY_ORBAZ_YELL02      = -1954302,
+    SAY_ORBAZ_YELL03      = -1954303,
+
+    SAY_ORBAZ_SLAY        = -1954304,
+   
+    SAY_MOGRAINE_EVENT01  = -1954305,
+    SAY_MOGRAINE_EVENT02  = -1954306,
+    SAY_ORBAZ_EVENT03     = -1954307,
+    SAY_MOGRAINE_EVENT04  = -1954308,
+
+    SAY_ORBAZ_DEATH       = -1954309,
+    SAY_MOGRAINE_END      = -1954310,
+
+    NPC_ORBAZ             = 31283,
+    NPC_DARION            = 31290,
+    NPC_OMINOS            = 32406,
+ 
+    SPELL_PLAGUE_STRIKE   = 60186,
+    SPELL_POWER_BLADE     = 61015,
+    SPELL_POWER_DAMAGE    = 61016,
+    SPELL_UNHOLY_GROUND   = 55741,
+    SPELL_FLY_CLOUD       = 60984,
+    SPELL_FLY_CLOUD_VIS   = 60977,
+    SPELL_FLY_CLOUD_DMG   = 60984,
+    SPELL_SUMMON_MOGRAINE = 58939,
+};
+
+struct MANGOS_DLL_DECL npc_orbaz_bloodbaneAI : public ScriptedAI
+{
+    npc_orbaz_bloodbaneAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+  
+    uint64 m_uiDarionGUID;
+
+    uint32 m_uiPlagueStrikeTimer;
+    uint32 m_uiCloudTimer;
+    uint32 m_uiEnergyTimer; //in phase II when darion come!
+    uint32 m_uiYellTimer;
+
+    uint8 m_uiYell;
+    uint8 m_uiPhase;
+
+    void Reset() 
+    {
+        m_uiPlagueStrikeTimer = 5000;
+        m_uiCloudTimer = urand(10000, 18000);
+        m_uiEnergyTimer = 7000;
+        m_uiYellTimer = 9000;
+        m_uiYell = 0;
+        m_uiPhase = 1;
+        if (Creature* pDarion = m_creature->GetMap()->GetCreature(m_uiDarionGUID))
+           pDarion->ForcedDespawn(1000);
+        m_uiDarionGUID = 0;
+    }
+
+    void Aggro(Unit* pWho)
+    { 
+        m_creature->MonsterYell("Ah. I'll be waiting.",LANG_UNIVERSAL,NULL);
+    }
+
+    void JustDied(Unit* pKiller)
+    {
+        DoScriptText(SAY_ORBAZ_DEATH, m_creature);
+    }
+
+    void KilledUnit(Unit* pVictim)
+    {
+        DoScriptText(SAY_ORBAZ_SLAY, m_creature);
+    }
+
+    void SpellHitTarget(Unit *pTarget, const SpellEntry *spell)
+    {
+        if (spell->Id == SPELL_PLAGUE_STRIKE)
+            m_creature->CastSpell(pTarget, SPELL_UNHOLY_GROUND, false);
+    }
+
+    void JustSummoned(Creature* pSummoned)
+    {
+        if (pSummoned->GetEntry() == NPC_DARION)
+        {
+            pSummoned->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READY1H);
+            pSummoned->SetFacingToObject(m_creature);
+            m_uiDarionGUID = pSummoned->GetGUID(); 
+        } 
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if (!pWho)
+            return;
+
+        if (m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+
+            if (IsCombatMovement())
+                m_creature->GetMotionMaster()->MoveChase(pWho, 2.0f, urand(0, 6.0f));
+        }
+    }
+
+    void DamageTaken(Unit *done_by, uint32 &damage) 
+    {
+        if (damage > m_creature->GetHealth() && done_by->GetEntry() != NPC_DARION)
+            damage = 0;
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (m_uiPlagueStrikeTimer < uiDiff)
+        {
+            DoCast(m_creature->getVictim(), SPELL_PLAGUE_STRIKE);
+            m_uiPlagueStrikeTimer = urand(9000, 15000);
+        }
+        else 
+            m_uiPlagueStrikeTimer -= uiDiff;
+
+        switch(m_uiPhase)
+        {
+            case 1:
+                if (m_uiYellTimer < uiDiff)
+                {
+                    switch(m_uiYell)
+                    {
+                        case 0: DoScriptText(SAY_ORBAZ_YELL01, m_creature); m_uiYell++; break;
+                        case 1: DoScriptText(SAY_ORBAZ_YELL02, m_creature); m_uiYell++; break;
+                        case 2: DoScriptText(SAY_ORBAZ_YELL03, m_creature); m_uiYell++; break;
+                    }
+                    m_uiYellTimer = urand(15000, 20000);
+                } 
+                else 
+                    m_uiYellTimer -= uiDiff;
+
+                if (m_creature->GetHealthPercent() < 40.0f)
+                {
+                    m_uiPhase = 2;
+                    m_creature->InterruptNonMeleeSpells(false);
+                    m_creature->CastSpell(m_creature, SPELL_SUMMON_MOGRAINE, true);
+                    m_creature->CastSpell(m_creature, SPELL_POWER_BLADE, false);
+                    m_uiYellTimer = 3000;
+                    m_uiYell = 0;
+                }
+                break;
+            case 2:
+                if (m_creature->HasAura(SPELL_POWER_BLADE))
+                {
+                    if (m_uiEnergyTimer < uiDiff)
+                    {
+                        DoCast(m_creature->getVictim(), SPELL_POWER_DAMAGE);
+                        m_uiEnergyTimer = 3000;
+                    }
+                    else 
+                        m_uiEnergyTimer -= uiDiff;
+                }
+                else 
+                {
+                    if (m_uiEnergyTimer < uiDiff)
+                    {
+                        m_creature->CastSpell(m_creature, SPELL_POWER_BLADE, false);
+                        m_uiEnergyTimer = 7000;
+                    }
+                    else 
+                        m_uiEnergyTimer -= uiDiff;
+                }
+
+                if (m_uiYellTimer < uiDiff)
+                {
+                    m_uiYellTimer = 15000;
+                    switch(m_uiYell)
+                    {
+                        case 0: 
+                            if (Creature* pDarion = m_creature->GetMap()->GetCreature(m_uiDarionGUID))
+                                DoScriptText(SAY_MOGRAINE_EVENT01, pDarion); 
+                            m_uiYellTimer = 5000;
+                            m_uiYell++;
+                            break;
+                        case 1: 
+                            if (Creature* pDarion = m_creature->GetMap()->GetCreature(m_uiDarionGUID))
+                                DoScriptText(SAY_MOGRAINE_EVENT02, pDarion);
+                            m_uiYellTimer = 7000;
+                            m_uiYell++;
+                            break;
+                        case 2: 
+                            if (Creature* pDarion = m_creature->GetMap()->GetCreature(m_uiDarionGUID))
+                                DoScriptText(SAY_ORBAZ_EVENT03, m_creature);
+                            m_uiYellTimer = 5000;
+                            m_uiYell++;
+                            break;
+                        case 3:
+                            if (Creature* pDarion = m_creature->GetMap()->GetCreature(m_uiDarionGUID))
+                                DoScriptText(SAY_MOGRAINE_EVENT04, pDarion);
+                            m_uiYellTimer = 5000;
+                            m_uiYell++;
+                            break;
+                        case 4:
+                            if (Creature* pDarion = m_creature->GetMap()->GetCreature(m_uiDarionGUID))
+                                pDarion->AI()->AttackStart(m_creature);
+                            m_uiYellTimer = 7000;
+                            m_uiYell++;
+                            break;
+                    }
+                }
+                else 
+                    m_uiYellTimer -= uiDiff;
+                break;
+        }
+         
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_orbaz_bloodbane(Creature* pCreature)
+{
+    return new npc_orbaz_bloodbaneAI(pCreature);
+}
+
+struct MANGOS_DLL_DECL npc_darion_mograine_fbAI : public ScriptedAI
+{
+    npc_darion_mograine_fbAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+
+    uint8 m_uiStep;
+   
+    uint32 m_uiStepTimer;
+
+    void Reset()
+    {
+        m_uiStep = 0;
+        m_uiStepTimer = 1000;
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if (!pWho)
+            return;
+
+        if (m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+
+            if (IsCombatMovement())
+                m_creature->GetMotionMaster()->MoveChase(pWho, 2.0f, urand(0, 360.0f));
+        }
+    }
+
+    void EnterEvadeMode()
+    {
+        m_creature->RemoveAllAuras();
+        m_creature->DeleteThreatList();
+        m_creature->CombatStop(true);
+
+        m_creature->SetLootRecipient(NULL);
+        m_uiStepTimer = 5000;
+        if (m_creature->IsTemporarySummon())
+            m_uiStep = 1;
+    }
+
+    void JumpNextStep(uint32 Timer)
+    {
+        m_uiStep++;
+        m_uiStepTimer = Timer;
+    }
+
+    void Event()
+    {
+        switch(m_uiStep)
+        {
+            case 1:
+                DoScriptText(SAY_MOGRAINE_END, m_creature);
+                JumpNextStep(5000);
+                break;
+            case 2:
+                m_creature->GetMotionMaster()->MovePoint(0, 5969.264f, 1965.250f, 514.225f);
+                m_creature->ForcedDespawn(10000);
+                JumpNextStep(5000);
+                break;
+        }
+    }
+
+    void DoMeleeAttackIfReady()
+    {
+        //Make sure our attack is ready before checking distance
+        if (m_creature->isAttackReady())
+        {
+            //If we are within range melee the target
+            if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+            {
+                WeaponAttackType attack = urand(0,1) ? BASE_ATTACK : OFF_ATTACK;
+                m_creature->AttackerStateUpdate(m_creature->getVictim(), attack);
+                m_creature->resetAttackTimer(attack);
+            }  
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_uiStepTimer < uiDiff)
+            Event();
+        else 
+            m_uiStepTimer -= uiDiff;
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_darion_mograine_fb(Creature* pCreature)
+{
+    return new npc_darion_mograine_fbAI(pCreature);
+}
+
 void AddSC_icecrown()
 {
     Script* newscript;
@@ -175,5 +506,15 @@ void AddSC_icecrown()
     newscript->Name = "npc_dame_evniki_kapsalis";
     newscript->pGossipHello = &GossipHello_npc_dame_evniki_kapsalis;
     newscript->pGossipSelect = &GossipSelect_npc_dame_evniki_kapsalis;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_orbaz_bloodbane";
+    newscript->GetAI = &GetAI_npc_orbaz_bloodbane;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_darion_mograine_fb";
+    newscript->GetAI = &GetAI_npc_darion_mograine_fb;
     newscript->RegisterSelf();
 }
