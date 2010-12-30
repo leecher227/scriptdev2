@@ -493,6 +493,335 @@ CreatureAI* GetAI_npc_darion_mograine_fb(Creature* pCreature)
     return new npc_darion_mograine_fbAI(pCreature);
 }
 
+//################ QUEST: The Admiral Revealed ###################
+
+enum
+{
+    SAY_MALGANIS_ESCAPE_01   = -1999407,
+    SAY_MALGANIS_ESCAPE_02   = -1999408,
+    SAY_MALGANIS_SLAY_01     = -1999403,
+    SAY_MALGANIS_SLAY_02     = -1999404,
+    SAY_MALGANIS_SLAY_03     = -1999405,
+    SAY_MALGANIS_SLAY_04     = -1999406,
+    SAY_MALGANIS_40HP        = -1999401,
+    SAY_MALGANIS_15HP        = -1999402,
+    SAY_WESTWIND_AGGRO       = -1999409,
+    SAY_WESTWIND_50HP        = -1999410,
+    SAY_WESTWIND_SHIELD      = -1999411,
+    SAY_WESTWIND_SLAY_01     = -1999412,
+    SAY_WESTWIND_SLAY_02     = -1999413,
+    SAY_WESTWIND_SLAY_03     = -1999414,
+    SAY_WESTWIND_SLAY_04     = -1999415,
+
+    //Main Spells
+    SPELL_SHIELD             = 50161,
+    SPELL_MALGANIS_PORTAL    = 27731,
+    SPELL_MALGANIS_DUMMY     = 27768,
+    SPELL_MALGANIS_RETURN    = 31699,
+    SPELL_REMOVE_SHIELD      = 20211,
+    SPELL_SHIELD_TRIGG       = 31699,
+
+    //Weswind Form
+    SPELL_HEROIC_STRIKE      = 57846,
+    SPELL_CLEAVE             = 15284,
+    SPELL_WHIRLWIND          = 50622,
+
+    //Malganis Form
+    SPELL_SWAMP              = 60502,
+    SPELL_MIND_BLAST         = 60500,
+    SPELL_VAMPIRE            = 60501,
+
+    NPC_MALGANIS             = 29620, //He is Alive?
+    NPC_WESTWIND             = 29621,
+    NPC_CREDIT               = 29627, //spell on this credit empty, i think this npc escape portal and kill credit, and killed by spell MALGANIS_DUMMY
+
+    PHASE_WESTWIND           = 1,
+    PHASE_SHIELD             = 2,
+    PHASE_TRANSFORM          = 3,
+    PHASE_MALGANIS           = 4,
+    PHASE_ESCAPE             = 5,
+};
+
+struct MANGOS_DLL_DECL boss_hight_admiral_westwindAI : public ScriptedAI
+{
+    boss_hight_admiral_westwindAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+  
+    uint64 m_uiCreditGUID;
+
+    uint32 m_uiSpell01Timer;
+    uint32 m_uiSpell02Timer;
+    uint32 m_uiSpell03Timer;
+    uint32 m_uiStepTimer;
+
+    uint8 m_uiStep;
+    uint8 m_uiPhase;
+
+    bool m_bNonFight;
+  
+    Unit* pOwner;
+
+    void Reset() 
+    {
+        m_uiSpell01Timer = 5000;
+        m_uiSpell02Timer = urand(10000, 18000);
+        m_uiSpell03Timer = 7000;
+        m_uiStepTimer = 9000;
+        m_uiStep = 0;
+        m_uiPhase = PHASE_WESTWIND;
+        m_uiCreditGUID = 0;
+        m_bNonFight = false;
+        pOwner = NULL;
+        m_creature->SetVisibility(VISIBILITY_ON);
+        SetEquipmentSlots(true, 0, 0, 0);
+    }
+
+    void Aggro(Unit* pWho)
+    { 
+        DoScriptText(SAY_WESTWIND_AGGRO, m_creature);
+        pOwner = pWho;
+    }
+
+    void KilledUnit(Unit* pVictim)
+    {
+        switch(urand(0, 3))
+        {
+            case 0: 
+                if (m_uiPhase != PHASE_MALGANIS)
+                    DoScriptText(SAY_WESTWIND_SLAY_01, m_creature); 
+                else 
+                    DoScriptText(SAY_MALGANIS_SLAY_01, m_creature); 
+                break;
+            case 1:
+                if (m_uiPhase != PHASE_MALGANIS)
+                    DoScriptText(SAY_WESTWIND_SLAY_02, m_creature); 
+                else
+                    DoScriptText(SAY_MALGANIS_SLAY_02, m_creature); 
+                break;
+            case 2:
+                if (m_uiPhase != PHASE_MALGANIS)
+                    DoScriptText(SAY_WESTWIND_SLAY_03, m_creature); 
+                else
+                    DoScriptText(SAY_MALGANIS_SLAY_03, m_creature); 
+                break;
+            case 3:
+                if (m_uiPhase != PHASE_MALGANIS)
+                    DoScriptText(SAY_WESTWIND_SLAY_04, m_creature); 
+                else 
+                    DoScriptText(SAY_MALGANIS_SLAY_04, m_creature); 
+                break;
+        }
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if (m_bNonFight)
+            return;
+
+        if(m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+
+            if (IsCombatMovement())
+                m_creature->GetMotionMaster()->MoveChase(pWho, 2.0f);
+        }
+    }
+
+    void DamageTaken(Unit *done_by, uint32 &damage) 
+    {
+        if (damage > m_creature->GetHealth())
+        {
+            damage = 0;
+            if (!m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+            {
+                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                m_bNonFight = true;
+                m_creature->SetHealth(1);
+                DoScriptText(SAY_MALGANIS_ESCAPE_01, m_creature);
+                m_creature->GetMotionMaster()->Clear(false);
+                m_creature->GetMotionMaster()->MoveIdle();
+                m_creature->AttackStop();
+                m_creature->StopMoving();
+                if (Creature* pCredit = m_creature->SummonCreature(NPC_CREDIT, 7493.825f, 4866.314f, -12.477f, 1.432f, TEMPSUMMON_CORPSE_DESPAWN, 0))
+                {
+                    m_uiCreditGUID = pCredit->GetGUID();
+                    pCredit->SetDisplayId(11686);
+                    pCredit->CastSpell(pCredit, SPELL_MALGANIS_PORTAL, false);
+                    pCredit->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                }
+                m_creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
+                m_uiStep = 0;
+                m_uiStepTimer = 7000;
+                m_uiPhase = PHASE_ESCAPE;
+            }
+        }
+    }
+
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
+    {
+        if (pSpell->Id == SPELL_REMOVE_SHIELD && m_uiPhase == PHASE_SHIELD)
+        {
+            m_creature->RemoveAurasDueToSpell(SPELL_SHIELD);
+            DoScriptText(SAY_WESTWIND_SHIELD, m_creature);
+            m_uiStepTimer = 10500;
+            m_uiPhase = PHASE_TRANSFORM;
+        }
+    }
+
+    void EscapePhase()
+    {
+        switch(m_uiStep)
+        {
+            case 0:
+                m_creature->GetMotionMaster()->MoveTargetedHome(); 
+                m_uiStepTimer = 1000;
+                m_uiStep++;
+                break;
+            case 2:
+                DoScriptText(SAY_MALGANIS_ESCAPE_02, m_creature);
+                if (pOwner && pOwner->IsInWorld())
+                    m_creature->SetFacingToObject(pOwner);
+                m_uiStepTimer = 10000;
+                m_uiStep++;
+                break;
+            case 3:
+                m_creature->SetVisibility(VISIBILITY_OFF);
+                m_uiStepTimer = 3000;
+                m_uiStep++;
+                break;
+            case 4:
+                if (pOwner && pOwner->IsInWorld())
+                    if (Creature* pCredit = m_creature->GetMap()->GetCreature(m_uiCreditGUID))
+                        pOwner->DealDamage(pCredit, pCredit->GetMaxHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                m_creature->ForcedDespawn(500);
+                m_uiStep++;
+                break;
+        }
+    }
+
+    void JustReachedHome()
+    {
+        if (m_uiPhase == PHASE_ESCAPE)
+            m_uiStep = 2;
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        switch(m_uiPhase)
+        {
+            case PHASE_WESTWIND:
+            case PHASE_SHIELD:
+            case PHASE_TRANSFORM:
+                if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+                    return;
+
+                if (m_uiSpell01Timer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HEROIC_STRIKE) == CAST_OK)
+                        m_uiSpell01Timer = urand(4000, 8000);
+                }
+                else 
+                    m_uiSpell01Timer -= uiDiff;
+
+                if (m_uiSpell02Timer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
+                        m_uiSpell02Timer = urand(6000, 12000);
+                }
+                else
+                    m_uiSpell02Timer -= uiDiff;
+
+                if (m_uiSpell03Timer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_WHIRLWIND) == CAST_OK)
+                        m_uiSpell03Timer = urand(9000, 15000);
+                }
+                else
+                    m_uiSpell03Timer -= uiDiff;
+
+
+                if (m_creature->GetHealthPercent() < 50 && m_uiPhase == PHASE_WESTWIND)
+                {
+                    m_creature->CastSpell(m_creature, SPELL_SHIELD, false);
+                    DoScriptText(SAY_WESTWIND_50HP, m_creature); 
+                    m_uiPhase = PHASE_SHIELD;
+                }
+
+                if (m_uiPhase == PHASE_TRANSFORM)
+                {
+                    if (m_uiStepTimer < uiDiff)
+                    {
+                        m_uiPhase = PHASE_MALGANIS;
+                        m_creature->UpdateEntry(NPC_MALGANIS);
+                        SetEquipmentSlots(false, 0, 0, 0);
+                    }
+                    else
+                        m_uiStepTimer -= uiDiff;
+                }
+                DoMeleeAttackIfReady();
+                break;
+            case PHASE_MALGANIS:
+                if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+                    return;
+
+                if (m_uiSpell01Timer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SWAMP) == CAST_OK)
+                        m_uiSpell01Timer = urand(6000, 13000);
+                }
+                else
+                    m_uiSpell01Timer -= uiDiff;
+
+                if (m_uiSpell02Timer < uiDiff)
+                {
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+                        if (DoCastSpellIfCan(pTarget, SPELL_MIND_BLAST) == CAST_OK)
+                            m_uiSpell02Timer = urand(5000, 10000);
+                }
+                else
+                    m_uiSpell02Timer -= uiDiff;
+
+                if (m_uiSpell03Timer < uiDiff)
+                {
+                    if (!m_creature->HasAura(SPELL_VAMPIRE))
+                        DoCastSpellIfCan(m_creature, SPELL_VAMPIRE);
+                    m_uiSpell03Timer = 2000;
+                }
+                else
+                    m_uiSpell03Timer -= uiDiff;
+
+                if( m_creature->GetHealthPercent() < 40 && m_uiStep == 0)
+                {
+                    m_uiStep++;
+                    DoScriptText(SAY_MALGANIS_40HP, m_creature);
+                }
+
+                if (m_creature->GetHealthPercent() < 15 && m_uiStep == 1)
+                {
+                    m_uiStep++;
+                    DoScriptText(SAY_MALGANIS_15HP, m_creature);
+                }
+                DoMeleeAttackIfReady();
+                break;
+            case PHASE_ESCAPE:
+                if (m_uiStepTimer < uiDiff)
+                    EscapePhase();
+                else
+                    m_uiStepTimer -= uiDiff;
+                break;
+        }
+    }
+};
+
+CreatureAI* GetAI_boss_hight_admiral_westwind(Creature* pCreature)
+{
+    return new boss_hight_admiral_westwindAI(pCreature);
+}
+
 void AddSC_icecrown()
 {
     Script* newscript;
@@ -517,5 +846,10 @@ void AddSC_icecrown()
     newscript = new Script;
     newscript->Name = "npc_darion_mograine_fb";
     newscript->GetAI = &GetAI_npc_darion_mograine_fb;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "boss_hight_admiral_westwind";
+    newscript->GetAI = &GetAI_boss_hight_admiral_westwind;
     newscript->RegisterSelf();
 }
