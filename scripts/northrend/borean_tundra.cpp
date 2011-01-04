@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -297,7 +297,7 @@ CreatureAI* GetAI_npc_nesingwary_trapper(Creature* pCreature)
 ## go_caribou_trap
 ######*/
 
-bool GOHello_go_caribou_trap(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_caribou_trap(Player* pPlayer, GameObject* pGo)
 {
     float fX, fY, fZ;
     pGo->GetClosePoint(fX, fY, fZ, pGo->GetObjectBoundingRadius(), 2*INTERACTION_DISTANCE, frand(0, M_PI_F*2));
@@ -647,7 +647,7 @@ enum
     NPC_SCOURGE_PRISONER        =  25610,
 };
 
-bool GOHello_go_scourge_cage(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_scourge_cage(Player* pPlayer, GameObject* pGo)
 {
     if (pPlayer->GetQuestStatus(QUEST_MERCIFUL_FREEDOM) == QUEST_STATUS_INCOMPLETE)
     {
@@ -757,7 +757,7 @@ enum
     SAY_NARVIR2              = -1532117
 };
 
-bool GOHello_go_heart_of_the_storm(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_heart_of_the_storm(Player* pPlayer, GameObject* pGo)
 {
     Creature* pNarvir = GetClosestCreatureWithEntry(pPlayer, NPC_OVERSEER_NARVIR, 25.0f);
     if (pNarvir)
@@ -1311,7 +1311,7 @@ void AddSC_borean_tundra()
 
     newscript = new Script;
     newscript->Name = "go_caribou_trap";
-    newscript->pGOHello = &GOHello_go_caribou_trap;
+    newscript->pGOUse = &GOUse_go_caribou_trap;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -1329,7 +1329,7 @@ void AddSC_borean_tundra()
     newscript = new Script;
     newscript->Name = "npc_lurgglbr";
     newscript->GetAI = &GetAI_npc_lurgglbr;
-    newscript->pQuestAccept = &QuestAccept_npc_lurgglbr;
+    newscript->pQuestAcceptNPC = &QuestAccept_npc_lurgglbr;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -1339,7 +1339,7 @@ void AddSC_borean_tundra()
 
     newscript = new Script;
     newscript->Name = "go_scourge_cage";
-    newscript->pGOHello = &GOHello_go_scourge_cage;
+    newscript->pGOUse = &GOUse_go_scourge_cage;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -1349,7 +1349,7 @@ void AddSC_borean_tundra()
 
     newscript = new Script;
     newscript->Name = "go_heart_of_the_storm";
-    newscript->pGOHello = &GOHello_go_heart_of_the_storm;
+    newscript->pGOUse = &GOUse_go_heart_of_the_storm;
     newscript->RegisterSelf();
     
     newscript = new Script;

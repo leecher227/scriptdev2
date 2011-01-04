@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -377,7 +377,7 @@ enum
     PRISONER_TEXT_ID_3                = -1700003
 };
 
-bool GOHello_go_dragonflayer_cage(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_dragonflayer_cage(Player* pPlayer, GameObject* pGo)
 {
     if (pPlayer->GetQuestStatus(QUEST_PRISONERS_OF_WYRMSKULL) == QUEST_STATUS_INCOMPLETE)
     {
@@ -617,7 +617,7 @@ void AddSC_howling_fjord()
     pNewScript = new Script;
     pNewScript->Name = "npc_daegarn";
     pNewScript->GetAI = &GetAI_npc_daegarn;
-    pNewScript->pQuestAccept = &QuestAccept_npc_daegarn;
+    pNewScript->pQuestAcceptNPC = &QuestAccept_npc_daegarn;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
@@ -646,7 +646,7 @@ void AddSC_howling_fjord()
 
     pNewScript = new Script;
     pNewScript->Name = "go_dragonflayer_cage";
-    pNewScript->pGOHello = &GOHello_go_dragonflayer_cage;
+    pNewScript->pGOUse = &GOUse_go_dragonflayer_cage;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

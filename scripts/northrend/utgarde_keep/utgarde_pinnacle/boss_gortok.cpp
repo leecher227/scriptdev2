@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -661,7 +661,7 @@ struct MANGOS_DLL_DECL npc_jormungarAI : public ScriptedAI
     }
 };
 
-bool GOHello_gortok_generator(Player* pPlayer, GameObject* pGo)
+bool GOUse_gortok_generator(Player* pPlayer, GameObject* pGo)
 {
     ScriptedInstance* m_pInstance = (ScriptedInstance*)pGo->GetInstanceData();
 
@@ -742,6 +742,6 @@ void AddSC_boss_gortok()
 	
     newscript = new Script;
     newscript->Name = "go_gortok_generator";
-    newscript->pGOHello=&GOHello_gortok_generator;
+    newscript->pGOUse=&GOUse_gortok_generator;
     newscript->RegisterSelf();
 }

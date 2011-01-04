@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -140,6 +140,6 @@ void AddSC_redridge_mountains()
     NewScript = new Script;
     NewScript->Name = "npc_corporal_keeshan";
     NewScript->GetAI = &GetAI_npc_corporal_keeshan;
-    NewScript->pQuestAccept = &QuestAccept_npc_corporal_keeshan;
+    NewScript->pQuestAcceptNPC = &QuestAccept_npc_corporal_keeshan;
     NewScript->RegisterSelf();
 }

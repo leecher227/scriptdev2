@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -1487,7 +1487,7 @@ void AddSC_shadowmoon_valley()
 
     newscript = new Script;
     newscript->Name = "npc_karynaku";
-    newscript->pQuestAccept = &QuestAccept_npc_karynaku;
+    newscript->pQuestAcceptNPC = &QuestAccept_npc_karynaku;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -1499,7 +1499,7 @@ void AddSC_shadowmoon_valley()
     newscript = new Script;
     newscript->Name = "npc_wilda";
     newscript->GetAI = &GetAI_npc_wilda;
-    newscript->pQuestAccept = &QuestAccept_npc_wilda;
+    newscript->pQuestAcceptNPC = &QuestAccept_npc_wilda;
     newscript->RegisterSelf();
 
     newscript = new Script;
@@ -1515,7 +1515,7 @@ void AddSC_shadowmoon_valley()
     newscript = new Script;
     newscript->Name = "npc_totem_of_spirits";
     newscript->GetAI = &GetAI_npc_totem_of_spirits;
-    newscript->pEffectDummyCreature = &EffectDummyCreature_npc_totem_of_spirits;
+    newscript->pEffectDummyNPC = &EffectDummyCreature_npc_totem_of_spirits;
     newscript->pEffectAuraDummy = &EffectAuraDummy_npc_totem_of_spirits;
     newscript->RegisterSelf();
 
@@ -1526,6 +1526,6 @@ void AddSC_shadowmoon_valley()
 
     newscript = new Script;
     newscript->Name = "go_crystal_prison";
-    newscript->pGOQuestAccept = &GOQuestAccept_GO_crystal_prison;
+    newscript->pQuestAcceptGO = &GOQuestAccept_GO_crystal_prison;
     newscript->RegisterSelf();
 }

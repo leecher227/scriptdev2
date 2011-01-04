@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -1474,7 +1474,7 @@ struct MANGOS_DLL_DECL npc_alexstraszaAI : public ScriptedAI
 /*######
 ## go_focusing_iris
 ######*/
-bool GOHello_go_focusing_iris(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_focusing_iris(Player* pPlayer, GameObject* pGo)
 {
     ScriptedInstance* pInstance = (ScriptedInstance*)pGo->GetInstanceData();
     if (pInstance)
@@ -1558,6 +1558,6 @@ void AddSC_boss_malygos()
 
     newscript = new Script;
     newscript->Name = "go_focusing_iris";
-    newscript->pGOHello = &GOHello_go_focusing_iris;
+    newscript->pGOUse = &GOUse_go_focusing_iris;
     newscript->RegisterSelf();
 }

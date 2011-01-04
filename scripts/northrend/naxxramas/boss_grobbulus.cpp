@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -269,19 +269,19 @@ CreatureAI* GetAI_npc_fallout_slime(Creature* pCreature)
 
 void AddSC_boss_grobbulus()
 {
-    Script *newscript;
-    newscript = new Script;
-    newscript->Name = "boss_grobbulus";
-    newscript->GetAI = &GetAI_boss_grobbulus;
-    newscript->RegisterSelf();
+    Script* pNewScript;
+    pNewScript = new Script;
+    pNewScript->Name = "boss_grobbulus";
+    pNewScript->GetAI = &GetAI_boss_grobbulus;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_grobbulus_poison_cloud";
-    newscript->GetAI = &GetAI_npc_grobbulus_poison_cloud;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_grobbulus_poison_cloud";
+    pNewScript->GetAI = &GetAI_npc_grobbulus_poison_cloud;
+    pNewScript->RegisterSelf();
 
-    newscript = new Script;
-    newscript->Name = "npc_fallout_slime";
-    newscript->GetAI = &GetAI_npc_fallout_slime;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_fallout_slime";
+    pNewScript->GetAI = &GetAI_npc_fallout_slime;
+    pNewScript->RegisterSelf();
 }

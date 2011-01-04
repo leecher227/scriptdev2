@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -98,7 +98,7 @@ enum
 
 };
 
-bool GOHello_scourge_enclosure(Player* pPlayer, GameObject* pGo)
+bool GOUse_scourge_enclosure(Player* pPlayer, GameObject* pGo)
 {
     if (pPlayer->GetQuestStatus(QUEST_OUR_ONLY_HOPE) == QUEST_STATUS_INCOMPLETE)
     {
@@ -123,11 +123,11 @@ void AddSC_zuldrak()
     pNewScript = new Script;
     pNewScript->Name = "npc_gurgthock";
     pNewScript->GetAI = &GetAI_npc_gurgthock;
-    pNewScript->pQuestAccept = &QuestAccept_npc_gurgthock;
+    pNewScript->pQuestAcceptNPC = &QuestAccept_npc_gurgthock;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "go_scourge_enclosure";
-    pNewScript->pGOHello = &GOHello_scourge_enclosure;
+    pNewScript->pGOUse = &GOUse_scourge_enclosure;
     pNewScript->RegisterSelf();
 }

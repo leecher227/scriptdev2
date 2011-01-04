@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -360,7 +360,7 @@ CreatureAI* GetAI_npc_crystal_handler(Creature* pCreature)
     return new npc_crystal_handlerAI(pCreature);
 }
 
-bool GOHello_novos_crystal(Player* pPlayer, GameObject* pGo)
+bool GOUse_novos_crystal(Player* pPlayer, GameObject* pGo)
 {       
     if (Creature* Trigger = GetClosestCreatureWithEntry(pGo, NPC_CRYSTAL_CHANNEL, 20.0f))
         Trigger->InterruptNonMeleeSpells(false);
@@ -390,6 +390,6 @@ void AddSC_boss_novos()
 
     pNewScript = new Script;
     pNewScript->Name = "go_novos_crystal";
-    pNewScript->pGOHello = &GOHello_novos_crystal;
+    pNewScript->pGOUse = &GOUse_novos_crystal;
     pNewScript->RegisterSelf();
 }

@@ -75,7 +75,7 @@ struct MANGOS_DLL_DECL npc_sa_demolisherAI : public ScriptedAI
     {
         if (BattleGround *bg = pPlayer->GetBattleGround())
         {
-            if (((BattleGroundSA*)bg)->GetController() == pPlayer->GetTeam() || bg->GetStatus() == STATUS_WAIT_JOIN)
+            if (((BattleGroundSA*)bg)->GetDefender() == pPlayer->GetTeam() || bg->GetStatus() == STATUS_WAIT_JOIN)
                 return;
 
             if (VehicleKit *vehicle = m_creature->GetVehicleKit())
@@ -85,7 +85,7 @@ struct MANGOS_DLL_DECL npc_sa_demolisherAI : public ScriptedAI
 
     bool mustDespawn(BattleGround *bg)
     {
-        if (bg->GetStatus() == STATUS_WAIT_JOIN && ((BattleGroundSA*)bg)->GetController() == ALLIANCE)
+        if (bg->GetStatus() == STATUS_WAIT_JOIN && ((BattleGroundSA*)bg)->GetDefender() == ALLIANCE)
         {
             float x = m_creature->GetPositionX();
             if (x < 1400.0f)
@@ -164,7 +164,7 @@ struct MANGOS_DLL_DECL npc_sa_cannonAI : public ScriptedAI
     {
         if (BattleGround *bg = pPlayer->GetBattleGround())
         {
-            if (bg->GetController() != pPlayer->GetTeam() || bg->GetStatus() == STATUS_WAIT_JOIN)
+            if (bg->GetDefender() != pPlayer->GetTeam() || bg->GetStatus() == STATUS_WAIT_JOIN)
                 return;
 
             if (VehicleKit *vehicle = m_creature->GetVehicleKit())
@@ -295,7 +295,7 @@ bool GossipHello_npc_sa_vendor(Player* pPlayer, Creature* pCreature)
     {
   if (pPlayer->GetMapId() == 607)
             if (BattleGround *bg = pPlayer->GetBattleGround())
-                if (bg->GetController() != pPlayer->GetTeam())
+                if (bg->GetDefender() != pPlayer->GetTeam())
   pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
   pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
     }
@@ -350,13 +350,13 @@ static float TeleLocation[7][3]=
     {808.447f, -109.192f, 109.835f},
 };
  
-bool GOHello_go_wintergrasp_def_portal(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_wintergrasp_def_portal(Player* pPlayer, GameObject* pGo)
 {
   if (pPlayer->GetMapId() == 607)
   {
   if (BattleGround *bg = pPlayer->GetBattleGround())
   {
-  if (pPlayer->GetTeam() == bg->GetController())
+  if (pPlayer->GetTeam() == bg->GetDefender())
   {
   for (uint32 i=0; i<7; ++i)
   {
@@ -404,6 +404,6 @@ void AddSC_battlegroundSA()
  
     newscript = new Script;
     newscript->Name = "go_sa_def_portal";
-    newscript->pGOHello = &GOHello_go_wintergrasp_def_portal;
+    newscript->pGOUse = &GOUse_go_wintergrasp_def_portal;
     newscript->RegisterSelf();
 }

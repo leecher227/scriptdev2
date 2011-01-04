@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -503,7 +503,7 @@ struct MANGOS_DLL_DECL boss_graufAI : public ScriptedAI
     }
 };
 
-bool GOHello_skadi_harpoon(Player* pPlayer, GameObject* pGo)
+bool GOUse_skadi_harpoon(Player* pPlayer, GameObject* pGo)
 {
     if (pPlayer)
        if (Item* pItem = pPlayer->StoreNewItemInInventorySlot(ITEM_HARPOON, 1)) 
@@ -515,7 +515,7 @@ bool GOHello_skadi_harpoon(Player* pPlayer, GameObject* pGo)
     return true;
 }
 
-bool GOHello_skadi_harpoon_launcher(Player* pPlayer, GameObject* pGo)
+bool GOUse_skadi_harpoon_launcher(Player* pPlayer, GameObject* pGo)
 {
     if (ScriptedInstance* m_pInstance = (ScriptedInstance*)pGo->GetInstanceData())
         if (Creature* pSkadi = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_SKADI)))
@@ -562,11 +562,11 @@ void AddSC_boss_skadi()
 
     pNewScript = new Script;
     pNewScript->Name = "go_skadi_harpoon";
-    pNewScript->pGOHello=&GOHello_skadi_harpoon;
+    pNewScript->pGOUse=&GOUse_skadi_harpoon;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "go_skadi_harpoon_launcher";
-    pNewScript->pGOHello=&GOHello_skadi_harpoon_launcher;
+    pNewScript->pGOUse=&GOUse_skadi_harpoon_launcher;
     pNewScript->RegisterSelf();
 }

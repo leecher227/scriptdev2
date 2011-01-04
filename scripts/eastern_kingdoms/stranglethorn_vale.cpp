@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* Copyright (C) 2006 - 2011 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -183,7 +183,7 @@ bool GossipHello_npc_riggle_bassbait(Player* pPlayer, Creature* pCreature)
     return true;
 }
 
-bool ChooseReward_npc_riggle_bassbait(Player* pPlayer, Creature* pCreature, const Quest* pQuest, uint32 uiItem)
+bool QuestRewarded_npc_riggle_bassbait(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
 {
     // TODO: check if this can only be called if NPC has QUESTGIVER flag.
     if (pQuest->GetQuestId() == QUEST_MASTER_ANGLER && ((npc_riggle_bassbaitAI*)(pCreature->AI()))->bEventWinnerFound == false)
@@ -221,6 +221,6 @@ void AddSC_stranglethorn_vale()
     newscript->Name = "npc_riggle_bassbait";
     newscript->GetAI = &GetAI_npc_riggle_bassbait;
     newscript->pGossipHello = &GossipHello_npc_riggle_bassbait;
-    newscript->pChooseReward = &ChooseReward_npc_riggle_bassbait;
+    newscript->pQuestRewardedNPC = &QuestRewarded_npc_riggle_bassbait;
     newscript->RegisterSelf();
 }
