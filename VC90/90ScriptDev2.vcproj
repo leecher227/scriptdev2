@@ -399,6 +399,10 @@
 					RelativePath="..\scripts\battlegrounds\battleground.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\scripts\battlegrounds\battlegroundSA.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="custom"
