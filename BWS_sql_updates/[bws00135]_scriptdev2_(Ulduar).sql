@@ -1,5 +1,4 @@
-DELETE FROM script_texts WHERE entry BETWEEN -1603500 AND -1603000;
-INSERT INTO script_texts (entry, content_default, content_loc1, content_loc2, content_loc3, content_loc4, content_loc5, content_loc6, content_loc7, content_loc8, sound, type, language, emote, comment) VALUES 
+﻿REPLACE INTO script_texts (entry, content_default, content_loc1, content_loc2, content_loc3, content_loc4, content_loc5, content_loc6, content_loc7, content_loc8, sound, type, language, emote, comment) VALUES 
 -- Leviathan: needs intro & outro
 (-1603201,"Threat assessment routine modified. Current target threat level: zero. Acquiring new target.","","","","","","","","",15521,1,0,0,"Flame Leviathan Slay"),
 (-1603202,"Total systems failure. Defense protocols breached. Leviathan Unit shutting down.","","","","","","","","",15520,1,0,0,"Flame Leviathan Death"),
@@ -197,6 +196,19 @@ INSERT INTO script_texts (entry, content_default, content_loc1, content_loc2, co
 (-1603259,"It would appear that I've made a slight miscalculation. I allowed my mind to be corrupted by the fiend in the prison, overriding my primary directive. All systems seem to be functional now. Clear.","","","","","","","","",15627,1,0,0,"robot defeat"),
 (-1603260,"Combat matrix enhanced. Behold wonderous rapidity!","","","","","","","","",15630,1,0,0,"mimiron yogg"),
 (-1603371,'Leviathan Mk II begins to cast Plasma Blast!' ,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,3,0,0,'EMOTE_plasma_blast'),
+(-1606241,"Self-destruct sequence initiated.","","","","","","","","Отсчет времени до самоуничтожения начат.",15413,1,0,0,"mimiron aggro"), 
+(-1606242,"This area will self-destruct in ten minutes.","","","","","","","","Самоуничтожение области через десять минут.",15415,1,0,0,"mimiron aggro"), 
+(-1606243,"This area will self-destruct in nine minutes.","","","","","","","","Самоуничтожение области через девять минут.",15416,1,0,0,"mimiron aggro"), 
+(-1606244,"This area will self-destruct in eight minutes.","","","","","","","","Самоуничтожение области через восемь минут.",15417,1,0,0,"mimiron aggro"),
+(-1606245,"This area will self-destruct in seven minutes.","","","","","","","","Самоуничтожение области через семь минут.",15418,1,0,0,"mimiron aggro"),
+(-1606246,"This area will self-destruct in six minutes.","","","","","","","","Самоуничтожение области через шесть минут.",15419,1,0,0,"mimiron aggro"),
+(-1606247,"This area will self-destruct in five minutes.","","","","","","","","Самоуничтожение области через пять минут.",15420,1,0,0,"mimiron aggro"),
+(-1606248,"This area will self-destruct in four minutes.","","","","","","","","Самоуничтожение области через четыре минуты.",15421,1,0,0,"mimiron aggro"),
+(-1606249,"This area will self-destruct in three minutes.","","","","","","","","Самоуничтожение области через три минуты.",15422,1,0,0,"mimiron aggro"),
+(-1606250,"This area will self-destruct in two minutes.","","","","","","","","Самоуничтожение области через две минуты.",15423,1,0,0,"mimiron aggro"),
+(-1606251,"This area will self-destruct in one minute.","","","","","","","","Самоуничтожение области через одну минуту.",15424,1,0,0,"mimiron aggro"),
+(-1606252,"The self-destruction timer is over. Have a nice day.","","","","","","","","Отсчет времени до самоуничтожения завершен. Всего хорошего.",15425,1,0,0,"mimiron aggro"),
+(-1606253,"The self-destruction timer canceled. Exit code A905.","","","","","","","","Отсчет времени до самоуничтожения прерван. Код отмены А905.",15414,1,0,0,"mimiron aggro"),
 
 -- vezax
 (-1603120,'Your destruction will herald a new age of suffering!',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,15542,1,0,0,'vezax aggro'),

@@ -6,9 +6,8 @@ UPDATE gameobject_template SET ScriptName='go_ulduar_teleporter' WHERE entry=194
 -- Instance Ulduar END
 
 -- Flame Leviathan
-/*UPDATE creature_template SET ScriptName = 'boss_flame_leviathan' WHERE entry = 33113;
+UPDATE creature_template SET ScriptName = 'boss_flame_leviathan' WHERE entry = 33113;
 UPDATE creature_template SET ScriptName = 'mob_defense_turret' WHERE entry = 33142;
-*/
 -- Flame Leviathan END
 
 -- Ignis the Furnace Master
@@ -279,38 +278,29 @@ INSERT INTO creature VALUES
 -- Hodir END
 
 -- Mimiron
-UPDATE gameobject_template SET data0 = '60000' WHERE entry =194675;
-UPDATE creature_template SET ScriptName = 'boss_mimiron' WHERE entry = 33350;
-UPDATE creature_template SET RegenHealth= 0, ScriptName = 'boss_leviathan_mk' WHERE entry = 33432;
-UPDATE creature_template SET ScriptName = 'leviathan_turret' WHERE entry = 34071;
-UPDATE creature_template SET ScriptName = 'mob_mimiron_flames' WHERE entry IN (34363, 34121);
-UPDATE creature_template SET RegenHealth= 0, ScriptName = 'boss_vx001' WHERE entry = 33651;
-UPDATE creature_template SET RegenHealth= 0, ScriptName = 'boss_aerial_command_unit' WHERE entry = 33670;
-UPDATE creature SET position_x = 2784.35, position_y = 2578.03, orientation = 3.2 WHERE id = 33350;
-UPDATE creature SET position_x = 2794.86, position_y = 2597.83, orientation = 3.57, spawnMask = 3 WHERE id = 33432;
-UPDATE gameobject_template SET flags = 6553632, data2 = 2000, ScriptName='go_red_button' WHERE entry = 194739;
-UPDATE creature_template SET ScriptName = 'mob_proximity_mine' WHERE entry = 34362;
-UPDATE creature_template SET ScriptName = 'mob_bomb_bot' WHERE entry IN (33836, 34192);
-UPDATE creature_template SET faction_A = 14, faction_H = 14, minlevel = 80, maxlevel = 80, ScriptName = 'mob_emergency_bot' WHERE entry = 34147;
-UPDATE creature_template SET ScriptName = 'mob_frost_bomb_ulduar' WHERE entry = 34149;
-UPDATE creature_template SET ScriptName = 'mob_mimiron_inferno' WHERE entry = 33370;
-UPDATE creature_template SET ScriptName = 'mob_assault_bot' WHERE entry = 34057;
-UPDATE creature_template SET ScriptName = 'mob_magnetic_core' WHERE entry = 34068;
-UPDATE gameobject SET position_x = 2734.73 WHERE id IN (194789, 194956);
--- spells, may not be correct
-DELETE FROM spell_script_target WHERE entry IN (64444, 63414, 65101);
-INSERT INTO spell_script_target (entry, type, targetEntry) VALUES
-(64444, 1, 33670),
-(63414, 1, 33651),
-(65101, 1, 33350);
--- (62909, 1, 33350);
--- SOME MIMIRON LOOT BOXES ARE MISSING
--- INSERT two new boxes
-DELETE FROM gameobject WHERE id IN (194957, 194958);
-INSERT INTO gameobject (guid,id,map,spawnMask,phaseMask,position_x,position_y,position_z,orientation,rotation0,rotation1,rotation2,rotation3,spawntimesecs,animprogress,state) VALUES
-(110004, 194957, 603, 1, 65535, 2734.73, 2568.98, 364.314, 0.0139475, 0, 0, 0.00697369, 0.999976, -604800, 100, 1);
-INSERT INTO gameobject (guid,id,map,spawnMask,phaseMask,position_x,position_y,position_z,orientation,rotation0,rotation1,rotation2,rotation3,spawntimesecs,animprogress,state) VALUES
-(110005, 194958, 603, 2, 65535, 2734.73, 2568.98, 364.314, 0.0139475, 0, 0, 0.00697369, 0.999976, -604800, 100, 1);
+UPDATE creature_template SET ScriptName = "boss_mimiron" WHERE entry = 33350;
+UPDATE creature_template SET RegenHealth= 0, ScriptName = "boss_leviathan_mk" WHERE entry = 33432;
+UPDATE creature_template SET ScriptName = "leviathan_turret" WHERE entry = 34071;
+UPDATE creature_template SET ScriptName = "mob_proximity_mine" WHERE entry = 34362;
+DELETE FROM spell_script_target WHERE entry IN (63274, 63414);
+REPLACE INTO spell_script_target (entry, type, targetEntry) values('63414','1','33835');
+REPLACE INTO spell_script_target (entry, type, targetEntry) values('63274','1','33835');
+REPLACE INTO spell_script_target (entry, type, targetEntry) values('64444','1','33670');
+UPDATE creature_template SET RegenHealth= 0, ScriptName = "boss_vx001" WHERE entry = 33651;
+UPDATE creature_template SET ScriptName = "mob_assault_bot" WHERE entry = 34057;
+UPDATE creature_template SET ScriptName = "mob_bomb_bot" WHERE entry in (33836, 34192);
+UPDATE creature_template SET faction_A = 14, faction_H = 14, minlevel = 80, maxlevel = 80, ScriptName = "mob_emergency_bot" WHERE entry = 34147;
+UPDATE creature_template SET RegenHealth= 0, ScriptName = "boss_aerial_command_unit" WHERE entry = 33670;
+UPDATE creature_template SET ScriptName = "npc_mimiron_focus" WHERE entry = 33835;
+UPDATE creature_template SET flags_extra=flags_extra|2 WHERE entry in (34047, 33835, 34143);
+UPDATE creature_template SET ScriptName = "mob_magnetic_core" WHERE entry = 34068;
+replace into creature_loot_template (entry, item, ChanceOrQuestChance, groupid, mincountOrRef, maxcount, lootcondition, condition_value1, condition_value2) values('34057','46029','100','0','1','1','0','0','0');
+UPDATE creature_template SET lootid = 34057 WHERE entry = 34057;
+UPDATE gameobject_template SET flags = 6553632, data2 = 2000, ScriptName="go_red_button" WHERE entry = 194739;
+UPDATE creature_template SET ScriptName = "npc_mimiron_computer" WHERE entry = 34143;
+DELETE FROM creature where id=34143;
+UPDATE creature_template SET ScriptName = "mob_frost_bomb" WHERE entry = 34149;
+UPDATE creature_template SET ScriptName = "mob_mimiron_flames" WHERE entry in (34363, 34121);
 -- Mimiron END
 
 -- Thorim
