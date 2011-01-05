@@ -24,27 +24,43 @@ EndScriptData */
 #include "precompiled.h"
 #include "BattleGroundSA.h"
 #include "Vehicle.h"
-#define Spell_Boom 52408
+
+#define SPELL_SEAFORIUM_BLAST 52408
 
 struct MANGOS_DLL_DECL npc_sa_bombAI : public ScriptedAI
 {
-    npc_sa_bombAI(Creature* pCreature) : ScriptedAI(pCreature) { SetCombatMovement(false); Reset(); }
-  uint32 event_bomb;
-  float fx, fy, fz;
-    void Reset() { m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE); event_bomb = 10000; }
-    void Aggro(Unit* who){}
-    void JustDied(Unit* Killer){ m_creature->ForcedDespawn(); }
-    void KilledUnit(Unit *victim){}
-    void UpdateAI(const uint32 diff)
+    npc_sa_bombAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-  if (event_bomb < diff)
-  {
-  m_creature->GetPosition(fx, fy, fz);
-  m_creature->CastSpell(m_creature, 34602, true);
-  m_creature->CastSpell(m_creature, 71495, true);
-  m_creature->CastSpell(fx, fy, fz, Spell_Boom, true, 0, 0, m_creature->GetCharmerGuid());
-  m_creature->ForcedDespawn();
-  } else event_bomb -= diff;
+        SetCombatMovement(false);
+        Reset();
+    }
+    
+    uint32 m_uiSeaforiumBlastTimer;
+    float fx, fy, fz;
+    
+    void Reset()
+    {
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+        m_uiSeaforiumBlastTimer = 10000;
+    }
+    
+    void JustDied(Unit* pKiller)
+    {
+        m_creature->ForcedDespawn();
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_uiSeaforiumBlastTimer < uiDiff)
+        {
+            m_creature->GetPosition(fx, fy, fz);
+            m_creature->CastSpell(m_creature, 34602, true);
+            m_creature->CastSpell(m_creature, 71495, true);
+            m_creature->CastSpell(fx, fy, fz, SPELL_SEAFORIUM_BLAST, true, 0, 0, m_creature->GetCharmerGuid());
+            m_creature->ForcedDespawn();
+        }
+        else
+            m_uiSeaforiumBlastTimer -= uiDiff;
   }
 };
  
@@ -61,17 +77,20 @@ struct MANGOS_DLL_DECL npc_sa_demolisherAI : public ScriptedAI
         Reset();
     }
 
-  void Reset()
+    void Reset()
     {
         done = false;
     }
 
     bool done;
-    BattleGround *bg;
+    BattleGround* bg;
 
-    void Aggro(Unit* who){ m_creature->CombatStop(); }
+    void Aggro(Unit* pWho)
+    {
+        m_creature->CombatStop();
+    }
 
-  void StartEvent(Player* pPlayer)
+    void StartEvent(Player* pPlayer)
     {
         if (BattleGround *bg = pPlayer->GetBattleGround())
         {
@@ -94,7 +113,7 @@ struct MANGOS_DLL_DECL npc_sa_demolisherAI : public ScriptedAI
         return false;
     }
  
-    void UpdateAI(const uint32 diff)
+    void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->isCharmed())
         {
@@ -158,7 +177,10 @@ struct MANGOS_DLL_DECL npc_sa_cannonAI : public ScriptedAI
     bool done;
     BattleGround *bg;
 
-    void Aggro(Unit* who){ m_creature->CombatStop(); }
+    void Aggro(Unit* pWho)
+    {
+        m_creature->CombatStop();
+    }
 
     void StartEvent(Player* pPlayer)
     {
@@ -172,7 +194,7 @@ struct MANGOS_DLL_DECL npc_sa_cannonAI : public ScriptedAI
         }
     }
  
-    void UpdateAI(const uint32 diff)
+    void UpdateAI(const uint32 uiDiff)
     {
         if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -218,23 +240,28 @@ bool GossipHello_npc_sa_cannon(Player* pPlayer, Creature* pCreature)
      ((npc_sa_cannonAI*)pCreature->AI())->StartEvent(pPlayer);
          return true;
 }
-#define GOSSIP_START_EVENT_1 "Comenzar a construir el Demoledor."
-#define GOSSIP_START_EVENT_2 "No tienes nada que hacer ahora!"
-#define GOSSIP_EVENT_STARTED "Ya estoy trabajando en ello!"
+#define GOSSIP_START_EVENT_1 "Build the Demolisher."
+#define GOSSIP_START_EVENT_2 "You have nothing to do now!"
+#define GOSSIP_EVENT_STARTED "I'm working on it!"
 
-#define NPC_DEMILISHER 28781
+#define NPC_DEMOLISHER 28781
 
-#define SA_MESSAGE_0 "Empieza a fabricarse el Demoledor"
-#define SA_MESSAGE_1 "Tiempo restante: 1 minuto"
-#define SA_MESSAGE_1_1 "Tiempo restante: 40 segundos"
-#define SA_MESSAGE_1_2 "Tiempo restante: 35 segundos"
-#define SA_MESSAGE_2 "Tiempo restante: 30 segundos"
-#define SA_MESSAGE_3 "Tiempo restante: 25 segundos"
-#define SA_MESSAGE_4 "Tiempo restante: 20 segundos"
-#define SA_MESSAGE_5 "Tiempo restante: 15 segundos"
-#define SA_MESSAGE_6 "Tiempo restante: 10 segundos"
-#define SA_MESSAGE_7 "Tiempo restante: 5 segundos"
-#define SA_MESSAGE_8 "Listo!"
+#define SA_MESSAGE_0 "The Demolisher started to build"
+#define SA_MESSAGE_1 "Time left: 1 minute"
+#define SA_MESSAGE_2 "Done!"
+
+static char* SA_MESSAGE_BUILD_TIME[8] = 
+{
+    "Time left: 40 seconds",
+    "Time left: 35 seconds",
+    "Time left: 30 seconds",
+    "Time left: 25 seconds",
+    "Time left: 20 seconds",
+    "Time left: 15 seconds",
+    "Time left: 10 seconds",
+    "Time left: 5 seconds"
+};
+
 
 static float SummonLocations[2][4]=
 {
@@ -246,35 +273,55 @@ bool build;
 
 struct MANGOS_DLL_DECL npc_sa_vendorAI : public ScriptedAI
 {
-    npc_sa_vendorAI(Creature* pCreature) : ScriptedAI(pCreature){Reset();}
-    uint32 build_time;
-  uint8 gydId;
-    void Reset(){ build=false; }
-  void StartEvent(Player* pPlayer, uint8 gyd)
+    npc_sa_vendorAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-  build_time = 60000;
-  gydId = gyd;
-  build = true;
-  m_creature->MonsterSay(SA_MESSAGE_0,LANG_UNIVERSAL,0);
-  m_creature->MonsterSay(SA_MESSAGE_1,LANG_UNIVERSAL,0);
+        Reset();
+    }
+    
+    uint32 m_uiBuildTimer;
+    uint32 m_uiSayTimer;
+    uint8 m_uiSayNum;
+    uint8 gydId;
+    
+    void Reset()
+    {
+        build = false;
+    }
+    
+    void StartEvent(Player* pPlayer, uint8 gyd)
+    {
+        m_uiBuildTimer = 60000;
+        m_uiSayTimer = 20000;
+        m_uiSayNum = 0;
+        gydId = gyd;
+        build = true;
+        m_creature->MonsterSay(SA_MESSAGE_0, LANG_UNIVERSAL, 0);
+        m_creature->MonsterSay(SA_MESSAGE_1, LANG_UNIVERSAL, 0);
     }
  
-    void UpdateAI(const uint32 diff)
+    void UpdateAI(const uint32 uiDiff)
     {
         if (build)
-  {
-  if (build_time < diff)
-  {
-  m_creature->SummonCreature(NPC_DEMILISHER,SummonLocations[gydId][0],SummonLocations[gydId][1],SummonLocations[gydId][2],SummonLocations[gydId][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-  m_creature->MonsterSay(SA_MESSAGE_8,LANG_UNIVERSAL,0);
-  build=false;
-  }else build_time -= diff;
- 
-  switch(build_time/2)
-  {
-  case 15000: m_creature->MonsterSay(SA_MESSAGE_2,LANG_UNIVERSAL,0); break;
-  case 7500: m_creature->MonsterSay(SA_MESSAGE_5,LANG_UNIVERSAL,0); break;
-  }
+        {
+            if (m_uiBuildTimer < uiDiff)
+            {
+                m_creature->SummonCreature(NPC_DEMOLISHER, SummonLocations[gydId][0], SummonLocations[gydId][1], SummonLocations[gydId][2], SummonLocations[gydId][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+                m_creature->MonsterSay(SA_MESSAGE_2, LANG_UNIVERSAL, 0);
+                build = false;
+            }
+            else
+                m_uiBuildTimer -= uiDiff;
+
+            if (m_uiSayTimer < uiDiff)
+            {
+                if (m_uiSayNum <= 7)
+                    m_creature->MonsterSay(SA_MESSAGE_BUILD_TIME[m_uiSayNum], LANG_UNIVERSAL);
+                ++m_uiSayNum;
+                m_uiSayTimer = 5000;
+            }
+            else
+                m_uiBuildTimer -= uiDiff;
+
         }
     }
 };
@@ -286,18 +333,22 @@ CreatureAI* GetAI_npc_sa_vendor(Creature* pCreature)
  
 bool GossipHello_npc_sa_vendor(Player* pPlayer, Creature* pCreature)
 {
-  uint8 gyd = NULL;
-  if (pCreature->GetEntry() == 29260)
+    uint8 gyd = 0;
+    if (pCreature->GetEntry() == 29260)
         gyd = 0;
-  if (pCreature->GetEntry() == 29262)
+    if (pCreature->GetEntry() == 29262)
         gyd = 1;
     if (!build)
     {
-  if (pPlayer->GetMapId() == 607)
+        if (pPlayer->GetMapId() == 607)
+        {
             if (BattleGround *bg = pPlayer->GetBattleGround())
+            {
                 if (bg->GetDefender() != pPlayer->GetTeam())
-  pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-  pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+            }
+        }
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
     }
     else
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
@@ -312,16 +363,18 @@ bool GossipSelect_npc_sa_vendor(Player* pPlayer, Creature* pCreature, uint32 uiS
     if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
     {
         uint8 gyd = NULL;
-  if (pCreature->GetEntry() == 29260)
+        if (pCreature->GetEntry() == 29260)
             gyd = 0;
-  if (pCreature->GetEntry() == 29262)
+        if (pCreature->GetEntry() == 29262)
             gyd = 1;
-         pPlayer->CLOSE_GOSSIP_MENU();
-  ((npc_sa_vendorAI*)pCreature->AI())->StartEvent(pPlayer, gyd);
-     }
-     if (uiAction == GOSSIP_ACTION_INFO_DEF+2)
-         pPlayer->CLOSE_GOSSIP_MENU();
-     return true;
+        pPlayer->CLOSE_GOSSIP_MENU();
+        ((npc_sa_vendorAI*)pCreature->AI())->StartEvent(pPlayer, gyd);
+    }
+    
+    if (uiAction == GOSSIP_ACTION_INFO_DEF+2)
+        pPlayer->CLOSE_GOSSIP_MENU();
+    
+    return true;
 }
  
 /*######
@@ -352,58 +405,60 @@ static float TeleLocation[7][3]=
  
 bool GOUse_go_wintergrasp_def_portal(Player* pPlayer, GameObject* pGo)
 {
-  if (pPlayer->GetMapId() == 607)
-  {
-  if (BattleGround *bg = pPlayer->GetBattleGround())
-  {
-  if (pPlayer->GetTeam() == bg->GetDefender())
-  {
-  for (uint32 i=0; i<7; ++i)
-  {
-  if ((pGo->GetPositionX() == SpawnLocation[i][0]) &&
-  (pGo->GetPositionY() == SpawnLocation[i][1]) &&
-  (pGo->GetPositionZ() == SpawnLocation[i][2]))
-  {
-  pPlayer->TeleportTo(bg->GetMapId(),TeleLocation[i][0],TeleLocation[i][1],TeleLocation[i][2],0);
-  return true;
-  }
-  }
-  } else pPlayer->MonsterSay("No puedo usar eso!",LANG_UNIVERSAL, pPlayer);
-  }
-  }
-  return false;
+    if (pPlayer->GetMapId() == 607)
+    {
+        if (BattleGround *bg = pPlayer->GetBattleGround())
+        {
+            if (pPlayer->GetTeam() == bg->GetDefender())
+            {
+                for (uint8 i = 0; i < 7; ++i)
+                {
+                    if ((pGo->GetPositionX() == SpawnLocation[i][0]) &&
+                        (pGo->GetPositionY() == SpawnLocation[i][1]) &&
+                        (pGo->GetPositionZ() == SpawnLocation[i][2]))
+                    {
+                        pPlayer->TeleportTo(bg->GetMapId(), TeleLocation[i][0], TeleLocation[i][1], TeleLocation[i][2], 0);
+                        return true;
+                    }
+                }
+            }
+            else
+                pPlayer->MonsterSay("I can't use that!", LANG_UNIVERSAL, pPlayer);
+        }
+    }
+    return false;
 }
- 
+
 void AddSC_battlegroundSA()
 {
-    Script *newscript;
+    Script* pNewScript;
  
-  newscript = new Script;
-    newscript->Name="npc_sa_bomb";
-    newscript->GetAI = &GetAI_npc_sa_bomb;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name="npc_sa_bomb";
+    pNewScript->GetAI = &GetAI_npc_sa_bomb;
+    pNewScript->RegisterSelf();
  
-    newscript = new Script;
-    newscript->Name = "npc_sa_demolisher";
-    newscript->GetAI = &GetAI_npc_sa_demolisher;
-    newscript->pGossipHello = &GossipHello_npc_sa_demolisher;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_sa_demolisher";
+    pNewScript->GetAI = &GetAI_npc_sa_demolisher;
+    pNewScript->pGossipHello = &GossipHello_npc_sa_demolisher;
+    pNewScript->RegisterSelf();
  
-    newscript = new Script;
-    newscript->Name = "npc_sa_cannon";
-    newscript->GetAI = &GetAI_npc_sa_cannon;
-    newscript->pGossipHello = &GossipHello_npc_sa_cannon;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_sa_cannon";
+    pNewScript->GetAI = &GetAI_npc_sa_cannon;
+    pNewScript->pGossipHello = &GossipHello_npc_sa_cannon;
+    pNewScript->RegisterSelf();
  
-    newscript = new Script;
-    newscript->Name = "npc_sa_vendor";
-    newscript->GetAI = &GetAI_npc_sa_vendor;
-    newscript->pGossipHello = &GossipHello_npc_sa_vendor;
-    newscript->pGossipSelect = &GossipSelect_npc_sa_vendor;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "npc_sa_vendor";
+    pNewScript->GetAI = &GetAI_npc_sa_vendor;
+    pNewScript->pGossipHello = &GossipHello_npc_sa_vendor;
+    pNewScript->pGossipSelect = &GossipSelect_npc_sa_vendor;
+    pNewScript->RegisterSelf();
  
-    newscript = new Script;
-    newscript->Name = "go_sa_def_portal";
-    newscript->pGOUse = &GOUse_go_wintergrasp_def_portal;
-    newscript->RegisterSelf();
+    pNewScript = new Script;
+    pNewScript->Name = "go_sa_def_portal";
+    pNewScript->pGOUse = &GOUse_go_wintergrasp_def_portal;
+    pNewScript->RegisterSelf();
 }
