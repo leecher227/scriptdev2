@@ -418,7 +418,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->SetStandState(UNIT_STAND_STATE_SUBMERGED);
+        m_creature->SetStandState(UNIT_STAND_STATE_CUSTOM);
         if (m_pInstance)
         {
             if (m_pInstance->GetData(TYPE_KOLOGARN) == DONE)
