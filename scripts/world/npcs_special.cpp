@@ -47,7 +47,8 @@ npc_tabard_vendor        50%    allow recovering quest related tabards, achievem
 npc_locksmith            75%    list of keys needs to be confirmed
 npc_experience_eliminator       Don't want to gain experience anymore
 npc_death_knight_gargoyle       AI for summoned gargoyle of deathknights
-npc_runeblade    
+npc_runeblade
+npc_wormhole            100%    Creates an unstable wormhole
 EndContentData */
 
 
@@ -2242,6 +2243,77 @@ CreatureAI* GetAI_npc_eye_of_kilrogg(Creature* pCreature)
     return new npc_eye_of_kilrogg(pCreature);
 }
 
+/*######
+# npc_wormhole
+######*/
+
+enum eWormhole
+{
+    SPELL_BOREAN_TUNDRA         = 67834,
+    SPELL_HOWLING_FJORD         = 67838,
+    SPELL_SHOLAZAR_BASIN        = 67835,
+    SPELL_ICECROWN              = 67836,
+    SPELL_STORM_PEAKS           = 67837,
+
+    TEXT_WORMHOLE               = 907,
+
+    MAP_NORTHREND               = 571
+};
+
+static char* WormholeGossip[6] =
+{
+    "Borean Tundra.",
+    "Howling Fjord.",
+    "Sholazar Basin.",
+    "Icecrown.",
+    "Storm Peaks.",
+    "Underground...",
+};
+
+static float WormholeTele[6][4] =
+{
+    {3172.33f, 5608.70f, 595.01f, 1.18f},                   // Borean Tundra
+    {1180.55f, -4876.56f, 408.80f, 0.43f},                  // Howling Fjord
+    {6234.36f, 4766.68f, 224.71f, 4.23f},                   // Sholazar Basin
+    {8113.86f, 1352.32f, 848.87f, 0.26f},                   // Icecrown
+    {8992.79f, -1222.29f, 1058.40f, 2.87f},                 // Storm Peaks
+    {5859.29f, 516.25f, 599.81f, 3.15f},                    // Underground (under Horde section of Dalaran)
+};
+
+bool GossipHello_npc_wormhole(Player* pPlayer, Creature* pCreature)
+{
+    if (pPlayer->GetSkillValue(SKILL_ENGINEERING) >= 415)
+    {
+        for (uint8 i=0; i<=5; ++i)
+        {
+            if (i == 5 && urand(0, 19))
+                continue;
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, WormholeGossip[i], GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+i+1);
+        }
+
+        pPlayer->PlayerTalkClass->SendGossipMenu(TEXT_WORMHOLE, pCreature->GetGUID());
+    }
+    return true;
+}
+
+bool GossipSelect_npc_wormhole(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
+{
+    pPlayer->PlayerTalkClass->ClearMenus();
+    
+    uint8 uiI = uiAction - GOSSIP_ACTION_INFO_DEF - 1;
+    uint8 uiH;
+
+    if (uiI != 5 && !urand(0, 9))
+        uiH = urand(10, 50);
+    else
+        uiH = 0;
+
+    pPlayer->CLOSE_GOSSIP_MENU();
+    pPlayer->TeleportTo(MAP_NORTHREND, WormholeTele[uiI][0], WormholeTele[uiI][1], WormholeTele[uiI][2]+uiH, WormholeTele[uiI][3]);
+    pCreature->ForcedDespawn();
+    return true;
+};
+
 void AddSC_npcs_special()
 {
     Script* newscript;
@@ -2361,5 +2433,11 @@ void AddSC_npcs_special()
     newscript = new Script;
     newscript->Name = "npc_eye_of_kilrogg";
     newscript->GetAI = &GetAI_npc_eye_of_kilrogg;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_wormhole";
+    newscript->pGossipHello =  &GossipHello_npc_wormhole;
+    newscript->pGossipSelect = &GossipSelect_npc_wormhole;
     newscript->RegisterSelf();
 }
