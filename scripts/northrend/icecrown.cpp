@@ -27,6 +27,7 @@ npc_dame_evniki_kapsalis
 EndContentData */
 
 #include "precompiled.h"
+#include "TemporarySummon.h"
 
 /*######
 ## npc_arete
