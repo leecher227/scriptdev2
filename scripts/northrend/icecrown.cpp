@@ -822,6 +822,332 @@ CreatureAI* GetAI_boss_hight_admiral_westwind(Creature* pCreature)
     return new boss_hight_admiral_westwindAI(pCreature);
 }
 
+//################ QUEST: The Second Chance ###################
+
+enum
+{
+    SAY_EVENT_01                = -1999430,
+    SAY_EVENT_02                = -1999431,
+    SAY_EVENT_03                = -1999432,
+    SAY_EVENT_04                = -1999433,
+    SAY_EVENT_05                = -1999434,
+    SAY_EVENT_06                = -1999435,
+    SAY_EVENT_07                = -1999436,
+    SAY_EVENT_08                = -1999437,
+    SAY_EVENT_09                = -1999438,
+    SAY_EVENT_10                = -1999439,
+    SAY_EVENT_11                = -1999440,
+    SAY_EVENT_12                = -1999441,
+    SAY_EVENT_13                = -1999442,
+
+    SPELL_SUMMON_GATE           = 26560, //spell script target
+    SPELL_SUMMON_ARETE          = 18280,
+    SPELL_SUMMON_SOUL           = 12600,
+    SPELL_GET_SOUL              = 60452,
+    SPELL_TELEPORT              = 52096,
+   
+    NPC_LANDGREN                = 29542,
+    NPC_LANDGREN_SOUL           = 29572, //383 drowned state
+    NPC_ARETE                   = 29560,
+    NPC_SOUL_TARGET             = 29577,
+
+    GO_ARETE_GATE               = 191579,
+
+    SPELL_MIND_BLAST_L          = 60453,
+    SPELL_MIND_SHIRE            = 60440,
+    SPELL_SHADOW_FORM           = 60449,
+    SPELL_SHADOW_PAIN           = 60446,
+};
+
+struct MANGOS_DLL_DECL npc_archbishop_landgrenAI : public ScriptedAI
+{
+    npc_archbishop_landgrenAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        m_creature->SetCorpseDelay(300000);
+        m_creature->SetRespawnDelay(300005);
+        Reset();
+    }
+
+    uint32 m_uiBlastTimer;
+    uint32 m_uiPainTimer;
+    uint32 m_uiShireTimer;
+    uint32 m_uiFormTimer;
+
+    void Reset()
+    {
+        m_uiBlastTimer = urand(5000, 13000);
+        m_uiShireTimer = urand(1000, 5000);
+        m_uiPainTimer = urand(8000, 20000);
+        m_uiFormTimer = 1000;
+    }
+
+    void JustDied(Unit* pKiller)
+    {
+        DoScriptText(SAY_EVENT_01, m_creature);
+        m_creature->CastSpell(m_creature, SPELL_SUMMON_ARETE, true);
+    }
+
+    inline float GetManaPercent() 
+    {
+        return (((float)m_creature->GetPower(POWER_MANA) / (float)m_creature->GetMaxPower(POWER_MANA)) * 100);
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (GetManaPercent() < 30)
+            m_creature->SetPower(POWER_MANA, m_creature->GetMaxPower(POWER_MANA));
+
+        if (m_uiPainTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_PAIN) == CAST_OK)
+                    m_uiPainTimer = urand(8000, 20000);
+        }
+        else
+            m_uiPainTimer -= uiDiff;
+
+        if (m_uiBlastTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                if (DoCastSpellIfCan(pTarget, SPELL_MIND_BLAST_L) == CAST_OK)
+                    m_uiBlastTimer = urand(5000, 10000);
+        }
+        else
+            m_uiBlastTimer -= uiDiff;
+
+        if (m_uiShireTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIND_SHIRE) == CAST_OK)
+                m_uiShireTimer = urand(8000, 12000);
+        }
+        else
+            m_uiShireTimer -= uiDiff;
+
+        if (m_uiFormTimer < uiDiff && m_creature->GetHealthPercent() < 50 && !m_creature->HasAura(SPELL_SHADOW_FORM))
+        {
+            DoCastSpellIfCan(m_creature, SPELL_SHADOW_FORM);
+        }
+        else
+            m_uiFormTimer -= uiDiff;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_archbishop_landgren(Creature* pCreature)
+{
+    return new npc_archbishop_landgrenAI(pCreature);
+}
+
+struct MANGOS_DLL_DECL npc_lord_commander_areteAI : public ScriptedAI
+{
+    npc_lord_commander_areteAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+        if (m_creature->IsTemporarySummon())
+        {
+            TemporarySummon* pSummon = (TemporarySummon*)m_creature;
+            if (Unit* pOwner = m_creature->GetMap()->GetUnit(pSummon->GetSummonerGuid()))
+                m_uiLandgrenGUID = pOwner->GetGUID();
+            m_bEvent = true;
+            m_creature->ForcedDespawn(300000);
+        }
+    }
+
+    bool m_bEvent;
+
+    uint32 m_uiStepTimer;
+    uint32 m_uiStep;
+    uint32 m_uiCheckGateTimer;
+
+    uint64 m_uiLandgrenGUID;
+    uint64 m_uiSoulGUID;
+
+    void Reset()
+    {
+        m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+        m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        m_creature->SetVisibility(VISIBILITY_OFF);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_uiCheckGateTimer = 2000;
+        m_bEvent = false;
+        m_uiStepTimer = 2000;
+        m_uiStep = 0;
+        m_uiLandgrenGUID = 0;
+        m_uiSoulGUID = 0;
+    }
+   
+    void JumpNextStep(uint32 Time)
+    {
+        m_uiStepTimer = Time;
+        m_uiStep++;
+    }
+
+    void StartEvent(GameObject* pGate)
+    {
+        m_bEvent = false;
+        m_uiStepTimer = 2000;
+        m_uiStep = 1;
+        m_creature->NearTeleportTo(pGate->GetPositionX(), pGate->GetPositionY(), pGate->GetPositionZ(), 0);
+        m_creature->SetVisibility(VISIBILITY_ON);
+        m_creature->CastSpell(m_creature, SPELL_TELEPORT, false);
+        pGate->RemoveFromWorld();
+    }
+
+    void Event()
+    {
+        switch(m_uiStep)
+        {
+            case 1:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiLandgrenGUID))
+                {
+                    float X, Y, Z, fAng;
+                    fAng = m_creature->GetAngle(pLandgren);
+                    X = pLandgren->GetPositionX()-3*cos(fAng);
+                    Y = pLandgren->GetPositionY()-3*sin(fAng);
+                    Z = pLandgren->GetPositionZ()+5;
+                    m_creature->UpdateAllowedPositionZ(X, Y, Z);
+                    m_creature->GetMotionMaster()->MovePoint(0, X, Y, Z);
+                }
+                DoScriptText(SAY_EVENT_02, m_creature);
+                JumpNextStep(5000);
+                 break;
+            case 2:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiLandgrenGUID))
+                {
+                    if (Creature* pSoul = m_creature->SummonCreature(NPC_SOUL_TARGET, pLandgren->GetPositionX(), pLandgren->GetPositionY(), pLandgren->GetPositionZ(), 1.432f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000))
+                    { 
+                        pSoul->SetDisplayId(11686);
+                        pSoul->SetObjectScale(0.3f);
+                        m_creature->CastSpell(pSoul, SPELL_GET_SOUL, false);
+                    }
+                }
+                DoScriptText(SAY_EVENT_03, m_creature);
+                JumpNextStep(5000);
+                break;
+            case 3:
+                m_creature->InterruptNonMeleeSpells(false);
+                m_creature->CastSpell(m_creature, SPELL_SUMMON_SOUL, false);
+                JumpNextStep(2000);
+                break;
+            case 4:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiSoulGUID))
+                {
+                    DoScriptText(SAY_EVENT_04, pLandgren);
+                    pLandgren->GetMotionMaster()->MovePoint(0, pLandgren->GetPositionX()-0.3, pLandgren->GetPositionY()+0.3, pLandgren->GetPositionZ()+2);
+                }
+                JumpNextStep(7000);
+                break;
+            case 5:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiSoulGUID))
+                    pLandgren->SetFacingToObject(m_creature);
+                DoScriptText(SAY_EVENT_05, m_creature);
+                JumpNextStep(7000);
+                break;
+            case 6:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiSoulGUID))
+                    DoScriptText(SAY_EVENT_06, pLandgren);
+                JumpNextStep(1000);
+                break;
+            case 7:
+                DoScriptText(SAY_EVENT_07, m_creature);
+                JumpNextStep(4000);
+                break;
+            case 8:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiSoulGUID))
+                    m_creature->CastSpell(pLandgren, 46685, false);
+                JumpNextStep(6000);
+                break;
+            case 9:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiSoulGUID))
+                    DoScriptText(SAY_EVENT_08, pLandgren);
+                JumpNextStep(4000);
+                break;
+            case 10:
+                m_creature->InterruptNonMeleeSpells(false);
+                JumpNextStep(2000);
+                break;
+            case 11:
+                DoScriptText(SAY_EVENT_09, m_creature);
+                JumpNextStep(3000);
+                break;
+            case 12:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiSoulGUID))
+                    DoScriptText(SAY_EVENT_10, pLandgren);
+                JumpNextStep(12000);
+                break;
+            case 13:
+                DoScriptText(SAY_EVENT_11, m_creature);
+                JumpNextStep(10000);
+                break;
+            case 14:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiSoulGUID))
+                   m_creature->CastSpell(pLandgren, 46685, false);
+                JumpNextStep(2000);
+                break;
+            case 15:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiSoulGUID))
+                    DoScriptText(SAY_EVENT_12, pLandgren);
+                JumpNextStep(4000);
+                break;
+            case 16:
+                if (Creature* pLandgren = m_creature->GetMap()->GetCreature(m_uiSoulGUID))
+                {
+                    pLandgren->SetVisibility(VISIBILITY_OFF);
+                    pLandgren->ForcedDespawn(1000);
+                }
+                JumpNextStep(1000);
+                break;
+            case 17:
+                DoScriptText(SAY_EVENT_13, m_creature);
+                m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                JumpNextStep(3000);
+                break;
+            
+        }
+    }
+
+    void JustSummoned(Creature* pCreature)
+    {
+        if (pCreature->GetEntry() == NPC_LANDGREN_SOUL)
+        { 
+            pCreature->setFaction(35);
+            pCreature->SetUInt32Value(UNIT_NPC_EMOTESTATE, 383);
+            m_uiSoulGUID = pCreature->GetGUID();
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_bEvent)
+        {
+            if (m_uiCheckGateTimer < uiDiff)
+            {
+                if (GameObject* pPortal = GetClosestGameObjectWithEntry(m_creature, GO_ARETE_GATE, 20.0f))
+                    StartEvent(pPortal);
+                m_uiCheckGateTimer = 2000;
+            }
+            else
+                m_uiCheckGateTimer -= uiDiff;
+        }
+
+        if (m_uiStepTimer < uiDiff)
+            Event();
+        else
+            m_uiStepTimer -= uiDiff;
+    }
+};
+
+CreatureAI* GetAI_npc_lord_commander_arete(Creature* pCreature)
+{
+    return new npc_lord_commander_areteAI(pCreature);
+}
+
 void AddSC_icecrown()
 {
     Script* newscript;
@@ -851,5 +1177,15 @@ void AddSC_icecrown()
     newscript = new Script;
     newscript->Name = "boss_hight_admiral_westwind";
     newscript->GetAI = &GetAI_boss_hight_admiral_westwind;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_archbishop_landgren";
+    newscript->GetAI = &GetAI_npc_archbishop_landgren;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_lord_commander_arete";
+    newscript->GetAI = &GetAI_npc_lord_commander_arete;
     newscript->RegisterSelf();
 }

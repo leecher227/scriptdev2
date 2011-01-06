@@ -10,3 +10,9 @@ INSERT INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`modelid`,`equ
 
 update `creature_template` set `baseattacktime`= 2000, `dmg_multiplier`=2.7, `attackpower`=157, `mindmg`=420, `maxdmg`=630, `armor`=9765, `faction_A`=14, `faction_H`=14, `mechanic_immune_mask`=12584976, `minmana`=340000, `maxmana`=340000, `minhealth`=226800, `maxhealth`=226800, `minlevel`=80, `maxlevel`=80 where entry = 29620;
 UPDATE creature_template SET `AIName`='', ScriptName = "boss_hight_admiral_westwind" WHERE entry = 29621;
+
+-- #### QUEST: The Second Chance ####
+UPDATE creature_template SET `AIName`='', ScriptName = "npc_archbishop_landgren" WHERE entry = 29542;
+UPDATE creature_template SET `AIName`='', ScriptName = "npc_lord_commander_arete" WHERE entry = 29560;
+replace into spell_script_target values (46685, 1, 29572);
+update `creature_template` set `InhabitType`=4 where entry=29572;

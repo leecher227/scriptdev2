@@ -33,3 +33,21 @@ insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`ty
 (-1999413, 'Quickly surrender!', 'Быстро сдаетесь!',14202,0,0,0, '29621'),
 (-1999414, 'What disappointment.', 'Какая досада.',14203,0,0,0, '29621'),
 (-1999415, 'As it is a pity, all only begins!', 'Как жаль, все только начинается!',14204,0,0,0, '29621');
+
+-- #### QUEST: The Second Chance ####
+DELETE FROM `script_texts` WHERE `comment` = 29542;
+insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`) VALUES
+-- Landgren and Arete
+(-1999430, 'I will not die so quickly this time!', 'Я не буду умирать так быстро на сей раз!',0,0,0,0, '29542'),
+(-1999431, 'Well done. Let\'s get this over with.', 'Хорошо сработано. Давайте покончим с этим.',0,0,0,0, '29542'),
+(-1999432, 'Come, Landgren, cough up your soul so that I can ask you a very important question.', 'Приди, Ландгрен, подымись  твоя душа, чтобы я мог задать очень важный вопрос.',0,0,0,0, '29542'),
+(-1999433, 'You\'ll get nothing out of me, monster. I am beyond your ability to influence.', 'Вы не получите ничего из меня, монстр. Я - вне вашей способности влияния!',0,0,0,0, '29542'),
+(-1999434, 'YOU WILL TELL ME WHERE WESTWIND IS OR I WILL DESTROY YOUR SOUL!', 'ТЫ СКАЖЕШЬ МНЕ, ГДЕ СЕЙЧАС ВЕСТВИНД, ИЛИ Я УНИЧТОЖУ ТВОЮ ДУШУ!',0,1,0,0, '29542'),
+(-1999435, 'No.', 'Нет.',0,0,0,0, '29542'),
+(-1999436, 'Then you leave me no choice. I won\'t say that I won\'t enjoy this.', 'Тогда ты не оставляешь мне выбора. Я не буду говорить, что я не буду наслаждаться этим!',0,0,0,0, '29542'),
+(-1999437, 'STOP! It isn\'t worth it. I\'ll tell you where he is.', 'ХВАТИТ! Это не стоит того. Я скажу тебе, где он!',0,0,0,0, '29542'),
+(-1999438, 'Very well. Tell me!', 'Очень хорошо. Скажи мне!',0,0,0,0, '29542'),
+(-1999439, 'On the south end of the island is a cave -- a hidden hollow. The grand admiral has holed himself up in there, preparing for the final battle against the Lich King.', 'На южном конце острова в пещере - Скрытая Лощина. Великий адмирал находится непосредственно  там, готовясь к заключительному сражению против Короля Лича!',0,0,0,0, '29542'),
+(-1999440, 'A hidden hollow? How very interesting. You\'ve served your purpose, Landgren, but I\'m afraid there\'ll be no resurrection for you this time!', 'Скрытая Лощина? Как интересно. Вы сослужили свою службу, Ландгрен, но я боюсь для тебя больше нет никакого воскрешения на сей раз!',0,0,0,0, '29542'),
+(-1999441, 'AAAEEEEIIIiiiiiiiiiiiiiiiiiiiiiiiiiiii........................................', 'Ааааааааааааааааааааа........................',0,0,0,0, '29542'),
+(-1999442, 'Now that the unpleasantness is finished with, let\'s talk about you dealing with Grand Admiral Westwind.', 'Теперь, когда неприятность устранена, давайте поговорим о твоем  деле с Великим Адмиралом Вествиндом.!',0,0,0,0, '29542');
