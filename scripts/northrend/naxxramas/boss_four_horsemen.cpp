@@ -92,7 +92,12 @@ enum
     H_SPELL_HOLY_WRATH      = 57466,
     SPELL_HOLY_BOLT         = 57376,
     H_SPELL_HOLY_BOLT       = 57465,
-    SPELL_CONDEMNATION      = 57377, 
+    SPELL_CONDEMNATION      = 57377,
+
+    ACHIEV_THE_MILITARY_QUARTER                     = 568,
+    ACHIEV_THE_MILITARY_QUARTER_H                   = 569,
+    ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER      = 2176,
+    ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER_H    = 2177,
 };
 
 /*walk coords*/
@@ -111,6 +116,9 @@ enum
 #define WALKX_ZELI                2521.039f
 #define WALKY_ZELI                -2891.633f
 #define WALKZ_ZELI                241.276f
+
+uint32 m_uiLastHorsemanDeathTime;
+bool m_bAchiev_FourHorsemen;
 
 struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
 {
@@ -137,12 +145,14 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
         VoidZone_Timer = 15000;
         ShadowBolt_Timer = 0;
         Enrage_Timer = 0;
+        m_uiLastHorsemanDeathTime = 0;
+        m_bAchiev_FourHorsemen = true;
         SetCombatMovement(false);
 
         if (m_pInstance)
         {
             Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
-            Creature* pThane = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_THANE));
+            Creature* pThane = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_THANE));
             Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
             if (pZeliek && pZeliek->isDead())
                 pZeliek->Respawn();
@@ -183,11 +193,26 @@ struct MANGOS_DLL_DECL boss_lady_blaumeuxAI : public ScriptedAI
         
         if (m_pInstance)
         {
+            if (!m_uiLastHorsemanDeathTime)
+                m_uiLastHorsemanDeathTime = WorldTimer::getMSTime();
+            else
+            {
+                if (WorldTimer::getMSTime() - m_uiLastHorsemanDeathTime > 15000)
+                    m_bAchiev_FourHorsemen = false;
+                else
+                    m_uiLastHorsemanDeathTime = WorldTimer::getMSTime();
+            }
             Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
             Creature* pThane = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_THANE));
             Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
             if (pZeliek && pThane && pRivendare && pZeliek->isDead() && pThane->isDead() && pRivendare->isDead())
+            {
                  m_pInstance->SetData(TYPE_FOUR_HORSEMEN, DONE);
+                 if (m_pInstance->GetData(TYPE_RAZUVIOUS) == DONE && m_pInstance->GetData(TYPE_GOTHIK) == DONE)
+                    m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_THE_MILITARY_QUARTER : ACHIEV_THE_MILITARY_QUARTER_H);
+                 if (m_bAchiev_FourHorsemen)
+                     m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER : ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER_H);
+            }
         }
     }
 
@@ -327,6 +352,8 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
         HolyWrath_Timer = 15000;
         HolyBolt_Timer = 0;
         Enrage_Timer = 0;
+        m_uiLastHorsemanDeathTime = 0;
+        m_bAchiev_FourHorsemen = true;
         SetCombatMovement(false);
 
         if (m_pInstance)
@@ -364,11 +391,26 @@ struct MANGOS_DLL_DECL boss_sir_zeliekAI : public ScriptedAI
 
         if (m_pInstance)
         {
+            if (!m_uiLastHorsemanDeathTime)
+                m_uiLastHorsemanDeathTime = WorldTimer::getMSTime();
+            else
+            {
+                if (WorldTimer::getMSTime() - m_uiLastHorsemanDeathTime > 15000)
+                    m_bAchiev_FourHorsemen = false;
+                else
+                    m_uiLastHorsemanDeathTime = WorldTimer::getMSTime();
+            }
             Creature* pThane = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_THANE));
             Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
             Creature* pBlaumeux = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX));
             if (pThane && pRivendare && pBlaumeux && pThane->isDead() && pRivendare->isDead() && pBlaumeux->isDead())
+            {
                  m_pInstance->SetData(TYPE_FOUR_HORSEMEN, DONE);
+                 if (m_pInstance->GetData(TYPE_RAZUVIOUS) == DONE && m_pInstance->GetData(TYPE_GOTHIK) == DONE)
+                    m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_THE_MILITARY_QUARTER : ACHIEV_THE_MILITARY_QUARTER_H);
+                 if (m_bAchiev_FourHorsemen)
+                     m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER : ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER_H);
+            }
         }
     }
 
@@ -466,6 +508,8 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
         UnholyShadow_Timer = 15000;
         IsMovingToCorner = true;
         Enrage_Timer = 0;
+        m_uiLastHorsemanDeathTime = 0;
+        m_bAchiev_FourHorsemen = true;
         SetCombatMovement(false);
 
         if (m_pInstance)
@@ -512,11 +556,26 @@ struct MANGOS_DLL_DECL boss_rivendare_naxxAI : public ScriptedAI
 
         if (m_pInstance)
         {
+            if (!m_uiLastHorsemanDeathTime)
+                m_uiLastHorsemanDeathTime = WorldTimer::getMSTime();
+            else
+            {
+                if (WorldTimer::getMSTime() - m_uiLastHorsemanDeathTime > 15000)
+                    m_bAchiev_FourHorsemen = false;
+                else
+                    m_uiLastHorsemanDeathTime = WorldTimer::getMSTime();
+            }
             Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
             Creature* pThane = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_THANE));
             Creature* pBlaumeux = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX));
             if (pZeliek && pThane && pBlaumeux && pZeliek->isDead() && pThane->isDead() && pBlaumeux->isDead())
+            {
                  m_pInstance->SetData(TYPE_FOUR_HORSEMEN, DONE);
+                 if (m_pInstance->GetData(TYPE_RAZUVIOUS) == DONE && m_pInstance->GetData(TYPE_GOTHIK) == DONE)
+                    m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_THE_MILITARY_QUARTER : ACHIEV_THE_MILITARY_QUARTER_H);
+                 if (m_bAchiev_FourHorsemen)
+                     m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER : ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER_H);
+            }
         }
     }
 
@@ -591,6 +650,8 @@ struct MANGOS_DLL_DECL boss_thane_korthazzAI : public ScriptedAI
         Mark_Count = 0;
         Meteor_Timer = 15000;
         Enrage_Timer = 0;
+        m_uiLastHorsemanDeathTime = 0;
+        m_bAchiev_FourHorsemen = true;
         IsMovingToCorner = true;
         SetCombatMovement(false);
 
@@ -629,11 +690,26 @@ struct MANGOS_DLL_DECL boss_thane_korthazzAI : public ScriptedAI
 
         if (m_pInstance)
         {
+            if (!m_uiLastHorsemanDeathTime)
+                m_uiLastHorsemanDeathTime = WorldTimer::getMSTime();
+            else
+            {
+                if (WorldTimer::getMSTime() - m_uiLastHorsemanDeathTime > 15000)
+                    m_bAchiev_FourHorsemen = false;
+                else
+                    m_uiLastHorsemanDeathTime = WorldTimer::getMSTime();
+            }
             Creature* pZeliek = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ZELIEK));
             Creature* pRivendare = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIVENDARE));
             Creature* pBlaumeux = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BLAUMEUX));
             if (pZeliek && pRivendare && pBlaumeux && pZeliek->isDead() && pRivendare->isDead() && pBlaumeux->isDead())
+            {
                  m_pInstance->SetData(TYPE_FOUR_HORSEMEN, DONE);
+                 if (m_pInstance->GetData(TYPE_RAZUVIOUS) == DONE && m_pInstance->GetData(TYPE_GOTHIK) == DONE)
+                    m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_THE_MILITARY_QUARTER : ACHIEV_THE_MILITARY_QUARTER_H);
+                 if (m_bAchiev_FourHorsemen)
+                     m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER : ACHIEV_AND_THEY_WOULD_ALL_GO_DOWN_TOGETHER_H);
+            }
         }
     }
 
