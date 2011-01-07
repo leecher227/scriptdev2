@@ -27,6 +27,7 @@ go_scourge_enclosure
 EndContentData */
 
 #include "precompiled.h"
+#include "TemporarySummon.h"
 
 /*######
 ## npc_gurgthock
