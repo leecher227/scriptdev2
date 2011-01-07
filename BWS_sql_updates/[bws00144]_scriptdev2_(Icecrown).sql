@@ -51,3 +51,27 @@ insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`ty
 (-1999440, 'A hidden hollow? How very interesting. You\'ve served your purpose, Landgren, but I\'m afraid there\'ll be no resurrection for you this time!', 'Скрытая Лощина? Как интересно. Вы сослужили свою службу, Ландгрен, но я боюсь для тебя больше нет никакого воскрешения на сей раз!',0,0,0,0, '29542'),
 (-1999441, 'AAAEEEEIIIiiiiiiiiiiiiiiiiiiiiiiiiiiii........................................', 'Ааааааааааааааааааааа........................',0,0,0,0, '29542'),
 (-1999442, 'Now that the unpleasantness is finished with, let\'s talk about you dealing with Grand Admiral Westwind.', 'Теперь, когда неприятность устранена, давайте поговорим о твоем  деле с Великим Адмиралом Вествиндом.!',0,0,0,0, '29542');
+
+-- #### QUEST: Tirion's Gambit ####
+DELETE FROM `script_texts` WHERE `comment` = 32239;
+insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`) VALUES
+(-1954700, 'It is time. May the Light give us Strength.', 'Время пришло. Пусть Свет дарует нам силу.', 0,0,0,0, '32239'),
+(-1954701, 'Keep your heads down and follow my lead.', 'Не высовывайтесь и следуйте за моим предводителем.', 0,0,0,0, '32239'),
+(-1954702, 'Here it comes. Stand ready!', 'Оно приближается! Готовься!', 0,0,0,0, '32239'),
+(-1954703, 'We lost many to the faceless ones, my lord. But we succeeded in retrieving the heart from Naz\'anak.', 'Оно приближается! Готовься!', 0,0,0,0, '32239'),
+(-1954704, 'Something\'s wrong... I sense a dark presence.', 'Что-то не так… я чувствую присутствие чего-то зловещего.', 0,0,0,0, '32239'),
+(-1954705, 'The Lich King is here. May the Light guide our blades.', 'Это… Король-лич. Он здесь. Да направит Свет клинки наших мечей.', 0,0,0,0, '32239'),
+(-1954706, 'Uninvited guests! Did you think you\'d go unnoticed inside my dominion?', 'Незваные гости! Вы думали, что сможете прокрасться в мои владения незамеченными?', 0,0,0,0, '32239'),
+(-1954707, 'I must confess... you were not altogether unexpected. I hope you find your final resting place... to your liking.', 'Должен признаться… вас тут как бы не ждали. Надеюсь, вы найдете себе место упокоения… по своему вкусу.', 0,0,0,1, '32239'),
+(-1954708, 'You sound a little too confident. Especially considering the way our last encounter ended.', 'Слишком уж ты самоуверен! Забыл, чем закончилась наша предыдущая встреча?', 0,0,0,0, '32239'),
+(-1954709, 'Last time we met, you had the advantage of fighting on holy ground. You\'ll find that our situation has been... reversed.', 'Во время нашей прошлой встречи у тебя было преимущество, ибо ты сражался на святой земле. Боюсь, теперь мы некоторым образом… поменялись местами.', 0,0,0,0, '32239'),
+(-1954710, 'That might be, but I don\'t need to stand on holy ground to run that disembodied heart of yours through with the Ashbringer.', 'Возможно… но мне не нужна сила святой земли, чтобы пронзить твое черное сердце Испепелителем.', 0,0,0,0, '32239'),
+(-1954711, 'I call your bluff. You\'re a paladin after all. Your obsession with redemption goes beyond the inane.', 'Ты блефуешь, но я принимаю твою ставку. В конце концов, ты же паладин. Твоя жажда искупления не имеет разумных границ.', 0,0,0,1, '32239'),
+(-1954712, 'You surely wouldn\'t destroy humanity\'s only chance to redeem its most wayward son. You\'d sooner die!', 'Вряд ли захочешь уничтожить последний шанс человечества ради того, чтобы спасти его заблудшего сына. Ты сам скорее умрешь.', 0,0,0,0, '32239'),
+(-1954713, 'The heart... the last remaining vestige of your humanity. I had to stop it from being destroyed. I had to see for myself. And at last I\'m sure...', 'Сердце… последнее вместилище твоей человечности. Я должен его спасти. Я должен взять все в свои руки. Наконец-то я знаю, что делать...', 0,0,0,0, '32239'),
+(-1954714, 'Only shadows from the past remain. There\'s nothing left to redeem!', 'Нам остались лишь тени прошлого. Некого больше спасать!', 0,1,0,0, '32239'),
+(-1954715, 'Arrrrggggggggggggh!', 'Арррррргггггггггххххх!', 0,1,0,0, '32239'),
+(-1954716, 'Tirion\'s down! Defend him with your lives!', 'Тирион повержен! Защитите его любой ценой, даже ценой ваших жизней!', 0,1,0,0, '32239'),
+(-1954717, 'You... will pay for that, old man. Slay them all!', 'Ты… заплатишь за это, старик. Убить их всех!', 0,1,0,0, '32239'),
+(-1954718, 'I hope you fellows don\'t mind if we crash this party. I brought some old friends with me!', 'Надеюсь, твои приятели не возражают, если мы немного попортим эту вечеринку. Я привел с собой особого гостя!', 0,1,0,0, '32239'),
+(-1954719, 'Quikly... Run away with Tirion to the portal. I can\'t channeled him much longer. I stay here and finish the lich king...', 'Быстрее… Убегайте с Тирионом в портал. Я не смогу держать его долго. Я останусь здесь и покончу с Королем Личом...', 0,1,0,0, '32239');

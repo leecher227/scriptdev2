@@ -1149,6 +1149,751 @@ CreatureAI* GetAI_npc_lord_commander_arete(Creature* pCreature)
     return new npc_lord_commander_areteAI(pCreature);
 }
 
+/*##### QUEST: Tirion's Gambit #####
+SDAuthor: MaxXx2021
+*/
+
+enum
+{
+    SAY_TG_EVENT_01                = -1954700,
+    SAY_TG_EVENT_02                = -1954701,
+    SAY_TG_EVENT_03                = -1954702,
+    SAY_TG_EVENT_04                = -1954703,
+    SAY_TG_EVENT_05                = -1954704,
+    SAY_TG_EVENT_06                = -1954705,
+    SAY_TG_EVENT_07                = -1954706,
+    SAY_TG_EVENT_08                = -1954707,
+    SAY_TG_EVENT_09                = -1954708,
+    SAY_TG_EVENT_10                = -1954709,
+    SAY_TG_EVENT_11                = -1954710,
+    SAY_TG_EVENT_12                = -1954711,
+    SAY_TG_EVENT_13                = -1954712,
+    SAY_TG_EVENT_14                = -1954713,
+    SAY_TG_EVENT_15                = -1954714,
+    SAY_TG_EVENT_16                = -1954715,
+    SAY_TG_EVENT_17                = -1954716,
+    SAY_TG_EVENT_18                = -1954717,
+    SAY_TG_EVENT_19                = -1954718,
+
+    NPC_TIRION_FORDRING            = 32239,
+    NPC_LICH_KING_TG               = 32184,
+    NPC_INKVISITOR                 = 32272,
+    NPC_DARION_MOGRAINE_TG         = 32312,
+    NPC_KOLTIRA                    = 32311,
+    NPC_THASSARIAN                 = 32310,
+    NPC_TIRION_ESCORT              = 32241,
+    NPC_UNHOLY_MAN                 = 32175,
+    NPC_DEATH_KNIGHT               = 32309,
+    NPC_QUEST_CREDIT               = 32648,
+
+    EQUIP_ASHBRINGER               = 13262, //mog 365 /kol 647 /thas 647 / dk 32309 / es 32241
+    EQUIP_ESCORT                   = 13160,
+
+    SPELL_FURY_LK                  = 60536,
+    SPELL_TIRION_ATTACK            = 42904,
+    SPELL_HEART_BLOW               = 60484,
+
+    GO_FROZEN_HEART                = 193794,
+    GO_ESCAPE_PORTAL               = 193941,
+  
+    QUEST_TIRION_GAMBIT_A          = 13403,
+    QUEST_TIRION_GAMBIT_H          = 13364,
+};
+
+struct Location
+{
+    float x, y, z, x2, y2, z2;
+    uint32 id;
+};
+
+struct Location Summon[]=
+{
+    {6162.911f, 2688.551f, 573.914f, 6133.930f, 2758.642f, 573.914f}, 
+    {6165.741f, 2689.889f, 573.914f, 6133.930f, 2758.642f, 573.914f}, 
+    {6169.457f, 2691.660f, 573.914f, 6133.930f, 2758.642f, 573.914f}, 
+    {6168.437f, 2687.293f, 573.914f, 6133.930f, 2758.642f, 573.914f}
+};
+
+struct MANGOS_DLL_DECL npc_tirionTGAI : public ScriptedAI
+{
+    npc_tirionTGAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+
+    uint32 m_uiStep;
+    uint32 m_uiStepTimer;
+    uint32 m_uiHeroFaction;
+ 
+    uint64 m_uiEscortGUID[3];
+    uint64 m_uiAcylteGUID[3];
+    uint64 m_uiLichKingGUID;
+    uint64 m_uiMograineGUID;
+   
+    void Reset() 
+    {
+        m_uiHeroFaction = 0;
+        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        m_uiStep = 0;
+        m_uiStepTimer = 1000;
+        m_uiLichKingGUID = 0;
+        m_uiMograineGUID = 0;
+        m_uiEscortGUID[0] = 0;
+        m_uiEscortGUID[1] = 0;
+        m_uiEscortGUID[2] = 0;
+        m_uiAcylteGUID[0] = 0;
+        m_uiAcylteGUID[1] = 0;
+        m_uiAcylteGUID[2] = 0;
+    }
+
+    void StartEvent(uint8 EventId)
+    {
+        m_uiStep = EventId;
+        m_uiStepTimer = 100;
+    }
+
+    void ResetEvent()
+    {
+        for (uint8 i = 0; i < 3; i++)
+            if(Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[i])) 
+            {
+                pEscort->AddSplineFlag(SPLINEFLAG_WALKMODE);
+                pEscort->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, uint32(0));
+                pEscort->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_STAND);
+            }
+        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+        Reset();
+        m_creature->ForcedDespawn();
+    }
+
+    void JumpNextStep(uint32 Time)
+    {
+        m_uiStepTimer = Time;
+        m_uiStep++;
+    }
+
+    void Event()
+    {
+        switch(m_uiStep)
+        {
+            case 1:
+                m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                DoScriptText(SAY_TG_EVENT_01, m_creature);
+                if (Creature* pEscort = GetClosestCreatureWithEntry(m_creature, NPC_TIRION_ESCORT, 50.0f))
+                {
+                    m_uiEscortGUID[0] = pEscort->GetGUID();
+                    pEscort->UpdateEntry(30407);
+                    if (Creature* pEscort2 = GetClosestCreatureWithEntry(m_creature, NPC_TIRION_ESCORT, 50.0f))
+                    {
+                        m_uiEscortGUID[1] = pEscort2->GetGUID();
+                        pEscort2->UpdateEntry(30407);
+                        if (Creature* pEscort3 = GetClosestCreatureWithEntry(m_creature, NPC_TIRION_ESCORT, 50.0f))
+                        {
+                            m_uiEscortGUID[2] = pEscort3->GetGUID();
+                            pEscort3->GetMotionMaster()->MoveFollow(m_creature, 2.0f, m_creature->GetAngle(m_creature) - 225.0f);
+                        }
+                        pEscort->UpdateEntry(NPC_TIRION_ESCORT);
+                        pEscort2->UpdateEntry(NPC_TIRION_ESCORT);
+                        pEscort->GetMotionMaster()->MoveFollow(m_creature, 2.0f, m_creature->GetAngle(m_creature) - 180.0f);
+                        pEscort2->GetMotionMaster()->MoveFollow(m_creature, 2.0f, m_creature->GetAngle(m_creature) - 135.0f);
+                    }
+                }
+                JumpNextStep(4000);
+                break;
+            case 2:
+                m_creature->GetMotionMaster()->MovePoint(0, 6244.514f,2653.304f,570.250f);
+                JumpNextStep(3000);
+                break;
+            case 3:
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 6238.080f,2637.720f,570.250f);
+                JumpNextStep(5000);
+                break;
+            case 4:
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 6205.637f,2607.220f,570.250f);
+                JumpNextStep(17000);
+                break;
+            case 5:
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 6190.103f,2637.606f,570.250f);
+                JumpNextStep(17000);
+                break;
+            case 6:              
+                DoScriptText(SAY_TG_EVENT_02, m_creature);
+                JumpNextStep(2000);
+                break;
+            case 7:
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 6180.998f,2657.858f,573.766f);
+                JumpNextStep(10000);
+                break;
+            case 8:     
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 6144.981f,2736.049f,573.914f);         
+                JumpNextStep(32000);
+                break;
+            case 9:                               
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 6163.32f,2746.957f,573.914f);
+                if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0])) 
+                {
+                    pEscort->GetMotionMaster()->Clear(false);
+                    pEscort->GetMotionMaster()->MovePoint(0, 6168.990f,2761.715f,573.915f);
+                }
+                if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1])) 
+                {
+                    pEscort->GetMotionMaster()->Clear(false);
+                    pEscort->GetMotionMaster()->MovePoint(0, 6172.088f,2763.098f,573.915f);
+                }
+                if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2])) 
+                {
+                    pEscort->GetMotionMaster()->Clear(false);
+                    pEscort->GetMotionMaster()->MovePoint(0, 6175.234f,2764.600f,573.915f);
+                }
+                JumpNextStep(9000);
+                break;
+            case 10:                                
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 6165.613f,2760.049f,573.914f);
+                JumpNextStep(7000);
+                break;
+            case 11:
+                if (Creature* pInkvisitor = GetClosestCreatureWithEntry(m_creature, NPC_INKVISITOR, 150.0f)) 
+                {
+                    m_creature->SetFacingToObject(pInkvisitor);
+                    if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
+                        pEscort->SetFacingToObject(pInkvisitor);
+                    if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
+                        pEscort->SetFacingToObject(pInkvisitor);
+                    if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
+                        pEscort->SetFacingToObject(pInkvisitor);
+                }
+                DoScriptText(SAY_TG_EVENT_03, m_creature);
+                if (Creature* pAcylte = m_creature->SummonCreature(NPC_UNHOLY_MAN,6166.140f,2688.851f,573.914f,1.987f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,80000))
+                {
+                    m_uiAcylteGUID[0] = pAcylte->GetGUID();
+                    pAcylte->GetMotionMaster()->MovePoint(0, 6133.930f,2758.642f,573.914f);
+                } 
+                if (Creature* pAcylte = m_creature->SummonCreature(NPC_UNHOLY_MAN,6165.166f,2684.646f,573.914f,1.987f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,80000))
+                {
+                    m_uiAcylteGUID[1] = pAcylte->GetGUID();
+                    pAcylte->GetMotionMaster()->MovePoint(0, 6132.520f,2753.841f,573.914f);
+                } 
+                if (Creature* pAcylte = m_creature->SummonCreature(NPC_UNHOLY_MAN,6170.443f,2687.208f,573.914f,1.987f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,80000))
+                {
+                    m_uiAcylteGUID[2] = pAcylte->GetGUID();
+                    pAcylte->GetMotionMaster()->MovePoint(0, 6138.576f,2757.051f,573.914f);
+                } 
+                JumpNextStep(32000);
+                break;
+            case 12:     
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[0]))                                         
+                    pAcylte->SetStandState(UNIT_STAND_STATE_KNEEL);
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[1]))
+                    pAcylte->SetStandState(UNIT_STAND_STATE_KNEEL);
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[2]))
+                    pAcylte->SetStandState(UNIT_STAND_STATE_KNEEL);  
+                JumpNextStep(2000);
+                break;   
+            case 13:
+                if (GameObject* pHeart = GetClosestGameObjectWithEntry(m_creature, GO_FROZEN_HEART, 150.0f))          
+                    pHeart->SetRespawnTime(2*MINUTE);          
+                JumpNextStep(3000);
+                break;
+            case 14:
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[0])) 
+                    DoScriptText(SAY_TG_EVENT_04, pAcylte);
+                JumpNextStep(4000);
+                break; 
+            case 15:
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[0]))
+                    pAcylte->SetStandState(UNIT_STAND_STATE_STAND);
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[1]))
+                    pAcylte->SetStandState(UNIT_STAND_STATE_STAND);
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[2]))
+                    pAcylte->SetStandState(UNIT_STAND_STATE_STAND);  
+                JumpNextStep(2000);
+                break;   
+            case 16:
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[0]))
+                    pAcylte->HandleEmoteCommand(2);
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[1]))
+                    pAcylte->HandleEmoteCommand(2);
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[2]))
+                    pAcylte->HandleEmoteCommand(2); 
+                JumpNextStep(2000);
+                break;   
+            case 17:
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[0]))
+                    pAcylte->GetMotionMaster()->MovePoint(0, 6166.140f,2688.851f,573.914f);
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[1]))
+                    pAcylte->GetMotionMaster()->MovePoint(0, 6165.166f,2684.646f,573.914f);
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[2]))
+                    pAcylte->GetMotionMaster()->MovePoint(0, 6170.443f,2687.208f,573.914f);
+                DoScriptText(SAY_TG_EVENT_05, m_creature);
+                JumpNextStep(5000);
+                break; 
+            case 18:
+                DoScriptText(SAY_TG_EVENT_06, m_creature);
+                if (Creature* pLichKing = m_creature->SummonCreature(NPC_LICH_KING_TG,6166.140f,2688.851f,573.914f,1.987f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,240000))
+                {
+                    m_uiLichKingGUID = pLichKing->GetGUID();
+                    pLichKing->GetMotionMaster()->MovePoint(0, 6133.930f,2758.642f,573.914f);
+                    m_creature->SetFacingToObject(pLichKing);
+                }
+                JumpNextStep(9000);
+                break;  
+            case 19:
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[0]))
+                {
+                    pAcylte->GetMotionMaster()->MovementExpired(false);
+                    pAcylte->GetMotionMaster()->MovePoint(0, 6133.294f,2691.485f,573.914f);
+                }
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[1]))
+                {
+                    pAcylte->GetMotionMaster()->MovementExpired(false);
+                    pAcylte->GetMotionMaster()->MovePoint(0, 6133.294f,2691.485f,573.914f);
+                }
+                if (Creature* pAcylte = m_creature->GetMap()->GetCreature(m_uiAcylteGUID[2]))
+                {
+                    pAcylte->GetMotionMaster()->MovementExpired(false);
+                    pAcylte->GetMotionMaster()->MovePoint(0, 6133.294f,2691.485f,573.914f);
+                }
+                JumpNextStep(25000);
+                break; 
+            case 20:
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                {
+                    pLicKing->SetFacingToObject(m_creature);
+                    DoScriptText(SAY_TG_EVENT_07, pLichKing);
+                    m_creature->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, uint32(EQUIP_ASHBRINGER));
+                    m_creature->GetMotionMaster()->MovePoint(0, 6167.601f,2757.219f,573.914f);
+                }
+                JumpNextStep(2000);
+                break;  
+            case 21:
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 6157.914f,2755.602f,573.914f);
+                JumpNextStep(3000);
+                break;  
+            case 22:
+                m_creature->GetMotionMaster()->MovementExpired(false);
+                m_creature->GetMotionMaster()->MovePoint(0, 6143.597f,2757.256f,573.914f);
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                   DoScriptText(SAY_TG_EVENT_08, pLichKing);
+                JumpNextStep(14000);
+                break; 
+            case 23:
+                DoScriptText(SAY_TG_EVENT_09, m_creature);
+                JumpNextStep(5000);
+                break;     
+            case 24:
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_TG_EVENT_10, pLicKing);
+                JumpNextStep(11000);
+                break;    
+            case 25:
+                DoScriptText(SAY_TG_EVENT_11, m_creature);
+                JumpNextStep(6000);
+                break;   
+            case 26:
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_TG_EVENT_12, pLicKing);
+                JumpNextStep(8000);
+                break;     
+            case 27:
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_TG_EVENT_13, pLicKing);
+                JumpNextStep(3000);
+                break;   
+            case 28:
+                DoScriptText(SAY_TG_EVENT_14, m_creature);
+                JumpNextStep(16000);
+                break;   
+            case 29:
+                DoScriptText(SAY_TG_EVENT_15, m_creature);
+                JumpNextStep(4000);
+                break;  
+            case 30:
+                m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
+                m_creature->GetMap()->CreatureRelocation(m_creature, 6130.473f,2762.259f,573.914f, m_creature->GetOrientation());
+                m_creature->SendMonsterMoveJump(6130.473f, 2762.259f, 573.914f, 20.0f, SPLINEFLAG_TRAJECTORY, 1000);
+                JumpNextStep(500);
+                break; 
+            case 31:
+                DoCast(m_creature, SPELL_TIRION_ATTACK); 
+                JumpNextStep(500);
+                break;
+            case 32:    
+                DoCast(m_creature,SPELL_HEART_BLOW);
+                JumpNextStep(500);
+                break;
+            case 33:
+                m_creature->SetHealth(1);
+                if (Creature* pInkvisitor = GetClosestCreatureWithEntry(m_creature, NPC_INKVISITOR, 150.0f)) 
+                {
+                    pInkvisitor->DealDamage(pInkvisitor, pInkvisitor->GetMaxHealth(),NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                }
+                m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                {
+                    pLicKing->DealDamage(pLicKing, pLicKing->GetMaxHealth() - 200000,NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                    pLicKing->GetMap()->CreatureRelocation(((Creature*)pLicKing), 6130.926f, 2743.355f, 573.914f, 0.537f);
+                    pLicKing->SendMonsterMove(6130.926f, 2743.355f, 573.914f, SPLINETYPE_NORMAL , SPLINEFLAG_NONE, 500);
+                }
+                JumpNextStep(500);
+                break;
+            case 34:
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                {
+                    pLicKing->SetStandState(UNIT_STAND_STATE_KNEEL);
+                    DoScriptText(SAY_TG_EVENT_16, pLicKing);
+                }
+                JumpNextStep(500);
+                break;
+            case 35:
+                if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0])) 
+                {
+                    pEscort->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                    pEscort->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, uint32(EQUIP_ESCORT));
+                    pEscort->GetMotionMaster()->MovePoint(0, 6137.778f,2759.621f,573.914f);
+                }
+                if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
+                {
+                    pEscort->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                    pEscort->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, uint32(EQUIP_ESCORT));
+                    pEscort->GetMotionMaster()->MovePoint(0, 6128.400f,2757.948f,573.914f);
+                }
+                if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
+                {
+                    pEscort->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                    pEscort->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, uint32(EQUIP_ESCORT));
+                    pEscort->GetMotionMaster()->MovePoint(0, 6132.821f,2765.189f,573.914f);
+                }
+                JumpNextStep(5000);
+                break;
+            case 36:
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                {
+                    if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0])) 
+                    {
+                        pEscort->SetFacingToObject(pLicKing);
+                        DoScriptText(SAY_TG_EVENT_17, pEscort);
+                        pEscort->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READY2H);
+                    }
+                    if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
+                    {
+                        pEscort->SetFacingToObject(pLicKing);
+                        pEscort->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READY2H);
+                    }
+                    if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
+                    {
+                        pEscort->SetFacingToObject(pLicKing);
+                        pEscort->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READY2H);
+                    }
+                }
+                JumpNextStep(3000);
+                break;
+            case 37:
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_TG_EVENT_18, pLicKing);
+                JumpNextStep(3000);
+                break;
+            case 38:
+                GetAcylte();
+                JumpNextStep(6000);
+                break;
+            case 39:
+                if (Creature* pMograine = m_creature->SummonCreature(NPC_DARION_MOGRAINE,6164.402f,2694.072f,573.914f,1.987f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,120000))
+                {
+                    m_uiMograineGUID = pMograine->GetGUID();
+                    pMograine->setFaction(m_uiHeroFaction);
+                    pMograine->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                    pMograine->GetMotionMaster()->MovePoint(0, 6133.930f,2758.642f,573.914f);
+                }
+                if (Creature* pKoltira = m_creature->SummonCreature(NPC_KOLTIRA,6161.058f,2692.482f,573.914f,1.987f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,120000))
+                {
+                    DoScriptText(SAY_TG_EVENT_19, pKoltira); 
+                    pKoltira->setFaction(m_uiHeroFaction); 
+                    pKoltira->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                    pKoltira->GetMotionMaster()->MovePoint(0, 6133.930f,2758.642f,573.914f);
+                }
+                for (uint8 i = 0; i < 4; i++)
+                {
+                    if (Creature* pKnight = m_creature->SummonCreature(NPC_DEATH_KNIGHT, Summon[i].x, Summon[i].y, Summon[i].z, 1.987f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,120000))
+                    {
+                        pKnight->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                        pKnight->GetMotionMaster()->MovePoint(0, Summon[i].x2, Summon[i].y2, Summon[i].z2);
+                    }
+                }
+                JumpNextStep(56000);
+                break;
+            case 40:
+                if (Creature* pMograine = m_creature->GetMap()->GetCreature(m_uiMograineGUID))
+                {
+                    pMograine->setFaction(35);
+                    pMograine->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+                    pMograine->GetMotionMaster()->MovePoint(0, 6133.930f,2758.642f,573.914f);
+                    if (GameObject* pPortal = GetClosestGameObjectWithEntry(m_creature, GO_ESCAPE_PORTAL, 150.0f))               
+                        pPortal->SetRespawnTime(1*MINUTE);
+                    pMograine->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READY1H);
+                }
+                JumpNextStep(4000);
+                break;
+            case 41:
+                if (Creature* pMograine = m_creature->GetMap()->GetCreature(m_uiMograineGUID))
+                {
+                    if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    {
+                        pLicKing->SetStandState(UNIT_STAND_STATE_STAND);
+                        pMograine->SetFacingToObject(pLicKing);
+                    }
+                    DoScriptText(SAY_TG_EVENT_20, pMograine); 
+                }
+                JumpNextStep(4000);
+                break;
+            case 42:
+                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    pLicKing->CastSpell(pLicKing,SPELL_FURY_LK ,false);
+                ResetEvent();
+                JumpNextStep(15000);
+                break;
+       }
+    }
+
+    void GetAcylte()
+    {
+        std::list<Creature*> pCreatures;
+        GetCreatureListWithEntryInGrid(pCreatures, m_creature, NPC_UNHOLY_MAN, 100.0f);
+
+        if (pCreatures.empty())
+            return;
+ 
+        for (std::list<Creature*>::iterator iter = pCreatures.begin(); iter != pCreatures.end(); ++iter)
+        {
+            float fAng = m_creature->GetAngle((*iter));
+            float X = m_creature->GetPositionX() + 17.0f*cos(fAng);
+            float Y = m_creature->GetPositionY() + 17.0f*sin(fAng);
+            (*iter)->SetStandState(UNIT_STAND_STATE_STAND);
+            (*iter)->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+            (*iter)->GetMotionMaster()->MovePoint(0, X, Y, m_creature->GetPositionZ());
+            (*iter)->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READYUNARMED);
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_uiStepTimer <= uiDiff)
+            Event();
+        else
+            m_uiStepTimer -= uiDiff;
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+enum
+{
+    SPELL_BLOOD_STRIKES        = 52374,
+    SPELL_FROST                = 52375,
+    SPELL_DEATH                = 57602,
+    SPELL_GRIP                 = 52372,
+    SPELL_WRATH                = 60545,
+}
+struct MANGOS_DLL_DECL npc_ebon_knightAI : public ScriptedAI
+{
+    npc_ebon_knightAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+
+    uint32 m_uiBloodTimer;
+    uint32 m_uiDeathTimer;
+    uint32 m_uiFrostTimer;
+    uint32 m_uiGripTimer;
+    uint32 m_uiWrathTimer;
+
+    void Reset() 
+    {
+        m_uiBloodTimer = 5000;
+        m_uiDeathTimer = 1000;
+        m_uiFrostTimer = 12000;
+        m_uiGripTimer = 7000;
+        m_uiWrathTimer = 14000;
+        if (m_creature->GetEntry() == NPC_UNHOLY_MAN)
+            m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+    }
+
+    void Aggro(Unit* pWho)
+    {
+        m_creature->GetMotionMaster()->MovementExpired();
+    }
+
+    void MoveInLineOfSight(Unit* pWho)
+    {
+        if (!pWho)
+            return;
+
+        if (!m_creature->hasUnitState(UNIT_STAT_STUNNED) && pWho->isTargetableForAttack() &&
+            m_creature->IsHostileTo(pWho) && pWho->isInAccessablePlaceFor(m_creature))
+        {
+            if (!m_creature->canFly() && m_creature->GetDistanceZ(pWho) > CREATURE_Z_ATTACK_RANGE)
+                return;
+
+            float attackRadius = m_creature->GetAttackDistance(pWho);
+            if (m_creature->IsWithinDistInMap(pWho, attackRadius) && m_creature->IsWithinLOSInMap(pWho))
+            {
+                if (!m_creature->getVictim())
+                {
+                    AttackStart(pWho);
+                    pWho->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+                }
+                else if (m_creature->GetMap()->IsDungeon())
+                {
+                    pWho->SetInCombatWith(m_creature);
+                    m_creature->AddThreat(pWho, 0.0f);
+                }
+            }
+        }
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if (!pWho)
+            return;
+
+        if (m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+
+            if (IsCombatMovement())
+                m_creature->GetMotionMaster()->MoveChase(pWho, 2.0f, urand(0, 359));
+        }
+    }
+
+    void DamageTaken(Unit *done_by, uint32 &damage) 
+    {
+        if (m_creature->GetEntry() != NPC_UNHOLY_MAN)
+            damage = 0;
+    }
+
+    void EnterEvadeMode()
+    {
+        m_creature->DeleteThreatList();
+        m_creature->CombatStop(true);
+
+        m_creature->SetLootRecipient(NULL);
+        Reset();
+    }
+
+   void UpdateAI(const uint32 diff)
+   {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        DoMeleeAttackIfReady();
+
+        switch(m_creature->GetEntry())
+        {
+            case NPC_DARION_MOGRAINE:
+            case NPC_DEATH_KNIGHT:
+                if (m_uiBloodTimer < diff)
+                {
+                    DoCast(m_creature->getVictim(), SPELL_BLOOD_STRIKES);
+                    m_uiBloodTimer = 5000 + rand()%10000;
+                }
+                else
+                    m_uiBloodTimer -= diff;
+
+                if (m_uiDeathTimer < diff)
+                {
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        DoCast(pTarget, SPELL_DEATH);
+                    m_uiDeathTimer = 9300;
+                }
+                else
+                    m_uiDeathTimer -= diff;
+
+                if (m_uiFrostTimer < diff)
+                {
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        DoCast(pTarget, SPELL_FROST);
+                    m_uiFrostTimer = 15000 + rand()%10000;
+                }
+                else
+                    m_uiFrostTimer -= diff;
+
+                if (m_uiGripTimer < diff)
+                {
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        DoCast(pTarget, SPELL_GRIP);
+                    m_uiGripTimer = 11000 + rand()%9000;
+                }
+                else
+                    m_uiGripTimer -= diff;
+                break;
+            case NPC_KOLTIRA:
+            case NPC_THASSARIAN:
+                if (m_uiWrathTimer < diff)
+                {
+                    m_creature->CastSpell(m_creature->getVictim(), SPELL_WRATH, false);
+                    m_uiWrathTimer = 3000;
+                }
+                else
+                    m_uiWrathTimer -= diff;
+                break;
+        }
+    }
+};
+
+CreatureAI* GetAI_npc_ebon_knight(Creature* pCreature)
+{
+    return new npc_ebon_knightAI(pCreature);
+}
+
+CreatureAI* GetAI_npc_tirionTG(Creature* pCreature)
+{
+    return new npc_tirionTGAI(pCreature);
+}
+
+bool GossipHello_npc_tirionTG(Player *pPlayer, Creature *pCreature)
+{
+    if (pCreature->isQuestGiver())
+        pPlayer->PrepareQuestMenu(pCreature->GetGUID());
+
+    if (pPlayer->GetQuestStatus(QUEST_TIRION_GAMBIT_A) == QUEST_STATUS_INCOMPLETE || pPlayer->GetQuestStatus(QUEST_TIRION_GAMBIT_H) == QUEST_STATUS_INCOMPLETE)
+        if(((npc_tirionTGAI*)pCreature->AI())->m_uiStep == 0)
+            pPlayer->ADD_GOSSIP_ITEM(0, "Tirion, I'am ready!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+
+    pPlayer->PlayerTalkClass->SendGossipMenu(pPlayer->GetGossipTextId(pCreature),pCreature->GetGUID());
+    return true;
+}
+
+bool GossipSelect_npc_tirionTG(Player *pPlayer, Creature *pCreature, uint32 sender, uint32 action )
+{
+    if (action == GOSSIP_ACTION_INFO_DEF+2)
+    {
+        ((npc_tirionTGAI*)pCreature->AI())->StartEvent(1);
+        ((npc_tirionTGAI*)pCreature->AI())->m_uiHeroFaction = pPlayer->getFaction();
+        pPlayer->CLOSE_GOSSIP_MENU();
+    }
+    return true;
+}
+
+bool GOHello_escape_portal(Player* pPlayer, GameObject* pGo)
+{       
+    pPlayer->TeleportTo(pPlayer->GetMapId(), 6445.204f, 409.518f, 495.632f, 2.765f, false);
+    return false;
+};
+
 void AddSC_icecrown()
 {
     Script* newscript;
@@ -1188,5 +1933,22 @@ void AddSC_icecrown()
     newscript = new Script;
     newscript->Name = "npc_lord_commander_arete";
     newscript->GetAI = &GetAI_npc_lord_commander_arete;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_ebon_knight";
+    newscript->GetAI = &GetAI_npc_ebon_knight;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_tirionTG";
+    newscript->GetAI = &GetAI_npc_tirionTG;
+    newscript->pGossipHello = &GossipHello_npc_tirionTG;
+    newscript->pGossipSelect = &GossipSelect_npc_tirionTG;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "go_escape_portal";
+    newscript->pGOHello = &GOHello_escape_portal;
     newscript->RegisterSelf();
 }
