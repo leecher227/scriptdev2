@@ -1,53 +1,53 @@
--- #### QUEST: Orbaz Fate ####
+п»ї-- #### QUEST: Orbaz Fate ####
 DELETE FROM `script_texts` WHERE `comment` = 31283;
 insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`) VALUES
-(-1954301, 'Hah! That\'s all you\'ve got? I\'am surprised you even made it to the citadel!', 'Ха! Это - все, что вы имеете? Я удивлен, что вы даже пришли к цитадели!', 0,1,0,0, '31283'),
-(-1954302, 'The Lich King has given me power beyond your wildest nightmares. Behold!', 'Король Лич дал мне силу вне ваших самых диких кошмаров. Берегитесь!', 0,1,0,0, '31283'),
-(-1954303, 'It all ends here.', 'Все кончится здесь.', 0,1,0,0, '31283'),
-(-1954304, 'Weakling.', 'Слабак.', 0,1,0,0, '31283'),
-(-1954305, 'Orbaz Bloodbane, self proclaimed hand of the Lich King.', 'Орбаз Кровопорч, объявленный рукой Короля Лича.', 0,1,0,0, '31283'),
-(-1954306, 'Couldn\'t wait for me to be out of the way so that you could sieze control.', 'Не ждал меня, ты сбился с пути,  мы вернем тебе контроль.', 0,1,0,0, '31283'),
-(-1954307, 'There you are Darion! I was wondering when you\'d crawl forth.', 'А вот вы где Дарион! Я задавался вопросом, когда вы будете ползать на коленях.', 0,1,0,0, '31283'),
-(-1954308, 'You\'ll never have that it takes to lead anything. Orbaz, not even a legion of mindless skeletons.', 'Ты не дождешься этого, ничто не противостоит нам. Орбаз, и даже легион безмозглых скелетов.', 0,1,0,0, '31283'),
-(-1954309, 'The Lich King shall extinqulsh... every last... one... of you...', 'Король Лич уничтожит... каждого ... по одиночке ... вас.', 0,1,0,0, '31283'),
-(-1954310, 'Good riddance.', 'Хорошее избавление.', 0,1,0,0, '31283');
+(-1954301, 'Hah! That\'s all you\'ve got? I\'am surprised you even made it to the citadel!', 'РҐР°! Р­С‚Рѕ - РІСЃРµ, С‡С‚Рѕ РІС‹ РёРјРµРµС‚Рµ? РЇ СѓРґРёРІР»РµРЅ, С‡С‚Рѕ РІС‹ РґР°Р¶Рµ РїСЂРёС€Р»Рё Рє С†РёС‚Р°РґРµР»Рё!', 0,1,0,0, '31283'),
+(-1954302, 'The Lich King has given me power beyond your wildest nightmares. Behold!', 'РљРѕСЂРѕР»СЊ Р›РёС‡ РґР°Р» РјРЅРµ СЃРёР»Сѓ РІРЅРµ РІР°С€РёС… СЃР°РјС‹С… РґРёРєРёС… РєРѕС€РјР°СЂРѕРІ. Р‘РµСЂРµРіРёС‚РµСЃСЊ!', 0,1,0,0, '31283'),
+(-1954303, 'It all ends here.', 'Р’СЃРµ РєРѕРЅС‡РёС‚СЃСЏ Р·РґРµСЃСЊ.', 0,1,0,0, '31283'),
+(-1954304, 'Weakling.', 'РЎР»Р°Р±Р°Рє.', 0,1,0,0, '31283'),
+(-1954305, 'Orbaz Bloodbane, self proclaimed hand of the Lich King.', 'РћСЂР±Р°Р· РљСЂРѕРІРѕРїРѕСЂС‡, РѕР±СЉСЏРІР»РµРЅРЅС‹Р№ СЂСѓРєРѕР№ РљРѕСЂРѕР»СЏ Р›РёС‡Р°.', 0,1,0,0, '31283'),
+(-1954306, 'Couldn\'t wait for me to be out of the way so that you could sieze control.', 'РќРµ Р¶РґР°Р» РјРµРЅСЏ, С‚С‹ СЃР±РёР»СЃСЏ СЃ РїСѓС‚Рё,  РјС‹ РІРµСЂРЅРµРј С‚РµР±Рµ РєРѕРЅС‚СЂРѕР»СЊ.', 0,1,0,0, '31283'),
+(-1954307, 'There you are Darion! I was wondering when you\'d crawl forth.', 'Рђ РІРѕС‚ РІС‹ РіРґРµ Р”Р°СЂРёРѕРЅ! РЇ Р·Р°РґР°РІР°Р»СЃСЏ РІРѕРїСЂРѕСЃРѕРј, РєРѕРіРґР° РІС‹ Р±СѓРґРµС‚Рµ РїРѕР»Р·Р°С‚СЊ РЅР° РєРѕР»РµРЅСЏС….', 0,1,0,0, '31283'),
+(-1954308, 'You\'ll never have that it takes to lead anything. Orbaz, not even a legion of mindless skeletons.', 'РўС‹ РЅРµ РґРѕР¶РґРµС€СЊСЃСЏ СЌС‚РѕРіРѕ, РЅРёС‡С‚Рѕ РЅРµ РїСЂРѕС‚РёРІРѕСЃС‚РѕРёС‚ РЅР°Рј. РћСЂР±Р°Р·, Рё РґР°Р¶Рµ Р»РµРіРёРѕРЅ Р±РµР·РјРѕР·РіР»С‹С… СЃРєРµР»РµС‚РѕРІ.', 0,1,0,0, '31283'),
+(-1954309, 'The Lich King shall extinqulsh... every last... one... of you...', 'РљРѕСЂРѕР»СЊ Р›РёС‡ СѓРЅРёС‡С‚РѕР¶РёС‚... РєР°Р¶РґРѕРіРѕ ... РїРѕ РѕРґРёРЅРѕС‡РєРµ ... РІР°СЃ.', 0,1,0,0, '31283'),
+(-1954310, 'Good riddance.', 'РҐРѕСЂРѕС€РµРµ РёР·Р±Р°РІР»РµРЅРёРµ.', 0,1,0,0, '31283');
 
 -- #### QUEST: The Admiral Revealed ####
 DELETE FROM `script_texts` WHERE `comment` = 29621;
 insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`) VALUES
 -- Mal'Ganis
-(-1999401, 'Gah! I spent too much time in that weak little shell...', 'Аррррхххх... Я и так провел слишком много времени в этой слабой оболочке...',14426,1,0,0, '29621'),
-(-1999402, 'Kirei Narak! I am Mal\'Ganis! I AM ETERNAL!', 'Ирл Нарат... Я Мал\'Ганис.... Я вечен...',14427,1,0,0, '29621'),
-(-1999403, 'Anak\'Keri...', 'Анак Кири...',14422,1,0,0, '29621'),
-(-1999404, 'My onslaught will wash over the Lich King\'s forces...', 'Мой натиск сметет силы Короля-Лича...',14423,1,0,0, '29621'),
-(-1999405, 'Your death is in vain, tiny mortal...', 'Твоя смерть была напрасна насекомое...',14424,1,0,0, '29621'),
-(-1999406, 'Your time has come to an end!', 'Твое время вышло...',14425,1,0,0, '29621'),
-(-1999407, 'ENOUGH! I waste my time here...I must gather my strength on the home world...', 'Я лишь зря трачу тут свое время. Мне нужно собраться силами в моем родном мире.',14428,1,0,0, '29621'),
-(-1999408, 'You\'ll never defeat the Lich King without my forces! I\'ll have my revenge...on him, AND you...', 'Тебе никогда не победить короля - лича без моих войск! Я отомщу и тебе и ему...',14429,1,0,0, '29621'),
+(-1999401, 'Gah! I spent too much time in that weak little shell...', 'РђСЂСЂСЂСЂС…С…С…С…... РЇ Рё С‚Р°Рє РїСЂРѕРІРµР» СЃР»РёС€РєРѕРј РјРЅРѕРіРѕ РІСЂРµРјРµРЅРё РІ СЌС‚РѕР№ СЃР»Р°Р±РѕР№ РѕР±РѕР»РѕС‡РєРµ...',14426,1,0,0, '29621'),
+(-1999402, 'Kirei Narak! I am Mal\'Ganis! I AM ETERNAL!', 'РСЂР» РќР°СЂР°С‚... РЇ РњР°Р»\'Р“Р°РЅРёСЃ.... РЇ РІРµС‡РµРЅ...',14427,1,0,0, '29621'),
+(-1999403, 'Anak\'Keri...', 'РђРЅР°Рє РљРёСЂРё...',14422,1,0,0, '29621'),
+(-1999404, 'My onslaught will wash over the Lich King\'s forces...', 'РњРѕР№ РЅР°С‚РёСЃРє СЃРјРµС‚РµС‚ СЃРёР»С‹ РљРѕСЂРѕР»СЏ-Р›РёС‡Р°...',14423,1,0,0, '29621'),
+(-1999405, 'Your death is in vain, tiny mortal...', 'РўРІРѕСЏ СЃРјРµСЂС‚СЊ Р±С‹Р»Р° РЅР°РїСЂР°СЃРЅР° РЅР°СЃРµРєРѕРјРѕРµ...',14424,1,0,0, '29621'),
+(-1999406, 'Your time has come to an end!', 'РўРІРѕРµ РІСЂРµРјСЏ РІС‹С€Р»Рѕ...',14425,1,0,0, '29621'),
+(-1999407, 'ENOUGH! I waste my time here...I must gather my strength on the home world...', 'РЇ Р»РёС€СЊ Р·СЂСЏ С‚СЂР°С‡Сѓ С‚СѓС‚ СЃРІРѕРµ РІСЂРµРјСЏ. РњРЅРµ РЅСѓР¶РЅРѕ СЃРѕР±СЂР°С‚СЊСЃСЏ СЃРёР»Р°РјРё РІ РјРѕРµРј СЂРѕРґРЅРѕРј РјРёСЂРµ.',14428,1,0,0, '29621'),
+(-1999408, 'You\'ll never defeat the Lich King without my forces! I\'ll have my revenge...on him, AND you...', 'РўРµР±Рµ РЅРёРєРѕРіРґР° РЅРµ РїРѕР±РµРґРёС‚СЊ РєРѕСЂРѕР»СЏ - Р»РёС‡Р° Р±РµР· РјРѕРёС… РІРѕР№СЃРє! РЇ РѕС‚РѕРјС‰Сѓ Рё С‚РµР±Рµ Рё РµРјСѓ...',14429,1,0,0, '29621'),
 
 -- Westwind
-(-1999409, 'How did you find me? Did Landgrend tell?', 'Как вы нашли меня? Лангрен рассказал?',14201,0,0,0, '29621'),
-(-1999410, 'You thought I would just let you kill me?', 'Вы что думали я просто так позволю убить себя?',14205,0,0,0, '29621'),
-(-1999411, 'WHAT!!! No matter. Even without my shpere I will crush you! Behold my true eternity and despear.', 'ЧТО!!! Не важно. Я прикончу вас даже без сферы! Узрите мой истинный облик и затрепещите.',14207,1,0,0, '29621'),
-(-1999412, '<Laught> You are not capable of something!', '<Смех> Ни на что-то вы не способны!',14821,0,0,0, '29621'),
-(-1999413, 'Quickly surrender!', 'Быстро сдаетесь!',14202,0,0,0, '29621'),
-(-1999414, 'What disappointment.', 'Какая досада.',14203,0,0,0, '29621'),
-(-1999415, 'As it is a pity, all only begins!', 'Как жаль, все только начинается!',14204,0,0,0, '29621');
+(-1999409, 'How did you find me? Did Landgrend tell?', 'РљР°Рє РІС‹ РЅР°С€Р»Рё РјРµРЅСЏ? Р›Р°РЅРіСЂРµРЅ СЂР°СЃСЃРєР°Р·Р°Р»?',14201,0,0,0, '29621'),
+(-1999410, 'You thought I would just let you kill me?', 'Р’С‹ С‡С‚Рѕ РґСѓРјР°Р»Рё СЏ РїСЂРѕСЃС‚Рѕ С‚Р°Рє РїРѕР·РІРѕР»СЋ СѓР±РёС‚СЊ СЃРµР±СЏ?',14205,0,0,0, '29621'),
+(-1999411, 'WHAT!!! No matter. Even without my shpere I will crush you! Behold my true eternity and despear.', 'Р§РўРћ!!! РќРµ РІР°Р¶РЅРѕ. РЇ РїСЂРёРєРѕРЅС‡Сѓ РІР°СЃ РґР°Р¶Рµ Р±РµР· СЃС„РµСЂС‹! РЈР·СЂРёС‚Рµ РјРѕР№ РёСЃС‚РёРЅРЅС‹Р№ РѕР±Р»РёРє Рё Р·Р°С‚СЂРµРїРµС‰РёС‚Рµ.',14207,1,0,0, '29621'),
+(-1999412, '<Laught> You are not capable of something!', '<РЎРјРµС…> РќРё РЅР° С‡С‚Рѕ-С‚Рѕ РІС‹ РЅРµ СЃРїРѕСЃРѕР±РЅС‹!',14821,0,0,0, '29621'),
+(-1999413, 'Quickly surrender!', 'Р‘С‹СЃС‚СЂРѕ СЃРґР°РµС‚РµСЃСЊ!',14202,0,0,0, '29621'),
+(-1999414, 'What disappointment.', 'РљР°РєР°СЏ РґРѕСЃР°РґР°.',14203,0,0,0, '29621'),
+(-1999415, 'As it is a pity, all only begins!', 'РљР°Рє Р¶Р°Р»СЊ, РІСЃРµ С‚РѕР»СЊРєРѕ РЅР°С‡РёРЅР°РµС‚СЃСЏ!',14204,0,0,0, '29621');
 
 -- #### QUEST: The Second Chance ####
 DELETE FROM `script_texts` WHERE `comment` = 29542;
 insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`) VALUES
 -- Landgren and Arete
-(-1999430, 'I will not die so quickly this time!', 'Я не буду умирать так быстро на сей раз!',0,0,0,0, '29542'),
-(-1999431, 'Well done. Let\'s get this over with.', 'Хорошо сработано. Давайте покончим с этим.',0,0,0,0, '29542'),
-(-1999432, 'Come, Landgren, cough up your soul so that I can ask you a very important question.', 'Приди, Ландгрен, подымись  твоя душа, чтобы я мог задать очень важный вопрос.',0,0,0,0, '29542'),
-(-1999433, 'You\'ll get nothing out of me, monster. I am beyond your ability to influence.', 'Вы не получите ничего из меня, монстр. Я - вне вашей способности влияния!',0,0,0,0, '29542'),
-(-1999434, 'YOU WILL TELL ME WHERE WESTWIND IS OR I WILL DESTROY YOUR SOUL!', 'ТЫ СКАЖЕШЬ МНЕ, ГДЕ СЕЙЧАС ВЕСТВИНД, ИЛИ Я УНИЧТОЖУ ТВОЮ ДУШУ!',0,1,0,0, '29542'),
-(-1999435, 'No.', 'Нет.',0,0,0,0, '29542'),
-(-1999436, 'Then you leave me no choice. I won\'t say that I won\'t enjoy this.', 'Тогда ты не оставляешь мне выбора. Я не буду говорить, что я не буду наслаждаться этим!',0,0,0,0, '29542'),
-(-1999437, 'STOP! It isn\'t worth it. I\'ll tell you where he is.', 'ХВАТИТ! Это не стоит того. Я скажу тебе, где он!',0,0,0,0, '29542'),
-(-1999438, 'Very well. Tell me!', 'Очень хорошо. Скажи мне!',0,0,0,0, '29542'),
-(-1999439, 'On the south end of the island is a cave -- a hidden hollow. The grand admiral has holed himself up in there, preparing for the final battle against the Lich King.', 'На южном конце острова в пещере - Скрытая Лощина. Великий адмирал находится непосредственно  там, готовясь к заключительному сражению против Короля Лича!',0,0,0,0, '29542'),
-(-1999440, 'A hidden hollow? How very interesting. You\'ve served your purpose, Landgren, but I\'m afraid there\'ll be no resurrection for you this time!', 'Скрытая Лощина? Как интересно. Вы сослужили свою службу, Ландгрен, но я боюсь для тебя больше нет никакого воскрешения на сей раз!',0,0,0,0, '29542'),
-(-1999441, 'AAAEEEEIIIiiiiiiiiiiiiiiiiiiiiiiiiiiii........................................', 'Ааааааааааааааааааааа........................',0,0,0,0, '29542'),
-(-1999442, 'Now that the unpleasantness is finished with, let\'s talk about you dealing with Grand Admiral Westwind.', 'Теперь, когда неприятность устранена, давайте поговорим о твоем  деле с Великим Адмиралом Вествиндом.!',0,0,0,0, '29542');
+(-1999430, 'I will not die so quickly this time!', 'РЇ РЅРµ Р±СѓРґСѓ СѓРјРёСЂР°С‚СЊ С‚Р°Рє Р±С‹СЃС‚СЂРѕ РЅР° СЃРµР№ СЂР°Р·!',0,0,0,0, '29542'),
+(-1999431, 'Well done. Let\'s get this over with.', 'РҐРѕСЂРѕС€Рѕ СЃСЂР°Р±РѕС‚Р°РЅРѕ. Р”Р°РІР°Р№С‚Рµ РїРѕРєРѕРЅС‡РёРј СЃ СЌС‚РёРј.',0,0,0,0, '29542'),
+(-1999432, 'Come, Landgren, cough up your soul so that I can ask you a very important question.', 'РџСЂРёРґРё, Р›Р°РЅРґРіСЂРµРЅ, РїРѕРґС‹РјРёСЃСЊ  С‚РІРѕСЏ РґСѓС€Р°, С‡С‚РѕР±С‹ СЏ РјРѕРі Р·Р°РґР°С‚СЊ РѕС‡РµРЅСЊ РІР°Р¶РЅС‹Р№ РІРѕРїСЂРѕСЃ.',0,0,0,0, '29542'),
+(-1999433, 'You\'ll get nothing out of me, monster. I am beyond your ability to influence.', 'Р’С‹ РЅРµ РїРѕР»СѓС‡РёС‚Рµ РЅРёС‡РµРіРѕ РёР· РјРµРЅСЏ, РјРѕРЅСЃС‚СЂ. РЇ - РІРЅРµ РІР°С€РµР№ СЃРїРѕСЃРѕР±РЅРѕСЃС‚Рё РІР»РёСЏРЅРёСЏ!',0,0,0,0, '29542'),
+(-1999434, 'YOU WILL TELL ME WHERE WESTWIND IS OR I WILL DESTROY YOUR SOUL!', 'РўР« РЎРљРђР–Р•РЁР¬ РњРќР•, Р“Р”Р• РЎР•Р™Р§РђРЎ Р’Р•РЎРўР’РРќР”, РР›Р РЇ РЈРќРР§РўРћР–РЈ РўР’РћР® Р”РЈРЁРЈ!',0,1,0,0, '29542'),
+(-1999435, 'No.', 'РќРµС‚.',0,0,0,0, '29542'),
+(-1999436, 'Then you leave me no choice. I won\'t say that I won\'t enjoy this.', 'РўРѕРіРґР° С‚С‹ РЅРµ РѕСЃС‚Р°РІР»СЏРµС€СЊ РјРЅРµ РІС‹Р±РѕСЂР°. РЇ РЅРµ Р±СѓРґСѓ РіРѕРІРѕСЂРёС‚СЊ, С‡С‚Рѕ СЏ РЅРµ Р±СѓРґСѓ РЅР°СЃР»Р°Р¶РґР°С‚СЊСЃСЏ СЌС‚РёРј!',0,0,0,0, '29542'),
+(-1999437, 'STOP! It isn\'t worth it. I\'ll tell you where he is.', 'РҐР’РђРўРРў! Р­С‚Рѕ РЅРµ СЃС‚РѕРёС‚ С‚РѕРіРѕ. РЇ СЃРєР°Р¶Сѓ С‚РµР±Рµ, РіРґРµ РѕРЅ!',0,0,0,0, '29542'),
+(-1999438, 'Very well. Tell me!', 'РћС‡РµРЅСЊ С…РѕСЂРѕС€Рѕ. РЎРєР°Р¶Рё РјРЅРµ!',0,0,0,0, '29542'),
+(-1999439, 'On the south end of the island is a cave -- a hidden hollow. The grand admiral has holed himself up in there, preparing for the final battle against the Lich King.', 'РќР° СЋР¶РЅРѕРј РєРѕРЅС†Рµ РѕСЃС‚СЂРѕРІР° РІ РїРµС‰РµСЂРµ - РЎРєСЂС‹С‚Р°СЏ Р›РѕС‰РёРЅР°. Р’РµР»РёРєРёР№ Р°РґРјРёСЂР°Р» РЅР°С…РѕРґРёС‚СЃСЏ РЅРµРїРѕСЃСЂРµРґСЃС‚РІРµРЅРЅРѕ  С‚Р°Рј, РіРѕС‚РѕРІСЏСЃСЊ Рє Р·Р°РєР»СЋС‡РёС‚РµР»СЊРЅРѕРјСѓ СЃСЂР°Р¶РµРЅРёСЋ РїСЂРѕС‚РёРІ РљРѕСЂРѕР»СЏ Р›РёС‡Р°!',0,0,0,0, '29542'),
+(-1999440, 'A hidden hollow? How very interesting. You\'ve served your purpose, Landgren, but I\'m afraid there\'ll be no resurrection for you this time!', 'РЎРєСЂС‹С‚Р°СЏ Р›РѕС‰РёРЅР°? РљР°Рє РёРЅС‚РµСЂРµСЃРЅРѕ. Р’С‹ СЃРѕСЃР»СѓР¶РёР»Рё СЃРІРѕСЋ СЃР»СѓР¶Р±Сѓ, Р›Р°РЅРґРіСЂРµРЅ, РЅРѕ СЏ Р±РѕСЋСЃСЊ РґР»СЏ С‚РµР±СЏ Р±РѕР»СЊС€Рµ РЅРµС‚ РЅРёРєР°РєРѕРіРѕ РІРѕСЃРєСЂРµС€РµРЅРёСЏ РЅР° СЃРµР№ СЂР°Р·!',0,0,0,0, '29542'),
+(-1999441, 'AAAEEEEIIIiiiiiiiiiiiiiiiiiiiiiiiiiiii........................................', 'РђР°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°Р°........................',0,0,0,0, '29542'),
+(-1999442, 'Now that the unpleasantness is finished with, let\'s talk about you dealing with Grand Admiral Westwind.', 'РўРµРїРµСЂСЊ, РєРѕРіРґР° РЅРµРїСЂРёСЏС‚РЅРѕСЃС‚СЊ СѓСЃС‚СЂР°РЅРµРЅР°, РґР°РІР°Р№С‚Рµ РїРѕРіРѕРІРѕСЂРёРј Рѕ С‚РІРѕРµРј  РґРµР»Рµ СЃ Р’РµР»РёРєРёРј РђРґРјРёСЂР°Р»РѕРј Р’РµСЃС‚РІРёРЅРґРѕРј.!',0,0,0,0, '29542');

@@ -1,15 +1,15 @@
--- #### QUEST: My Old Enemy ####
+п»ї-- #### QUEST: My Old Enemy ####
 DELETE FROM `script_texts` WHERE `comment` = 27210;
 insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`) VALUES
 -- Westwind
-(-1999420, 'Kill them Abbendis! Do not bring me.', 'Убей их Аббендис! Не подведи меня.',14198,0,0,25, '27210'),
-(-1999421, 'You have finished the service!', 'Ты сослужила свою службу!',14199,0,0,0, '27210'),
-(-1999422, 'With you, insect I still meet in the IceCrown! If you will live', 'С вами, слабаки я еще астречусь в Ледяной Короне! Если вы доживете.',14200,1,0,0, '27210'),
+(-1999420, 'Kill them Abbendis! Do not bring me.', 'РЈР±РµР№ РёС… РђР±Р±РµРЅРґРёСЃ! РќРµ РїРѕРґРІРµРґРё РјРµРЅСЏ.',14198,0,0,25, '27210'),
+(-1999421, 'You have finished the service!', 'РўС‹ СЃРѕСЃР»СѓР¶РёР»Р° СЃРІРѕСЋ СЃР»СѓР¶Р±Сѓ!',14199,0,0,0, '27210'),
+(-1999422, 'With you, insect I still meet in the IceCrown! If you will live', 'РЎ РІР°РјРё, СЃР»Р°Р±Р°РєРё СЏ РµС‰Рµ Р°СЃС‚СЂРµС‡СѓСЃСЊ РІ Р›РµРґСЏРЅРѕР№ РљРѕСЂРѕРЅРµ! Р•СЃР»Рё РІС‹ РґРѕР¶РёРІРµС‚Рµ.',14200,1,0,0, '27210'),
 
 -- Abbendis
-(-1999423, 'You came to test force of the Impact?', 'Вы пришли испытать силу Натиска?',14188,0,0,1, '27210'),
-(-1999424, 'More quickly understand with them! I do not have on it time.', 'Побыстрее разберитесь с ними! У меня нет на это времени.',14189,0,0,25, '27210'),
-(-1999425, 'You do not want to reconsider the behaviour fools?', 'Вы не хотите пересмотреть свое поведение глупцы?',14190,0,0,1, '27210'),
-(-1999426, 'Really I itself should understand with this intrusion?', 'Неужели мне придется самой разбираться с этим вторжением?',14191,0,0,1, '27210'),
-(-1999427, 'And now I shall show you true force of the Impact!', 'А теперь я покажу вам истинную силу Натиска!',14192,1,0,0, '27210');
+(-1999423, 'You came to test force of the Impact?', 'Р’С‹ РїСЂРёС€Р»Рё РёСЃРїС‹С‚Р°С‚СЊ СЃРёР»Сѓ РќР°С‚РёСЃРєР°?',14188,0,0,1, '27210'),
+(-1999424, 'More quickly understand with them! I do not have on it time.', 'РџРѕР±С‹СЃС‚СЂРµРµ СЂР°Р·Р±РµСЂРёС‚РµСЃСЊ СЃ РЅРёРјРё! РЈ РјРµРЅСЏ РЅРµС‚ РЅР° СЌС‚Рѕ РІСЂРµРјРµРЅРё.',14189,0,0,25, '27210'),
+(-1999425, 'You do not want to reconsider the behaviour fools?', 'Р’С‹ РЅРµ С…РѕС‚РёС‚Рµ РїРµСЂРµСЃРјРѕС‚СЂРµС‚СЊ СЃРІРѕРµ РїРѕРІРµРґРµРЅРёРµ РіР»СѓРїС†С‹?',14190,0,0,1, '27210'),
+(-1999426, 'Really I itself should understand with this intrusion?', 'РќРµСѓР¶РµР»Рё РјРЅРµ РїСЂРёРґРµС‚СЃСЏ СЃР°РјРѕР№ СЂР°Р·Р±РёСЂР°С‚СЊСЃСЏ СЃ СЌС‚РёРј РІС‚РѕСЂР¶РµРЅРёРµРј?',14191,0,0,1, '27210'),
+(-1999427, 'And now I shall show you true force of the Impact!', 'Рђ С‚РµРїРµСЂСЊ СЏ РїРѕРєР°Р¶Сѓ РІР°Рј РёСЃС‚РёРЅРЅСѓСЋ СЃРёР»Сѓ РќР°С‚РёСЃРєР°!',14192,1,0,0, '27210');
 
