@@ -9,3 +9,9 @@ INSERT INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`modelid`,`equ
 
 UPDATE creature_template SET `AIName`='', ScriptName = "npc_admiral_westwind" WHERE entry = 27951;
 UPDATE creature_template SET `AIName`='', ScriptName = "boss_hight_general_abbendis" WHERE entry = 27210;
+
+-- #### Quest: Lumber Hack ####
+update `creature_template` set `IconName`="vehichleCursor", `VehicleId`=300, `spell1`=47939, `maxlevel`=74, `minlevel`=74 where entry=27061;
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` = 27061;
+INSERT INTO `npc_spellclick_spells` VALUES
+(27061, 47920, 0, 0, 0, 1);  -- zick crosher
