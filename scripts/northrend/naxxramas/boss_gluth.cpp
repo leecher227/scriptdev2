@@ -246,6 +246,7 @@ struct MANGOS_DLL_DECL boss_gluthAI : public ScriptedAI
                 {
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     {
+                        pZombie->SetSpeedRate(MOVE_RUN, 1.0f);
                         pZombie->AI()->AttackStart(pTarget);
                         m_lZombieGUIDList.push_back(pZombie->GetGUID());
                     }

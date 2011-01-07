@@ -144,6 +144,7 @@ struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned)
     {
+        pSummoned->SetSpeedRate(MOVE_RUN, 1.0f, true);
         if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             pSummoned->AI()->AttackStart(pTarget);
     }
