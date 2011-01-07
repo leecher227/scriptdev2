@@ -75,3 +75,25 @@ insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`ty
 (-1954717, 'You... will pay for that, old man. Slay them all!', 'Ты… заплатишь за это, старик. Убить их всех!', 0,1,0,0, '32239'),
 (-1954718, 'I hope you fellows don\'t mind if we crash this party. I brought some old friends with me!', 'Надеюсь, твои приятели не возражают, если мы немного попортим эту вечеринку. Я привел с собой особого гостя!', 0,1,0,0, '32239'),
 (-1954719, 'Quikly... Run away with Tirion to the portal. I can\'t channeled him much longer. I stay here and finish the lich king...', 'Быстрее… Убегайте с Тирионом в портал. Я не смогу держать его долго. Я останусь здесь и покончу с Королем Личом...', 0,1,0,0, '32239');
+
+-- #### QUEST: Banshee Revange ####
+DELETE FROM `script_texts` WHERE `comment` = 31029;
+insert into `script_texts` (`entry`,`content_default`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`) VALUES
+(-1544071, 'He is very close.', 'Он уже близко.', 15643,0,0,1, '31029'),
+(-1544072, 'How you have dared to challenge to me? You have not deserved such right...', 'Как смеете вы бросать мне вызов? Вы не заслужили такого права...', 15633,0,0,1, '31029'),
+(-1544073, 'Balargarde, you will take this challenge.', 'Балагард, ты примешь этот вызов.', 15644,1,0,0, '31029'),
+(-1544074, 'Vardmadra? Lich King really has sent you?', 'Вардмадра? Неужели Король-Лич послал тебя?', 15634,0,0,1, '31029'),
+(-1544075, 'Well, I shall exterminate these small essences. It will be not difficult. Prepead to die.', 'Хорошо, я истреблю этих назольевых существ. Это будет не сложно. Готовтесь к смерти.', 15635,0,0,0, '31029'),
+(-1544076, 'Stop fools... Stand on kneels before Lich-King', 'Остановитесь глупцы... Склонитесь перед Королем-Личом.', 15637,1,0,0, '31029'),
+(-1544077, 'Stand, where you stand the guard.', 'Стой где стоишь страж.', 15600,1,0,25, '31029'),
+(-1544078, 'Vardmadra! And I thought where you were gone. How there Iskalter?', 'Вардматра! А я думал куда же ты пропала. Как там Искалтер?', 15601,0,0,0, '31029'),
+(-1544079, 'My master!', 'Мой повелитель!', 15645,0,0,0, '31029'),
+(-1544080, 'I see lady of Night Woods who you actually! Thought you can cheat me?', 'Леди Ночных Лесов я вижу кто ты на самом деле! Думала сможешь обвести меня вокруг пальца?', 15602,1,0,22, '31029'),
+(-1544081, 'But...', 'Но...', 15646,0,0,0, '31029'),
+(-1544082, 'Continue fight Overthane.', 'Продолжай бой верховный тан.', 15603,0,0,25, '31029'),
+(-1544083, 'But... My master...', 'Но... Мой господин...', 15638,0,0,0, '31029'),
+(-1544084, 'Any but... Finish them and do not disappoint me Balargarde!', 'Никаких но... Прикончи их и не подведи меня Балагард!', 15604,1,0,22, '31029'),
+(-1544085, 'Die dogs.', 'Умрите псы...', 15639,0,0,0, '31029'),
+(-1544086, 'You have struck one of my best the soldier, but all your efforts anything...', 'Вы сразили одного из моих лудших солдат, но все ваши усилия ничто.', 15605,0,0,25, '31029'),
+(-1544087, 'Heart of  icecrown waits.', 'Сердце ледяной короны ждет...', 15606,0,0,1, '31029'),
+(-1544088, 'Safidrang, let they will feel a cold of an ice crown.', 'Сафидранг, пусть они почувствуют холод ледяной короны.', 15636,1,0,0, '31029');

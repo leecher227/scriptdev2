@@ -121,6 +121,75 @@ CreatureAI* GetAI_npc_gurgthock(Creature* pCreature)
 SDAuthor: MaxXx2021
 */
 
+enum
+{
+   SAY_DRAKURU_PREFIGHT01      = -1876000,
+   SAY_DRAKURU_PREFIGHT02      = -1876001,
+   SAY_DRAKURU_PREFIGHT03      = -1876002,
+
+   SAY_DRAKURU_RANDOMYELL01    = -1876003,
+   SAY_DRAKURU_RANDOMYELL02    = -1876004,
+   SAY_DRAKURU_RANDOMYELL03    = -1876005,
+   SAY_DRAKURU_RANDOMYELL04    = -1876006,
+   SAY_DRAKURU_RANDOMYELL05    = -1876007,
+   SAY_DRAKURU_RANDOMYELL06    = -1876008,
+
+   SAY_DRAKURU_EVENT01         = -1876009,
+   SAY_DRAKURU_EVENT02         = -1876010,
+   SAY_DRAKURU_EVENT03         = -1876011,
+   SAY_LICH_KING_EVENT01       = -1876012,
+   SAY_LICH_KING_EVENT02       = -1876013,
+   SAY_LICH_KING_EVENT03       = -1876014,
+   SAY_LICH_KING_EVENT04       = -1876015,
+   SAY_LICH_KING_EVENT05       = -1876016,
+   SAY_LICH_KING_EVENT06       = -1876017,
+
+   SPELL_THROW_CRYSTALL        = 54087,
+   SPELL_SHADOWBOLT            = 54113,
+   SPELL_ARTHAS_PORTAL         = 51807,  //cast this npc 28492
+   SPELL_SUMMON_SKULL          = 54253,
+   SPELL_DRAKURU_DEATH         = 54248,
+   SPELL_SKULL_MISSILE         = 54250, //spell script
+   SPELL_PORTAL_MISSILE        = 54209, //spell script
+   SPELL_ENOUTH                = 54245,
+   SPELL_DEATH_TOUCH           = 54236,
+   SPELL_TROLL_CONTROLL        = 53102, //spell script target
+   SPELL_ZONE_AURA             = 53104,
+   SPELL_SPERE                 = 51966,
+   SPELL_MEAT_01               = 52578,
+   SPELL_MEAT_02               = 52580,
+   SPELL_MEAT_03               = 52575,
+   SPELL_DRAKURU_TELEPORT      = 51461,
+
+   SPELL_ESCAPE_VOLTAR         = 57533,
+   
+   NPC_DEATH_TROLL             = 28931,
+   NPC_LICH_KING               = 28498,
+   NPC_DRAKURU                 = 28503,
+   NPC_INVISMAN                = 28492,
+
+   QUEST_BETREYAL              = 12713,
+};
+
+struct Locations
+{
+    float x, y, z, o;
+    uint32 id;
+};
+
+struct Locations TelPos[]=
+{
+    {6175.637f, -2017.744f, 590.878f, 2.94f}, //summon drakuru
+    {6158.543f, -2014.910f, 590.878f, 6.13f}, //summon player
+    {6184.176f, -1969.550f, 586.760f, 4.60f}, //troll 1 position
+    {6127.317f, -2008.511f, 586.759f, 6.04f}, //troll 2 position
+    {6166.302f, -2065.412f, 586.758f, 1.32f}, //troll 3 position
+    {6222.837f, -2026.676f, 586.758f, 2.91f}, //troll 4 position
+    {6145.589f, -2012.081f, 590.878f, 6.06f}, //portal position
+    {6163.186f, -2015.577f, 590.878f, 6.06f}, //lich king position
+    {6180.624f, -2031.796f, 590.878f, 6.06f}, //skull position
+};
+
 struct MANGOS_DLL_DECL npc_overlord_drakuruAI : public ScriptedAI
 {
     npc_overlord_drakuruAI(Creature *pCreature) : ScriptedAI(pCreature) 

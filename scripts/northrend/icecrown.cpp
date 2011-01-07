@@ -1174,6 +1174,7 @@ enum
     SAY_TG_EVENT_17                = -1954716,
     SAY_TG_EVENT_18                = -1954717,
     SAY_TG_EVENT_19                = -1954718,
+    SAY_TG_EVENT_20                = -1954719,
 
     NPC_TIRION_FORDRING            = 32239,
     NPC_LICH_KING_TG               = 32184,
@@ -1465,7 +1466,7 @@ struct MANGOS_DLL_DECL npc_tirionTGAI : public ScriptedAI
                 JumpNextStep(25000);
                 break; 
             case 20:
-                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
                 {
                     pLicKing->SetFacingToObject(m_creature);
                     DoScriptText(SAY_TG_EVENT_07, pLichKing);
@@ -1482,7 +1483,7 @@ struct MANGOS_DLL_DECL npc_tirionTGAI : public ScriptedAI
             case 22:
                 m_creature->GetMotionMaster()->MovementExpired(false);
                 m_creature->GetMotionMaster()->MovePoint(0, 6143.597f,2757.256f,573.914f);
-                if (Creature* pLicKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
                    DoScriptText(SAY_TG_EVENT_08, pLichKing);
                 JumpNextStep(14000);
                 break; 
@@ -1607,7 +1608,7 @@ struct MANGOS_DLL_DECL npc_tirionTGAI : public ScriptedAI
                 JumpNextStep(6000);
                 break;
             case 39:
-                if (Creature* pMograine = m_creature->SummonCreature(NPC_DARION_MOGRAINE,6164.402f,2694.072f,573.914f,1.987f,TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,120000))
+                if (Creature* pMograine = m_creature->SummonCreature(NPC_DARION_MOGRAINE_TG, 6164.402f, 2694.072f, 573.914f, 1.987f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,120000))
                 {
                     m_uiMograineGUID = pMograine->GetGUID();
                     pMograine->setFaction(m_uiHeroFaction);
@@ -1705,7 +1706,8 @@ enum
     SPELL_DEATH                = 57602,
     SPELL_GRIP                 = 52372,
     SPELL_WRATH                = 60545,
-}
+};
+
 struct MANGOS_DLL_DECL npc_ebon_knightAI : public ScriptedAI
 {
     npc_ebon_knightAI(Creature *pCreature) : ScriptedAI(pCreature) 
@@ -1894,6 +1896,647 @@ bool GOHello_escape_portal(Player* pPlayer, GameObject* pGo)
     return false;
 };
 
+/*##### QUEST: Banshee Revange #####
+SDAuthor: MaxXx2021
+*/
+
+enum
+{
+    SAY_EVN01         = -1544071,
+    SAY_EVN02         = -1544072,
+    SAY_EVN03         = -1544073,
+    SAY_EVN04         = -1544074,
+    SAY_EVN05         = -1544075,
+    SAY_EVN06         = -1544076,
+    SAY_EVN07         = -1544077,
+    SAY_EVN08         = -1544078,
+    SAY_EVN09         = -1544079,
+    SAY_EVN10         = -1544080,
+    SAY_EVN11         = -1544081,
+    SAY_EVN12         = -1544082,
+    SAY_EVN13         = -1544083,
+    SAY_EVN14         = -1544084,
+    SAY_EVN15         = -1544085,
+    SAY_EVN16         = -1544086,
+    SAY_EVN17         = -1544087,
+    SAY_SPECIAL       = -1544088,
+
+    SPELL_BALARGARDE_BUFF  = 59663, //use in phase 2 battle then lich king summon.
+    SPELL_ICE_GROUND       = 51103, //Safidrang Cast this spell in combat!
+    SPELL_ARTHAS_TELEPORT  = 64446, //Visual summon Arthas!
+
+    SPELL_FROSTBOLT        = 15043,
+    SPELL_BLIZZARD         = 61085,
+    SPELL_LEAP             = 60108,
+    SPELL_WHIRLWIND        = 61076,
+
+    NPC_BALARGARGE         = 31016, //Boss
+    NPC_VARDMADRA          = 31029, //Valkyre
+    NPC_BALAR_ESCORT       = 31030, //escort balargarde
+    NPC_BALAR_DRAKE        = 31056, //escort vehicle!
+    NPC_LICH_KING          = 31083, //or 31013?
+    NPC_SAFIDRANG          = 31050, //balagarde vehicle!
+
+    GO_HORN                = 193028,
+
+    QUEST_BANSHEE          = 13142  //Quest
+};
+
+struct Locations
+{
+    float x, y, z, o;
+    uint32 id;
+};
+
+struct Locations Position[]=
+{
+    {7132.894f, 4272.786f, 898.200f, 1.37f}, //summon vardmadra
+    {7100.888f, 4424.060f, 840.200f, 1.37f}, //summon balargarde
+    {7044.113f, 4388.936f, 891.897f, 5.52f}, //escort 1 position move
+    {7027.320f, 4323.263f, 891.897f, 0.39f}, //escort 2 position move
+    {7118.356f, 4303.155f, 891.897f, 2.34f}, //escort 3 position move
+    {7134.516f, 4372.949f, 891.897f, 3.56f}, //escort 4 position move
+    {7091.663f, 4426.110f, 840.200f, 4.42f}, //escort summon 1
+    {7109.263f, 4421.933f, 840.200f, 4.42f}  //escort summon 2
+};
+
+/*
+struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
+{
+    npc_vardmadraAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+
+    uint32 m_uiStepTimer;
+    uint32 m_uiStep;
+    uint64 m_uiLichKingGUID;
+    uint64 m_uiBalargardeGUID;
+    uint64 m_uiSafidrangGUID;
+    uint64 m_uiEscortGUID[4];
+
+    void Reset() 
+    {
+        AddFlags(m_creature);
+        m_uiLichKingGUID = 0;
+        m_uiBalargardeGUID = 0;
+        m_uiSafidrangGUID = 0;
+        m_uiEscortGUID[0] = 0;
+        m_uiEscortGUID[1] = 0;
+        m_uiEscortGUID[2] = 0;
+        m_uiEscortGUID[3] = 0;
+        m_uiStep = 0;
+        m_uiStepTimer = 100;
+    }
+
+    void ResetEvent()
+    {
+        if (Creature* pDrake = m_creature->GetMap()->GetCreature(m_uiSafidrangGUID))
+            pDrake->Dismiss();
+        for (uint8 i = 0; i < 4; i++)
+            if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[i]))
+                if (Creature* pVehicle = m_creature->GetMap()->GetCreature(pEscort->GetVehicle()->GetBase()->GetGUID()))
+                {
+                    Kill(pVehicle);
+                    Kill(pEscort);
+                }
+        if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+            pBalargarde->RemoveFromWorld();
+        if(Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+            Kill(pLichKing);
+
+        Kill(m_creature);
+    }
+
+    void StartEvent(uint8 EventId)
+    {
+        m_uiStep = EventId;
+        m_uiStepTimer = 100;
+    }
+
+    void JumpNextStep(uint32 Time)
+    {
+        m_uiStepTimer = Time;
+        m_uiStep++;
+    }
+
+    void JustSummoned(Creature* pSummon)
+    {
+        if (pSummon->GetEntry() == NPC_BALAR_ESCORT)
+            if (Vehicle* vDrake = pSummon->SummonVehicle(NPC_BALAR_DRAKE, pSummon->GetPositionX(), pSummon->GetPositionY(), pSummon->GetPositionZ(), pSummon->GetOrientation()))
+            {
+                pSummon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                AddFlags(vDrake);
+                pSummon->EnterVehicle(vDrake, 0);
+            }
+    }
+
+    void AddFlags(Creature* pUnit)
+    {
+        pUnit->SetSpeedRate(MOVE_RUN, 3.0f, true);
+        pUnit->SetSpeedRate(MOVE_WALK, 3.0f, true);
+        pUnit->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        pUnit->AddSplineFlag(SPLINEFLAG_FLYING);
+        pUnit->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
+        pUnit->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
+    }
+
+    void Kill(Creature* pVictim)
+    {
+        pVictim->DealDamage(pVictim, pVictim->GetMaxHealth() ,NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+    }
+
+    void MoveToPoint(Unit* pPas, float X, float Y, float Z, uint8 pCommand)
+    {
+        pPas->GetMap()->CreatureRelocation(((Creature*)pPas), X, Y, Z, 0);
+        if(Vehicle* pVehicle = pPas->GetMap()->GetVehicle(pPas->GetVehicleGUID()))
+        { 
+            if(pCommand == 0)
+            {
+                pVehicle->GetMap()->CreatureRelocation(pVehicle, X, Y, Z, 0);
+                pVehicle->SendMonsterMove(X, Y, Z, SPLINETYPE_NORMAL , pVehicle->GetSplineFlags(), 6000);
+            }
+            else
+                pVehicle->GetMotionMaster()->MovePoint(0, X, Y, Z);
+        }
+    }
+
+    void Event()
+    {
+        switch(m_uiStep)
+        {
+            case 1:
+                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,Position[6].x, Position[6].y, Position[6].z, Position[6].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                    m_uiEscortGUID[0] = pSummon->GetGUID();
+                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,Position[7].x, Position[7].y, Position[7].z, Position[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                    m_uiEscortGUID[1] = pSummon->GetGUID();
+                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,Position[6].x, Position[6].y, Position[6].z, Position[6].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                    m_uiEscortGUID[2] = pSummon->GetGUID();
+                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,Position[7].x, Position[7].y, Position[7].z, Position[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                    m_uiEscortGUID[3] = pSummon->GetGUID();
+                if (Creature* pBalargarde = m_creature->SummonCreature(NPC_BALARGARGE,7100.888f, 4424.06f, 840.20f, Position[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
+                {
+                    m_uiBalargardeGUID = pBalargarde->GetGUID();
+                    if (Vehicle* vDrake = pBalargarde->SummonVehicle(NPC_SAFIDRANG, pBalargarde->GetPositionX(), pBalargarde->GetPositionY(), pBalargarde->GetPositionZ(), pBalargarde->GetOrientation()))
+                    {
+                        AddFlags(vDrake);
+                        m_uiSafidrangGUID = vDrake->GetGUID();
+                        pBalargarde->EnterVehicle(vDrake, 0);
+                    }
+                }
+                m_creature->GetMotionMaster()->MovePoint(0, 7095.09f, 4326.43f, 881.427f);
+                JumpNextStep(9000);
+                break;
+            case 2:
+                DoScriptText(SAY_EVN01, m_creature);
+                JumpNextStep(100);
+                break;
+            case 3:
+                if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
+                    MoveToPoint(Escort, Position[6].x, Position[6].y, 890.0f, 0);
+                if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
+                    MoveToPoint(Escort, Position[7].x, Position[7].y, 890.0f, 0);
+                JumpNextStep(2000);
+                break;
+            case 4:
+                if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
+                    MoveToPoint(Escort, Position[6].x, Position[6].y, 890.0f, 0);
+                if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[3]))
+                    MoveToPoint(Escort, Position[7].x, Position[7].y, 890.0f, 0);
+                JumpNextStep(2000);
+                break;
+            case 5:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    MoveToPoint(pBalargarde, pBalargarde->GetPositionX(), pBalargarde->GetPositionY(), 890.0f, 0);
+                JumpNextStep(2000);
+                break;
+            case 6:
+                if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
+                    MoveToPoint(Escort, Position[2].x, Position[2].y, Position[2].z, 0);
+                if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
+                    MoveToPoint(Escort, Position[5].x, Position[5].y, Position[5].z, 0);
+                JumpNextStep(1000);
+                break;
+            case 7:
+                if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
+                    MoveToPoint(Escort, Position[3].x, Position[3].y, Position[3].z, 0);
+                if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[3]))
+                    MoveToPoint(Escort, Position[4].x, Position[4].y, Position[4].z, 0);
+                JumpNextStep(3000);
+                break;
+            case 8:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    MoveToPoint(pBalargarde, 7080.51f,4356.35f,892.74f, 0);
+                JumpNextStep(6000);
+                break;
+            case 9:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                {
+                    if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
+                    if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
+                      pVehicle->SetFacingToObject(pBalargarde);
+                    if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
+                    if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
+                      pVehicle->SetFacingToObject(pBalargarde);
+                if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[3]))
+                   if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
+                      pVehicle->SetFacingToObject(pBalargarde);
+                if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
+                   if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
+                      pVehicle->SetFacingToObject(pBalargarde);
+                    DoScriptText(SAY_EVN02, pBalargarde);
+                }
+                JumpNextStep(7000);
+                break;
+            case 10:
+                DoScriptText(SAY_EVN03, m_creature);
+                JumpNextStep(8000);
+                break;
+            case 11:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    DoScriptText(SAY_EVN04, pBalargarde);
+                JumpNextStep(5000);
+                break;
+            case 12:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                {
+                    pBalargarde->ExitVehicle();
+                    pBalargarde->GetMap()->CreatureRelocation(((Creature*)pBalargarde), 7076.957f,4342.736f, 871.4411f, 0);
+                    pBalargarde->SendMonsterMoveJump(7076.957f,4342.736f,871.4411f, 10.0f, SPLINEFLAG_TRAJECTORY, 3000);
+                }
+                JumpNextStep(3000);
+                break;
+            case 13:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    DoScriptText(SAY_EVN05, pBalargarde);
+                JumpNextStep(9000);
+                break;
+            case 14:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    pBalargarde->HandleEmoteCommand(15);
+                JumpNextStep(2000);
+                break;
+            case 15:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    pBalargarde->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); 
+                JumpNextStep(1000);
+                break;
+            case 17:
+                if (Creature* pLichKing = m_creature->SummonCreature(NPC_LICH_KING,7089.565f,4385.47f,872.3707f,4.48f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                {
+                    m_uiLichKingGUID = pLichKing->GetGUID();
+                    if(Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    {
+                        pLichKing->SetFacingToObject(pBalargarde);
+                        pBalargarde->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                        pBalargarde->RemoveAllAuras();
+                        pBalargarde->InterruptNonMeleeSpells(false);
+                        pBalargarde->GetMotionMaster()->Clear(false);
+                        pBalargarde->GetMotionMaster()->MoveIdle();
+                        pBalargarde->StopMoving();
+                        pBalargarde->AttackStop();
+                        pBalargarde->SetFacingToObject(pLichKing);
+                        pBalargarde->SetStandState(UNIT_STAND_STATE_KNEEL);
+                        DoScriptText(SAY_EVN06, pBalargarde);
+                        m_creature->GetMap()->CreatureRelocation(m_creature, m_creature->GetPositionX(), m_creature->GetPositionY(), 871.441f, 0);
+                        m_creature->SendMonsterMove(m_creature->GetPositionX(), m_creature->GetPositionY(),871.441f, SPLINETYPE_NORMAL , m_creature->GetSplineFlags(), 3000);
+                        m_creature->SetFacingToObject(pLichKing);
+                    }
+                }
+                JumpNextStep(2000);
+                break;
+            case 18:
+                m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 0);
+                m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
+                m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+                JumpNextStep(3000);
+                break;
+            case 19:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                   DoScriptText(SAY_EVN07, pLichKing);
+                JumpNextStep(6000);
+                break;
+            case 20:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    pBalargarde->SetStandState(UNIT_STAND_STATE_STAND);
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                {
+                    DoScriptText(SAY_EVN08, pLichKing);
+                    pLichKing->SetSpeedRate(MOVE_RUN, 2.0f, true);
+                    pLichKing->GetMotionMaster()->MovePoint(0, 7094.678f,4330.858f,871.467f);
+                }
+                JumpNextStep(13000);
+                break;
+            case 21:
+                DoScriptText(SAY_EVN09, m_creature);
+                JumpNextStep(4000);
+                break;
+            case 22:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_EVN10, pLichKing);
+                JumpNextStep(5000);
+                break;
+            case 23:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    pLichKing->HandleEmoteCommand(37);
+                DoScriptText(SAY_EVN11, m_creature);
+                JumpNextStep(2000);
+                break;
+            case 24:
+                m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+                m_creature->SetHealth(1);
+                JumpNextStep(3000);
+                break;
+            case 25:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                {
+                    pLichKing->HandleEmoteCommand(11);
+                    pLichKing->PlayDirectSound(14820);
+                }
+                JumpNextStep(3000);
+                break;
+            case 26:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                {
+                    if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    {
+                        pLichKing->SetFacingToObject(pBalargarde);
+                        DoScriptText(SAY_EVN12, pLichKing);
+                    }
+                }
+                JumpNextStep(6000);
+                break;
+            case 27:
+                if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                    DoScriptText(SAY_EVN13, pBalargarde);
+                JumpNextStep(3000);
+                break;
+            case 28:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_EVN14, pLichKing);
+                JumpNextStep(5000);
+                break;
+            case 29:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    pLichKing->HandleEmoteCommand(15);
+                JumpNextStep(4000);
+                break;
+            case 30:
+                if(Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                {
+                    if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                        pLichKing->CastSpell(pBalargarde, SPELL_BALARGARDE_BUFF, false);
+                    pBalargarde->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    if (Unit* pTarget = pBalargarde->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
+                        ((Creature*)pBalargarde)->AI()->AttackStart(pTarget);
+                    DoScriptText(SAY_EVN15, pBalargarde);
+                }
+                JumpNextStep(100);
+                break;
+            case 32:
+                if(Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                {
+                    if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
+                        pLichKing->SetFacingToObject(pBalargarde);
+                    DoScriptText(SAY_EVN16, pLichKing);
+                }
+                JumpNextStep(7000);
+                break;
+            case 33:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    DoScriptText(SAY_EVN17, pLichKing);
+                JumpNextStep(7000);
+                break;
+            case 34:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    pLichKing->CastSpell(pLichKing, SPELL_ARTHAS_TELEPORT, false);
+                JumpNextStep(1000);
+                break;
+            case 35:
+                if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+                    Kill(pLichKing);
+                m_creature->CastSpell(m_creature, SPELL_LADY_NIGHTWOOD, false);
+                JumpNextStep(1000);
+                break;
+            case 36:
+                if(Vehicle* pDrake = m_creature->GetMap()->GetVehicle(m_uiSafidrangGUID))
+                {
+                pDrake->GetMotionMaster()->MovementExpired(false);
+                pDrake->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX(), m_creature->GetPositionY()+200.0f, m_creature->GetPositionZ() + 50.0f);
+                }
+                JumpNextStep(7000);
+                break;
+            case 37:
+                if(Vehicle* pDrake = m_creature->GetMap()->GetVehicle(m_uiSafidrangGUID))
+                   pDrake->Dismiss();
+                if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
+                   if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
+                   {
+                    pVehicle->Dismiss();
+                    Kill(Escort);
+                   }
+             if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
+                if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
+                {
+                   pVehicle->Dismiss();
+                   Kill(Escort);
+                }
+             if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[3]))
+                if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
+                {
+                   pVehicle->Dismiss();
+                   Kill(Escort);
+                }
+             if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
+                if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
+                {
+                   pVehicle->Dismiss();
+                   Kill(Escort);
+                }
+                Kill(m_creature);
+                break;
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_uiStepTimer <= uiDiff)
+            Event();
+        else
+            m_uiStepTimer -= uiDiff;
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_vardmadra(Creature* pCreature)
+{
+    return new npc_vardmadraAI(pCreature);
+}
+*/
+
+struct MANGOS_DLL_DECL npc_balargardeAI : public ScriptedAI
+{
+    npc_balargardeAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); 
+        Reset();
+    }
+
+    uint32 m_uiFrostBoltTimer;
+    uint32 m_uiBlizzardTimer;
+    uint32 m_uiLeapTimer;
+    uint32 m_uiWhirlwindTimer;
+    uint32 m_uiFrostBombTimer;
+    uint32 m_uiDragonMoveTimer;
+    uint32 m_uiHelpTimer;
+    uint64 m_uiDrakeGUID;
+   
+    bool m_bHas50Percent;
+
+    void Reset() 
+    {
+        m_uiFrostBoltTimer = 7000;
+        m_uiBlizzardTimer = 18000;
+        m_uiLeapTimer = 1000;
+        m_uiWhirlwindTimer = 26300;
+        m_uiFrostBombTimer = 30000;
+        m_uiDragonMoveTimer = 10000;
+        m_uiHelpTimer = 15000;
+        m_bHas50Percent = false;
+        m_uiDrakeGUID = 0;
+    }
+
+    void Aggro(Unit* pWho)
+    {
+        if (Creature* pVardmadra = GetClosestCreatureWithEntry(m_creature, NPC_VARDMADRA, 150.0f))
+            m_uiDrakeGUID = ((npc_vardmadraAI*)pVardmadra->AI())->m_uiSafidrangGUID;
+    }
+
+    void JustDied(Unit* pKiller)
+    {
+        if (Creature* pVardmadra = GetClosestCreatureWithEntry(m_creature, NPC_VARDMADRA, 150.0f))
+            ((npc_vardmadraAI*)pVardmadra->AI())->StartEvent(32);
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+            return;
+
+        ScriptedAI::AttackStart(pWho);
+    }
+
+    void EnterEvadeMode()
+    {
+        if (Creature* pVardmadra = GetClosestCreatureWithEntry(m_creature, NPC_VARDMADRA, 150.0f))
+            ((npc_vardmadraAI*)pVardmadra->AI())->ResetEvent();
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (m_uiFrostBoltTimer < uiDiff)
+        {
+            DoCast(m_creature->getVictim(), SPELL_FROSTBOLT);
+            m_uiFrostBoltTimer = urand(7000, 10000);
+        }
+        else
+            m_uiFrostBoltTimer -= uiDiff;
+
+        if (m_uiLeapTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
+                DoCast(pTarget, SPELL_LEAP);
+            m_uiLeapTimer = urand(12000, 15000);
+        }
+        else
+            m_uiLeapTimer -= uiDiff;
+
+        if (m_uiBlizzardTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
+                DoCast(pTarget, SPELL_BLIZZARD);
+            m_uiBlizzardTimer = urand(16000, 19000);
+        }
+        else
+            m_uiBlizzardTimer -= uiDiff;
+
+        if (m_uiWhirlwindTimer < uiDiff)
+        {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
+                DoCast(pTarget, SPELL_WHIRLWIND);
+            m_uiWhirlwindTimer = urand(16000, 25000);
+        }
+        else
+            m_uiWhirlwindTimer -= uiDiff;
+
+        if (m_uiFrostBombTimer < uiDiff)
+        {
+            DoScriptText(SAY_SPECIAL, m_creature);
+            if (Creature* pDragon = m_creature->GetMap()->GetCreature(m_uiDrakeGUID))
+                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
+                    pDragon->CastSpell(pTarget, SPELL_ICE_GROUND, false);
+            m_uiFrostBombTimer = 30000;
+        }
+        else
+            m_uiFrostBombTimer -= uiDiff;
+
+        if (m_uiDragonMoveTimer <= uiDiff)
+        {
+            if (Creature* pDragon = m_creature->GetMap()->GetCreature(m_uiDrakeGUID))
+            {
+                pDragon->GetMotionMaster()->MovementExpired(false);
+                pDragon->GetMotionMaster()->Clear(false);
+                pDragon->GetMotionMaster()->MovePoint(0, (m_creature->GetPositionX()-30)+rand()%60, (m_creature->GetPositionY()-30)+rand()%60, m_creature->GetPositionZ() + 20.0f);
+            }
+            m_uiDragonMoveTimer = 10000;
+        }
+        else
+            m_uiDragonMoveTimer -= uiDiff;
+
+        if (m_creature->GetHealthPercent() < 50.0f && !m_bHas50Percent)
+        {     
+            if (Creature* pVardmadra = GetClosestCreatureWithEntry(m_creature, NPC_VARDMADRA, 150.0f))
+                ((npc_vardmadraAI*)pVardmadra->AI())->StartEvent(17);
+            m_bHas50Percent = true;
+        }
+
+        if (!m_creature->HasAura(SPELL_BALARGARDE_BUFF) && m_bHas50Percent)
+        {
+            if (m_uiHelpTimer < uiDiff)
+            {
+                if (Creature* pLichKing = GetClosestCreatureWithEntry(m_creature, NPC_LICH_KING, 150.0f))
+                    pLichKing->CastSpell(m_creature, SPELL_BALARGARDE_BUFF, false);
+                m_uiHelpTimer = 5000;
+            }
+            else
+                m_uiHelpTimer -= uiDiff;
+        }
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_balargarde(Creature* pCreature)
+{
+    return new npc_balargardeAI(pCreature);
+}
+
+bool GOHello_go_balargarde_horn(Player* pPlayer, GameObject* pGo)
+{
+    if (pPlayer->GetQuestStatus(QUEST_BANSHEE) == QUEST_STATUS_INCOMPLETE)
+        if (Creature* pVardmadra = pPlayer->SummonCreature(NPC_VARDMADRA,7132.894f,4272.786f,898.20f,1.37f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+            ((npc_vardmadraAI*)pVardmadra->AI())->StartEvent(1);
+
+    return false;
+};
+
 void AddSC_icecrown()
 {
     Script* newscript;
@@ -1950,5 +2593,20 @@ void AddSC_icecrown()
     newscript = new Script;
     newscript->Name = "go_escape_portal";
     newscript->pGOHello = &GOHello_escape_portal;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_vardmadra";
+    newscript->GetAI = &GetAI_npc_vardmadra;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_balargarde";
+    newscript->GetAI = &GetAI_npc_balargarde;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "go_balargarde_horn";
+    newscript->pGOHello = &GOHello_go_balargarde_horn;
     newscript->RegisterSelf();
 }

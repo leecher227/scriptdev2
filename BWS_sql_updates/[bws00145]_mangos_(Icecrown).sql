@@ -67,3 +67,9 @@ INSERT INTO `gameobject` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`position_x`
 (785246, 193794, 571, 1, 0, 6132.78, 2760.67, 573.914, 1.9979, 0, 0, 0.840902, 0.541187, -120, 0, 1);
 
 UPDATE `gameobject_template` SET `faction`=1375 WHERE `entry`=193794;
+
+-- #### QUEST: Banshee Revange ####
+UPDATE creature_template SET ScriptName = "npc_vardmadra" WHERE entry = 31029;
+UPDATE creature_template SET ScriptName = "npc_balargarde" WHERE entry = 31016;
+UPDATE gameobject_template SET ScriptName="go_balargarde_horn" WHERE entry = 193028;
+update `creature_template` set `faction_A`='974', `faction_H`='974', `unit_flags`='768', `type_flags`='268435564' where `entry`=31083;
