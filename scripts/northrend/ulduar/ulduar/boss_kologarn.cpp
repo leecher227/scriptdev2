@@ -225,7 +225,7 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
                 pArmSweepTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                 DoCast(m_creature, m_bIsRegularMode ? SPELL_ARM_SWEEP : SPELL_ARM_SWEEP_H);
             }
-            m_uiArmSweep_Timer = 10000;
+            m_uiArmSweep_Timer = 25000;
         }
         else
             m_uiArmSweep_Timer -= diff;
