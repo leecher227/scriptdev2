@@ -211,6 +211,48 @@ CreatureAI* GetAI_boss_keristrasza(Creature* pCreature)
     return new boss_keristraszaAI(pCreature);
 }
 
+struct MANGOS_DLL_DECL npc_firebreath_casterAI : public ScriptedAI
+{
+    npc_firebreath_casterAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        Reset();
+    }
+
+    ScriptedInstance* m_pInstance;
+
+    void Reset()
+    {
+       if (m_pInstance && m_pInstance->GetData(TYPE_ANOMALUS) != SPECIAL)
+       {
+           if (m_creature->GetPositionX() > 315.0f && m_creature->GetPositionX() < 321.0f &&
+               m_creature->GetPositionY() > 10.0f && m_creature->GetPositionY() < 15.0f)
+           m_creature->CastSpell(m_creature, SPELL_ICE_BREATH, false);
+       }
+       if (m_pInstance && m_pInstance->GetData(TYPE_TELESTRA) != SPECIAL)
+       {
+           if (m_creature->GetPositionX() > 280.0f && m_creature->GetPositionX() < 290.0f &&
+               m_creature->GetPositionY() > -25.0f && m_creature->GetPositionY() < -20.0f)
+           m_creature->CastSpell(m_creature, SPELL_ICE_BREATH, false);
+       }
+       if (m_pInstance && m_pInstance->GetData(TYPE_ORMOROK) != SPECIAL)
+       {
+           if (m_creature->GetPositionX() > 280.0f && m_creature->GetPositionX() < 290.0f &&
+               m_creature->GetPositionY() > 10.0f && m_creature->GetPositionY() < 20.0f)
+           m_creature->CastSpell(m_creature, SPELL_ICE_BREATH, false);
+       }
+    }
+
+    void UpdateAI(const uint32 diff) 
+    {
+    } 
+}; 
+
+CreatureAI* GetAI_npc_firebreath_caster(Creature* pCreature)
+{
+    return new npc_firebreath_casterAI(pCreature);
+}
+
 void AddSC_boss_keristrasza()
 {
     Script *newscript;
@@ -218,5 +260,10 @@ void AddSC_boss_keristrasza()
     newscript = new Script;
     newscript->Name = "boss_keristrasza";
     newscript->GetAI = &GetAI_boss_keristrasza;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_firebreath_caster";
+    newscript->GetAI = &GetAI_npc_firebreath_caster;
     newscript->RegisterSelf();
 }

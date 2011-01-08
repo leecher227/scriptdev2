@@ -38,6 +38,9 @@ bool GOUse_go_containment_sphere(Player* pPlayer, GameObject* pGo)
         case GO_CONTAINMENT_SPHERE_ORMOROK:  pInstance->SetData(TYPE_ORMOROK, SPECIAL);  break;
     }
 
+    if (Creature* pBreath = GetClosestCreatureWithEntry(pGo, NPC_BREATH_CASTER, 25.0f))
+        pBreath->InterruptNonMeleeSpells(false);
+
     pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
     pGo->SetGoState(GO_STATE_ACTIVE);
     return false;

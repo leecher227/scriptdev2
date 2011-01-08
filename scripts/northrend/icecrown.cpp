@@ -2376,7 +2376,6 @@ CreatureAI* GetAI_npc_vardmadra(Creature* pCreature)
 {
     return new npc_vardmadraAI(pCreature);
 }
-*/
 
 struct MANGOS_DLL_DECL npc_balargardeAI : public ScriptedAI
 {
@@ -2535,7 +2534,7 @@ bool GOHello_go_balargarde_horn(Player* pPlayer, GameObject* pGo)
             ((npc_vardmadraAI*)pVardmadra->AI())->StartEvent(1);
 
     return false;
-};
+};*/
 
 void AddSC_icecrown()
 {
@@ -2595,7 +2594,7 @@ void AddSC_icecrown()
     newscript->pGOHello = &GOHello_escape_portal;
     newscript->RegisterSelf();
 
-    newscript = new Script;
+    /*newscript = new Script;
     newscript->Name = "npc_vardmadra";
     newscript->GetAI = &GetAI_npc_vardmadra;
     newscript->RegisterSelf();
@@ -2608,5 +2607,5 @@ void AddSC_icecrown()
     newscript = new Script;
     newscript->Name = "go_balargarde_horn";
     newscript->pGOHello = &GOHello_go_balargarde_horn;
-    newscript->RegisterSelf();
+    newscript->RegisterSelf();*/
 }
