@@ -67,6 +67,7 @@ INSERT INTO `gameobject` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`position_x`
 (785246, 193794, 571, 1, 0, 6132.78, 2760.67, 573.914, 1.9979, 0, 0, 0.840902, 0.541187, -120, 0, 1);
 
 UPDATE `gameobject_template` SET `faction`=1375 WHERE `entry`=193794;
+UPDATE `gameobject_template` SET `ScriptName`="go_escape_portal" WHERE entry = 193941;
 
 -- #### QUEST: Banshee Revange ####
 UPDATE creature_template SET ScriptName = "npc_vardmadra" WHERE entry = 31029;

@@ -1468,7 +1468,7 @@ struct MANGOS_DLL_DECL npc_tirionTGAI : public ScriptedAI
             case 20:
                 if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
                 {
-                    pLicKing->SetFacingToObject(m_creature);
+                    pLichKing->SetFacingToObject(m_creature);
                     DoScriptText(SAY_TG_EVENT_07, pLichKing);
                     m_creature->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0, uint32(EQUIP_ASHBRINGER));
                     m_creature->GetMotionMaster()->MovePoint(0, 6167.601f,2757.219f,573.914f);
@@ -1745,7 +1745,7 @@ struct MANGOS_DLL_DECL npc_ebon_knightAI : public ScriptedAI
         if (!m_creature->hasUnitState(UNIT_STAT_STUNNED) && pWho->isTargetableForAttack() &&
             m_creature->IsHostileTo(pWho) && pWho->isInAccessablePlaceFor(m_creature))
         {
-            if (!m_creature->canFly() && m_creature->GetDistanceZ(pWho) > CREATURE_Z_ATTACK_RANGE)
+            if (!m_creature->CanFly() && m_creature->GetDistanceZ(pWho) > CREATURE_Z_ATTACK_RANGE)
                 return;
 
             float attackRadius = m_creature->GetAttackDistance(pWho);
@@ -1805,7 +1805,7 @@ struct MANGOS_DLL_DECL npc_ebon_knightAI : public ScriptedAI
 
         switch(m_creature->GetEntry())
         {
-            case NPC_DARION_MOGRAINE:
+            case NPC_DARION_MOGRAINE_TG:
             case NPC_DEATH_KNIGHT:
                 if (m_uiBloodTimer < diff)
                 {
@@ -1890,7 +1890,7 @@ bool GossipSelect_npc_tirionTG(Player *pPlayer, Creature *pCreature, uint32 send
     return true;
 }
 
-bool GOHello_escape_portal(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_escape_portal(Player* pPlayer, GameObject* pGo)
 {       
     pPlayer->TeleportTo(pPlayer->GetMapId(), 6445.204f, 409.518f, 495.632f, 2.765f, false);
     return false;
@@ -1928,13 +1928,13 @@ enum
     SPELL_FROSTBOLT        = 15043,
     SPELL_BLIZZARD         = 61085,
     SPELL_LEAP             = 60108,
-    SPELL_WHIRLWIND        = 61076,
+    SPELL_WHIRLWIND_B      = 61076,
 
     NPC_BALARGARGE         = 31016, //Boss
     NPC_VARDMADRA          = 31029, //Valkyre
     NPC_BALAR_ESCORT       = 31030, //escort balargarde
     NPC_BALAR_DRAKE        = 31056, //escort vehicle!
-    NPC_LICH_KING          = 31083, //or 31013?
+    NPC_LICH_KING_BR       = 31083, //or 31013?
     NPC_SAFIDRANG          = 31050, //balagarde vehicle!
 
     GO_HORN                = 193028,
@@ -2591,10 +2591,10 @@ void AddSC_icecrown()
 
     newscript = new Script;
     newscript->Name = "go_escape_portal";
-    newscript->pGOHello = &GOHello_escape_portal;
+    newscript->pGOUse = &GOUse_go_escape_portal;
     newscript->RegisterSelf();
 
-    /*newscript = new Script;
+/*    newscript = new Script;
     newscript->Name = "npc_vardmadra";
     newscript->GetAI = &GetAI_npc_vardmadra;
     newscript->RegisterSelf();
