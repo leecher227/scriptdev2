@@ -821,24 +821,33 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
             if (!m_creature->IsNonMeleeSpellCasted(false))
             {
                 Creature* pTarget = m_creature;
-                switch (urand(0, 2))
+                if (m_pInstance)
                 {
-                    case 0:
-                        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BRUNDIR)))
+                    Creature* pBrundir = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_BRUNDIR));
+                    Creature* pSteelbreaker = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER));
+                    if (urand(0, 1))
+                    {
+                        if (pBrundir && pBrundir->isAlive())
+                            pTarget = pBrundir;
+                        else
                         {
-                            if (pTemp->isAlive())
-                                pTarget = pTemp;
+                            if (pSteelbreaker && pSteelbreaker->isAlive())
+                                pTarget = pSteelbreaker;
                         }
-                        break;
-                    case 1:
-                        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER)))
+                    }
+                    else
+                    {
+                        if (pSteelbreaker && pSteelbreaker->isAlive())
+                            pTarget = pSteelbreaker;
+                        else
                         {
-                            if (pTemp->isAlive())
-                                pTarget = pTemp;
+                            if (pBrundir && pBrundir->isAlive())
+                                pTarget = pBrundir;
                         }
-                        break;
+                    }
                 }
-                DoCast(pTarget, SPELL_RUNE_OF_POWER);
+                if (pTarget)
+                    m_creature->CastSpell(pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), SPELL_RUNE_OF_POWER, false);
                 m_uiRune_Power_Timer = 30000;
             }
         }
