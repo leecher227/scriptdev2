@@ -2389,6 +2389,7 @@ struct MANGOS_DLL_DECL npc_balargardeAI : public ScriptedAI
         m_uiHelpTimer = 15000;
         m_bHas50Percent = false;
         m_uiDrakeGUID = 0;
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
     void Aggro(Unit* pWho)
