@@ -28,6 +28,7 @@ EndContentData */
 
 #include "precompiled.h"
 #include "TemporarySummon.h"
+#include "Vehicle.h"
 
 /*######
 ## npc_arete
@@ -1960,7 +1961,6 @@ struct Locations Position[]=
     {7109.263f, 4421.933f, 840.200f, 4.42f}  //escort summon 2
 };
 
-/*
 struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
 {
     npc_vardmadraAI(Creature *pCreature) : ScriptedAI(pCreature) 
@@ -1992,17 +1992,17 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
     void ResetEvent()
     {
         if (Creature* pDrake = m_creature->GetMap()->GetCreature(m_uiSafidrangGUID))
-            pDrake->Dismiss();
+            Kill(pDrake);
         for (uint8 i = 0; i < 4; i++)
             if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[i]))
-                if (Creature* pVehicle = m_creature->GetMap()->GetCreature(pEscort->GetVehicle()->GetBase()->GetGUID()))
+                if (Creature* pVehicle = m_creature->GetMap()->GetCreature(((pEscort->GetVehicle())->GetBase())->GetGUID()))
                 {
                     Kill(pVehicle);
                     Kill(pEscort);
                 }
         if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
             pBalargarde->RemoveFromWorld();
-        if(Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
+        if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
             Kill(pLichKing);
 
         Kill(m_creature);
@@ -2023,11 +2023,11 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
     void JustSummoned(Creature* pSummon)
     {
         if (pSummon->GetEntry() == NPC_BALAR_ESCORT)
-            if (Vehicle* vDrake = pSummon->SummonVehicle(NPC_BALAR_DRAKE, pSummon->GetPositionX(), pSummon->GetPositionY(), pSummon->GetPositionZ(), pSummon->GetOrientation()))
+            if (Creature* vDrake = m_creature->SummonCreature(NPC_BALAR_DRAKE, pSummon->GetPositionX(), pSummon->GetPositionY(), pSummon->GetPositionZ(), pSummon->GetOrientation(), TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10))
             {
                 pSummon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 AddFlags(vDrake);
-                pSummon->EnterVehicle(vDrake, 0);
+                pSummon->EnterVehicle(vDrake->GetVehicleKit(), 0);
             }
     }
 
@@ -2046,10 +2046,10 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
         pVictim->DealDamage(pVictim, pVictim->GetMaxHealth() ,NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
     }
 
-    void MoveToPoint(Unit* pPas, float X, float Y, float Z, uint8 pCommand)
+    void MoveToPoint(Creature* pPas, float X, float Y, float Z, uint8 pCommand)
     {
-        pPas->GetMap()->CreatureRelocation(((Creature*)pPas), X, Y, Z, 0);
-        if(Vehicle* pVehicle = pPas->GetMap()->GetVehicle(pPas->GetVehicleGUID()))
+        pPas->GetMap()->CreatureRelocation(pPas, X, Y, Z, 0);
+        if(Creature* pVehicle = m_creature->GetMap()->GetCreature(pPas->GetVehicle()->GetBase()->GetGUID()))
         { 
             if(pCommand == 0)
             {
@@ -2077,11 +2077,11 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
                 if (Creature* pBalargarde = m_creature->SummonCreature(NPC_BALARGARGE,7100.888f, 4424.06f, 840.20f, Position[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
                 {
                     m_uiBalargardeGUID = pBalargarde->GetGUID();
-                    if (Vehicle* vDrake = pBalargarde->SummonVehicle(NPC_SAFIDRANG, pBalargarde->GetPositionX(), pBalargarde->GetPositionY(), pBalargarde->GetPositionZ(), pBalargarde->GetOrientation()))
+                    if (Creature* vDrake = m_creature->SummonCreature(NPC_SAFIDRANG, pBalargarde->GetPositionX(), pBalargarde->GetPositionY(), pBalargarde->GetPositionZ(), pBalargarde->GetOrientation(), TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10))
                     {
                         AddFlags(vDrake);
                         m_uiSafidrangGUID = vDrake->GetGUID();
-                        pBalargarde->EnterVehicle(vDrake, 0);
+                        pBalargarde->EnterVehicle(vDrake->GetVehicleKit(), 0);
                     }
                 }
                 m_creature->GetMotionMaster()->MovePoint(0, 7095.09f, 4326.43f, 881.427f);
@@ -2132,18 +2132,18 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
             case 9:
                 if (Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
                 {
-                    if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
-                    if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
-                      pVehicle->SetFacingToObject(pBalargarde);
-                    if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
-                    if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
-                      pVehicle->SetFacingToObject(pBalargarde);
-                if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[3]))
-                   if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
-                      pVehicle->SetFacingToObject(pBalargarde);
-                if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
-                   if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
-                      pVehicle->SetFacingToObject(pBalargarde);
+                    if (Unit* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
+                        if (Creature* pVehicle = m_creature->GetMap()->GetCreature(pEscort->GetVehicle()->GetBase()->GetGUID()))
+                            pVehicle->SetFacingToObject(pBalargarde);
+                    if (Unit* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
+                        if (Creature* pVehicle = m_creature->GetMap()->GetCreature(pEscort->GetVehicle()->GetBase()->GetGUID()))
+                            pVehicle->SetFacingToObject(pBalargarde);
+                    if (Unit* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[3]))
+                        if (Creature* pVehicle = m_creature->GetMap()->GetCreature(pEscort->GetVehicle()->GetBase()->GetGUID()))
+                            pVehicle->SetFacingToObject(pBalargarde);
+                    if (Unit* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
+                        if (Creature* pVehicle = m_creature->GetMap()->GetCreature(pEscort->GetVehicle()->GetBase()->GetGUID()))
+                            pVehicle->SetFacingToObject(pBalargarde);
                     DoScriptText(SAY_EVN02, pBalargarde);
                 }
                 JumpNextStep(7000);
@@ -2182,7 +2182,7 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
                 JumpNextStep(1000);
                 break;
             case 17:
-                if (Creature* pLichKing = m_creature->SummonCreature(NPC_LICH_KING,7089.565f,4385.47f,872.3707f,4.48f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                if (Creature* pLichKing = m_creature->SummonCreature(NPC_LICH_KING_BR,7089.565f,4385.47f,872.3707f,4.48f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
                 {
                     m_uiLichKingGUID = pLichKing->GetGUID();
                     if(Creature* pBalargarde = m_creature->GetMap()->GetCreature(m_uiBalargardeGUID))
@@ -2288,7 +2288,7 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
                         pLichKing->CastSpell(pBalargarde, SPELL_BALARGARDE_BUFF, false);
                     pBalargarde->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                     if (Unit* pTarget = pBalargarde->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
-                        ((Creature*)pBalargarde)->AI()->AttackStart(pTarget);
+                        pBalargarde->AI()->AttackStart(pTarget);
                     DoScriptText(SAY_EVN15, pBalargarde);
                 }
                 JumpNextStep(100);
@@ -2315,44 +2315,26 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
             case 35:
                 if (Creature* pLichKing = m_creature->GetMap()->GetCreature(m_uiLichKingGUID))
                     Kill(pLichKing);
-                m_creature->CastSpell(m_creature, SPELL_LADY_NIGHTWOOD, false);
                 JumpNextStep(1000);
                 break;
             case 36:
-                if(Vehicle* pDrake = m_creature->GetMap()->GetVehicle(m_uiSafidrangGUID))
+                if (Creature* pDrake = m_creature->GetMap()->GetCreature(m_uiSafidrangGUID))
                 {
-                pDrake->GetMotionMaster()->MovementExpired(false);
-                pDrake->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX(), m_creature->GetPositionY()+200.0f, m_creature->GetPositionZ() + 50.0f);
+                    pDrake->GetMotionMaster()->MovementExpired(false);
+                    pDrake->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX(), m_creature->GetPositionY()+200.0f, m_creature->GetPositionZ() + 50.0f);
                 }
                 JumpNextStep(7000);
                 break;
             case 37:
-                if(Vehicle* pDrake = m_creature->GetMap()->GetVehicle(m_uiSafidrangGUID))
-                   pDrake->Dismiss();
-                if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
-                   if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
-                   {
-                    pVehicle->Dismiss();
-                    Kill(Escort);
-                   }
-             if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
-                if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
-                {
-                   pVehicle->Dismiss();
-                   Kill(Escort);
-                }
-             if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[3]))
-                if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
-                {
-                   pVehicle->Dismiss();
-                   Kill(Escort);
-                }
-             if(Unit* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
-                if(Vehicle* pVehicle = Escort->GetMap()->GetVehicle(Escort->GetVehicleGUID()))
-                {
-                   pVehicle->Dismiss();
-                   Kill(Escort);
-                }
+                if (Creature* pDrake = m_creature->GetMap()->GetCreature(m_uiSafidrangGUID))
+                    Kill(pDrake);
+                for (uint8 i = 0; i < 4; i++)
+                    if (Creature* pEscort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[i]))
+                        if(Creature* pVehicle = m_creature->GetMap()->GetCreature(pEscort->GetVehicle()->GetBase()->GetGUID()))
+                        {
+                            Kill(pVehicle);
+                            Kill(pEscort);
+                        }
                 Kill(m_creature);
                 break;
         }
@@ -2469,7 +2451,7 @@ struct MANGOS_DLL_DECL npc_balargardeAI : public ScriptedAI
         if (m_uiWhirlwindTimer < uiDiff)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
-                DoCast(pTarget, SPELL_WHIRLWIND);
+                DoCast(pTarget, SPELL_WHIRLWIND_B);
             m_uiWhirlwindTimer = urand(16000, 25000);
         }
         else
@@ -2510,7 +2492,7 @@ struct MANGOS_DLL_DECL npc_balargardeAI : public ScriptedAI
         {
             if (m_uiHelpTimer < uiDiff)
             {
-                if (Creature* pLichKing = GetClosestCreatureWithEntry(m_creature, NPC_LICH_KING, 150.0f))
+                if (Creature* pLichKing = GetClosestCreatureWithEntry(m_creature, NPC_LICH_KING_BR, 150.0f))
                     pLichKing->CastSpell(m_creature, SPELL_BALARGARDE_BUFF, false);
                 m_uiHelpTimer = 5000;
             }
@@ -2527,14 +2509,14 @@ CreatureAI* GetAI_npc_balargarde(Creature* pCreature)
     return new npc_balargardeAI(pCreature);
 }
 
-bool GOHello_go_balargarde_horn(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_balargarde_horn(Player* pPlayer, GameObject* pGo)
 {
     if (pPlayer->GetQuestStatus(QUEST_BANSHEE) == QUEST_STATUS_INCOMPLETE)
-        if (Creature* pVardmadra = pPlayer->SummonCreature(NPC_VARDMADRA,7132.894f,4272.786f,898.20f,1.37f,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+        if (Creature* pVardmadra = pPlayer->SummonCreature(NPC_VARDMADRA, 7132.894f, 4272.786f, 898.20f, 1.37f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10))
             ((npc_vardmadraAI*)pVardmadra->AI())->StartEvent(1);
 
     return false;
-};*/
+};
 
 void AddSC_icecrown()
 {
@@ -2594,7 +2576,7 @@ void AddSC_icecrown()
     newscript->pGOUse = &GOUse_go_escape_portal;
     newscript->RegisterSelf();
 
-/*    newscript = new Script;
+    newscript = new Script;
     newscript->Name = "npc_vardmadra";
     newscript->GetAI = &GetAI_npc_vardmadra;
     newscript->RegisterSelf();
@@ -2606,6 +2588,6 @@ void AddSC_icecrown()
 
     newscript = new Script;
     newscript->Name = "go_balargarde_horn";
-    newscript->pGOHello = &GOHello_go_balargarde_horn;
-    newscript->RegisterSelf();*/
+    newscript->pGOUse = &GOUse_go_balargarde_horn;
+    newscript->RegisterSelf();
 }
