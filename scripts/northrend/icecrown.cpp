@@ -1949,7 +1949,7 @@ struct Locations
     uint32 id;
 };
 
-struct Locations Position[]=
+struct Locations PositionQBR[]=
 {
     {7132.894f, 4272.786f, 898.200f, 1.37f}, //summon vardmadra
     {7100.888f, 4424.060f, 840.200f, 1.37f}, //summon balargarde
@@ -2066,15 +2066,15 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
         switch(m_uiStep)
         {
             case 1:
-                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,Position[6].x, Position[6].y, Position[6].z, Position[6].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,PositionQBR[6].x, PositionQBR[6].y, PositionQBR[6].z, PositionQBR[6].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
                     m_uiEscortGUID[0] = pSummon->GetGUID();
-                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,Position[7].x, Position[7].y, Position[7].z, Position[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,PositionQBR[7].x, PositionQBR[7].y, PositionQBR[7].z, PositionQBR[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
                     m_uiEscortGUID[1] = pSummon->GetGUID();
-                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,Position[6].x, Position[6].y, Position[6].z, Position[6].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,PositionQBR[6].x, PositionQBR[6].y, PositionQBR[6].z, PositionQBR[6].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
                     m_uiEscortGUID[2] = pSummon->GetGUID();
-                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,Position[7].x, Position[7].y, Position[7].z, Position[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
+                if (Creature* pSummon = m_creature->SummonCreature(NPC_BALAR_ESCORT,PositionQBR[7].x, PositionQBR[7].y, PositionQBR[7].z, PositionQBR[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,10))
                     m_uiEscortGUID[3] = pSummon->GetGUID();
-                if (Creature* pBalargarde = m_creature->SummonCreature(NPC_BALARGARGE,7100.888f, 4424.06f, 840.20f, Position[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
+                if (Creature* pBalargarde = m_creature->SummonCreature(NPC_BALARGARGE,7100.888f, 4424.06f, 840.20f, PositionQBR[7].o,TEMPSUMMON_CORPSE_TIMED_DESPAWN,30000))
                 {
                     m_uiBalargardeGUID = pBalargarde->GetGUID();
                     if (Creature* vDrake = m_creature->SummonCreature(NPC_SAFIDRANG, pBalargarde->GetPositionX(), pBalargarde->GetPositionY(), pBalargarde->GetPositionZ(), pBalargarde->GetOrientation(), TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10))
@@ -2093,16 +2093,16 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
                 break;
             case 3:
                 if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
-                    MoveToPoint(Escort, Position[6].x, Position[6].y, 890.0f, 0);
+                    MoveToPoint(Escort, PositionQBR[6].x, PositionQBR[6].y, 890.0f, 0);
                 if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
-                    MoveToPoint(Escort, Position[7].x, Position[7].y, 890.0f, 0);
+                    MoveToPoint(Escort, PositionQBR[7].x, PositionQBR[7].y, 890.0f, 0);
                 JumpNextStep(2000);
                 break;
             case 4:
                 if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
-                    MoveToPoint(Escort, Position[6].x, Position[6].y, 890.0f, 0);
+                    MoveToPoint(Escort, PositionQBR[6].x, PositionQBR[6].y, 890.0f, 0);
                 if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[3]))
-                    MoveToPoint(Escort, Position[7].x, Position[7].y, 890.0f, 0);
+                    MoveToPoint(Escort, PositionQBR[7].x, PositionQBR[7].y, 890.0f, 0);
                 JumpNextStep(2000);
                 break;
             case 5:
@@ -2112,16 +2112,16 @@ struct MANGOS_DLL_DECL npc_vardmadraAI : public ScriptedAI
                 break;
             case 6:
                 if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[0]))
-                    MoveToPoint(Escort, Position[2].x, Position[2].y, Position[2].z, 0);
+                    MoveToPoint(Escort, PositionQBR[2].x, PositionQBR[2].y, PositionQBR[2].z, 0);
                 if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[1]))
-                    MoveToPoint(Escort, Position[5].x, Position[5].y, Position[5].z, 0);
+                    MoveToPoint(Escort, PositionQBR[5].x, PositionQBR[5].y, PositionQBR[5].z, 0);
                 JumpNextStep(1000);
                 break;
             case 7:
                 if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[2]))
-                    MoveToPoint(Escort, Position[3].x, Position[3].y, Position[3].z, 0);
+                    MoveToPoint(Escort, PositionQBR[3].x, PositionQBR[3].y, PositionQBR[3].z, 0);
                 if (Creature* Escort = m_creature->GetMap()->GetCreature(m_uiEscortGUID[3]))
-                    MoveToPoint(Escort, Position[4].x, Position[4].y, Position[4].z, 0);
+                    MoveToPoint(Escort, PositionQBR[4].x, PositionQBR[4].y, PositionQBR[4].z, 0);
                 JumpNextStep(3000);
                 break;
             case 8:
