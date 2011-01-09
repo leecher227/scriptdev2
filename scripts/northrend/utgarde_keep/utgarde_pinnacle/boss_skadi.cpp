@@ -479,6 +479,8 @@ struct MANGOS_DLL_DECL boss_graufAI : public ScriptedAI
                     pSkadi->GetMotionMaster()->MovementExpired();
                     pSkadi->GetMotionMaster()->Clear();
                     pSkadi->GetMotionMaster()->MoveChase(pTarget);
+                    pSkadi->GetMap()->CreatureRelocation(pSkadi, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), pSkadi->GetOrientation());
+                    pSkadi->SendMonsterMoveJump(pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 20.0f, SPLINEFLAG_TRAJECTORY, 1000);
                 }
             }
         }
