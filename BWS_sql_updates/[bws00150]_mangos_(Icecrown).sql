@@ -74,3 +74,4 @@ UPDATE creature_template SET ScriptName = "npc_vardmadra" WHERE entry = 31029;
 UPDATE creature_template SET ScriptName = "npc_balargarde" WHERE entry = 31016;
 UPDATE gameobject_template SET ScriptName="go_balargarde_horn" WHERE entry = 193028;
 update `creature_template` set `faction_A`='974', `faction_H`='974', `unit_flags`='768', `type_flags`='268435564' where `entry`=31083;
+update `creature_template` set `VehicleId`=40 where `entry` in (31050, 31056);
