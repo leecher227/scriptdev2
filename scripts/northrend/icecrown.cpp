@@ -1403,7 +1403,7 @@ struct MANGOS_DLL_DECL npc_tirionTGAI : public ScriptedAI
                 break;   
             case 13:
                 if (GameObject* pHeart = GetClosestGameObjectWithEntry(m_creature, GO_FROZEN_HEART, 150.0f))          
-                    pHeart->SetRespawnTime(2*MINUTE);          
+                    pHeart->SetRespawnTime(123);          
                 JumpNextStep(3000);
                 break;
             case 14:
@@ -1524,11 +1524,11 @@ struct MANGOS_DLL_DECL npc_tirionTGAI : public ScriptedAI
                 m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
                 m_creature->GetMap()->CreatureRelocation(m_creature, 6130.473f,2762.259f,573.914f, m_creature->GetOrientation());
                 m_creature->SendMonsterMoveJump(6130.473f, 2762.259f, 573.914f, 20.0f, SPLINEFLAG_TRAJECTORY, 1000);
-                JumpNextStep(500);
+                JumpNextStep(200);
                 break; 
             case 31:
                 DoCast(m_creature, SPELL_TIRION_ATTACK); 
-                JumpNextStep(500);
+                JumpNextStep(800);
                 break;
             case 32:    
                 DoCast(m_creature,SPELL_HEART_BLOW);
