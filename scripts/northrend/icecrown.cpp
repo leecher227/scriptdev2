@@ -1234,6 +1234,7 @@ struct MANGOS_DLL_DECL npc_tirionTGAI : public ScriptedAI
    
     void Reset() 
     {
+        SetEquipmentSlots(false, 0, 0, 0);
         m_uiHeroFaction = 0;
         m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
         m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
@@ -1631,7 +1632,7 @@ struct MANGOS_DLL_DECL npc_tirionTGAI : public ScriptedAI
                         pKnight->GetMotionMaster()->MovePoint(0, Summon[i].x2, Summon[i].y2, Summon[i].z2);
                     }
                 }
-                JumpNextStep(56000);
+                JumpNextStep(50000);
                 break;
             case 40:
                 if (Creature* pMograine = m_creature->GetMap()->GetCreature(m_uiMograineGUID))
