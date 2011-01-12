@@ -2520,6 +2520,416 @@ bool GOUse_go_balargarde_horn(Player* pPlayer, GameObject* pGo)
     return false;
 };
 
+/*##### QUEST: The Air Stand Still #####
+SDAuthor: MaxXx2021
+*/
+
+enum
+{
+    //Scourge Generals
+    NPC_TALONOX              = 30830,
+    NPC_SALRANAX             = 30829,
+    NPC_YATHAMON             = 30831,
+
+    //Others
+    NPC_MOGRAINE_AS          = 30838,
+    NPC_DEATH_GATE_MOG       = 30841,
+    NPC_DEATH_GATE_MUN       = 30850,
+    NPC_DEATH_GATE_JAD       = 30852,
+    NPC_MOGRAINE_DUMMY       = 30844,
+    NPC_MUNCH                = 30840,
+    NPC_MUNCH_PET            = 30851,
+    NPC_JADE                 = 30839,
+    NPC_JADE_PET             = 11111, //unknown
+
+    SPELL_SUMMON_PORTAL_ECHO = 57899, //escape
+    SPELL_SUMMON_PORTAL_MOG  = 57890, //Helper Portal
+    SPELL_SUMMON_PORTAL_MUN  = 57910, //Helper Portal
+    SPELL_SUMMON_PORTAL_JAD  = 57916, //Helper Portal
+    SPELL_HORN               = 57906,
+    SPELL_SUMMON_MUNCH_PET   = 57913,
+
+    SPELL_SUMMON_MOG         = 57892,
+    SPELL_SUMMON_MUN         = 57911,
+    SPELL_SUMMON_JAD         = 57917,
+
+    //Mograine Spells
+    SPELL_OBLITERATE         = 51425,
+    SPELL_ICY_TOUCH          = 49909,
+    SPELL_DEATH_COIL         = 49895,
+    SPELL_BLOOD_STRIKE       = 49930,
+
+    //Talonox Spells
+    SPELL_SWARM              = 50284,
+    SPELL_EARTH_CRUSH        = 60802,
+
+    //Salranax Spells
+    SPELL_FIREBALL           = 15242,
+    SPELL_CONE               = 15244,
+    SPELL_ARMOR              = 18100,
+    SPELL_COUNTER_SPELL      = 15122,
+
+    //Yathamon Spells
+    SPELL_SCREAM             = 34322,
+    SPELL_WEB                = 4962,
+    SPELL_MIND_FLY           = 38243,
+    SPELL_POISON             = 61705,
+
+    ITEM_HORN_OF_ACHERUS     = 43206,
+
+    GO_ESCAPE_PORTAL_ECHO    = 192907,
+};
+
+struct MANGOS_DLL_DECL npc_death_gate_asAI : public ScriptedAI
+{
+    npc_death_gate_asAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+
+    uint32 m_uiSummonTimer;
+
+    bool m_bEntryTaken;
+
+    void Reset()
+    {
+        m_uiSummonTimer = 7000;
+        m_bEntryTaken = true;
+    }
+
+    void JustSummoned(Creature* pSummoned)
+    {
+        if (m_creature->IsTemporarySummon())
+        {
+            TemporarySummon* pSummon = (TemporarySummon*)m_creature;
+            if(Unit* pOwner = m_creature->GetMap()->GetUnit(pSummon->GetSummonerGuid()))
+                pSummoned->AI()->AttackStart(pOwner);
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_bEntryTaken)
+        {
+            if (m_uiSummonTimer < uiDiff)
+            {
+                switch(m_creature->GetEntry())
+                {
+                    case NPC_DEATH_GATE_MOG:
+                        m_creature->CastSpell(m_creature, SPELL_SUMMON_MOG, false);
+                        break;
+                    case NPC_DEATH_GATE_MUN:
+                        m_creature->CastSpell(m_creature, SPELL_SUMMON_MUN, false);
+                        break;
+                    case NPC_DEATH_GATE_JAD:
+                        m_creature->CastSpell(m_creature, SPELL_SUMMON_JAD, false);
+                        break;
+                }
+                m_bEntryTaken = false;
+            }
+            else
+                m_uiSummonTimer -= uiDiff;
+        }
+    }
+};
+
+CreatureAI* GetAI_npc_death_gate_as(Creature* pCreature)
+{
+    return new npc_death_gate_asAI(pCreature);
+}
+
+struct MANGOS_DLL_DECL npc_death_knight_asAI : public ScriptedAI
+{
+    npc_death_knight_asAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+
+    uint32 m_uiBloodStrikeTimer;
+    uint32 m_uiIceTouchTimer;
+    uint32 m_uiDeathCoilTimer;
+    uint32 m_uiObliterateTimer;
+
+    void Reset()
+    {
+        m_uiBloodStrikeTimer = 2000;
+        m_uiIceTouchTimer = 6000;
+        m_uiDeathCoilTimer = 12000;
+        m_uiObliterateTimer = 9000;
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if (!pWho)
+            return;
+
+        if (m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+
+            if (IsCombatMovement())
+                m_creature->GetMotionMaster()->MoveChase(pWho, 2.0f, urand(0, 360.0f));
+        }
+    }
+
+    void EnterEvadeMode()
+    {
+        m_creature->RemoveAllAuras();
+        m_creature->DeleteThreatList();
+        m_creature->CombatStop(true);
+
+        m_creature->SetLootRecipient(NULL);
+        m_creature->CastSpell(m_creature, SPELL_SUMMON_PORTAL_ECHO, false);
+        m_creature->ForcedDespawn(4000);
+    }
+
+    void DoMeleeAttackIfReady()
+    {
+        //Make sure our attack is ready before checking distance
+        if (m_creature->isAttackReady())
+        {
+            //If we are within range melee the target
+            if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+            {
+                WeaponAttackType attack = urand(0,1) ? BASE_ATTACK : OFF_ATTACK;
+                m_creature->AttackerStateUpdate(m_creature->getVictim(), attack);
+                m_creature->resetAttackTimer(attack);
+            }  
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (m_uiBloodStrikeTimer < uiDiff)
+        {
+            DoCast(m_creature->getVictim(), SPELL_BLOOD_STRIKE);
+            m_uiBloodStrikeTimer = urand(2000, 5000);
+        }
+        else
+            m_uiBloodStrikeTimer -= uiDiff;
+
+        if (m_uiIceTouchTimer < uiDiff)
+        {
+            DoCast(m_creature->getVictim(), SPELL_ICY_TOUCH);
+            m_uiIceTouchTimer = urand(5000, 7000);
+        }
+        else
+            m_uiIceTouchTimer -= uiDiff;
+
+        if (m_uiDeathCoilTimer < uiDiff)
+        {
+            DoCast(m_creature->getVictim(), SPELL_DEATH_COIL);
+            m_uiDeathCoilTimer = urand(12000, 15000);
+        }
+        else
+            m_uiDeathCoilTimer -= uiDiff;
+
+        if (m_uiObliterateTimer < uiDiff)
+        {
+            DoCast(m_creature->getVictim(), SPELL_OBLITERATE);
+            m_uiObliterateTimer = urand(9000, 15000);
+        }
+        else
+            m_uiObliterateTimer -= uiDiff;
+
+        if (m_creature->GetEntry() == NPC_MOGRAINE_AS)
+            DoMeleeAttackIfReady();
+        else
+            ScriptedAI::DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_death_knight_as(Creature* pCreature)
+{
+    return new npc_death_knight_asAI(pCreature);
+}
+
+struct MANGOS_DLL_DECL npc_scourge_generals_asAI : public ScriptedAI
+{
+    npc_scourge_generals_asAI(Creature *pCreature) : ScriptedAI(pCreature) 
+    {
+        Reset();
+    }
+
+    uint32 m_uiSpell01Timer;
+    uint32 m_uiSpell02Timer;
+    uint32 m_uiSpell03Timer;
+    uint32 m_uiSpell04Timer;
+
+    bool m_bDeathKnightSummoned;
+    bool m_bPetSummoned;
+
+    void Reset()
+    {
+        m_uiSpell01Timer = 14000;
+        m_uiSpell02Timer = 6000;
+        m_uiSpell03Timer = 4000;
+        m_uiSpell04Timer = 9000;
+        m_bDeathKnightSummoned = false;
+        m_bPetSummoned = false;
+    }
+
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
+    {
+        if (pSpell->Id == SPELL_HORN)
+        {
+            if (!m_bDeathKnightSummoned)
+            {
+                switch(m_creature->GetEntry())
+                {
+                    case NPC_TALONOX:
+                        m_creature->CastSpell(m_creature, SPELL_SUMMON_PORTAL_MOG, true);
+                        break;
+                    case NPC_YATHAMON:
+                        m_creature->CastSpell(m_creature, SPELL_SUMMON_PORTAL_JAD, true);
+                        break;
+                    case NPC_SALRANAX:
+                        m_creature->CastSpell(m_creature, SPELL_SUMMON_PORTAL_MUN, true);
+                        break;
+                }
+                m_bDeathKnightSummoned = true;
+            }
+            if (!m_bPetSummoned && m_bDeathKnightSummoned)
+            {
+                switch(m_creature->GetEntry())
+                {
+                    case NPC_TALONOX:
+                        if (Creature* pMograine = GetClosestCreatureWithEntry(m_creature, NPC_MOGRAINE_AS, 50.0f))
+                            pMograine->CastSpell(pMograine, SPELL_SUMMON_MUNCH_PET, true);
+                        break;
+                    case NPC_YATHAMON:
+                        if (Creature* pJade = GetClosestCreatureWithEntry(m_creature, NPC_JADE, 50.0f))
+                            pJade->CastSpell(pJade, SPELL_SUMMON_MUNCH_PET, true);
+                        break;
+                    case NPC_SALRANAX:
+                        if (Creature* pMunch = GetClosestCreatureWithEntry(m_creature, NPC_MUNCH, 50.0f))
+                            pMunch->CastSpell(pMunch, SPELL_SUMMON_MUNCH_PET, true);
+                        break;
+                }
+                m_bPetSummoned = true;
+            }
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        switch(m_creature->GetEntry())
+        {
+            case NPC_TALONOX:
+                if (m_uiSpell01Timer < uiDiff)
+                {
+                    DoCast(m_creature->getVictim(), SPELL_SWARM);
+                    m_uiSpell01Timer = urand(12000, 15000);
+                }
+                else
+                    m_uiSpell01Timer -= uiDiff;
+
+                if (m_uiSpell02Timer < uiDiff)
+                {
+                    DoCast(m_creature->getVictim(), SPELL_EARTH_CRUSH);
+                    m_uiSpell02Timer = urand(5000, 9000);
+                }
+                else
+                    m_uiSpell02Timer -= uiDiff;
+                break;
+            case NPC_YATHAMON:
+                if (m_uiSpell01Timer < uiDiff)
+                {
+                    DoCast(m_creature->getVictim(), SPELL_MIND_FLY);
+                    m_uiSpell01Timer = urand(5500, 9000);
+                }
+                else
+                    m_uiSpell01Timer -= uiDiff;
+
+                if (m_uiSpell02Timer < uiDiff)
+                {
+                    m_creature->CastSpell(m_creature->getVictim(), SPELL_SCREAM, false);
+                    m_uiSpell02Timer = urand(12000, 19000);
+                }
+                else
+                    m_uiSpell02Timer -= uiDiff;
+
+                if (m_uiSpell03Timer < uiDiff)
+                {
+                    m_creature->CastSpell(m_creature->getVictim(), SPELL_WEB, false);
+                    m_uiSpell03Timer = urand(5500, 9000);
+                }
+                else
+                    m_uiSpell03Timer -= uiDiff;
+
+                if (m_uiSpell04Timer < uiDiff)
+                {
+                    m_creature->CastSpell(m_creature->getVictim(), SPELL_POISON, false);
+                    m_uiSpell04Timer = urand(9500, 15000);
+                }
+                else
+                    m_uiSpell04Timer -= uiDiff;
+                break;
+            case NPC_SALRANAX:
+                if (!m_creature->HasAura(SPELL_ARMOR))
+                    m_creature->CastSpell(m_creature->getVictim(), SPELL_ARMOR, false);
+
+                if (m_uiSpell01Timer < uiDiff)
+                {
+                    DoCast(m_creature->getVictim(), SPELL_FIREBALL);
+                    m_uiSpell01Timer = urand(3500, 5000);
+                }
+                else
+                    m_uiSpell01Timer -= uiDiff;
+
+                if (m_uiSpell02Timer < uiDiff)
+                {
+                    m_creature->CastSpell(m_creature->getVictim(), SPELL_CONE, false);
+                    m_uiSpell02Timer = urand(9000, 19000);
+                }
+                else
+                    m_uiSpell02Timer -= uiDiff;
+
+                if (m_uiSpell03Timer < uiDiff)
+                {
+                    m_creature->CastSpell(m_creature, SPELL_COUNTER_SPELL, false);
+                    m_uiSpell03Timer = urand(9000, 19000);
+                }
+                else
+                    m_uiSpell03Timer -= uiDiff;
+                break;
+        }
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_scourge_generals_as(Creature* pCreature)
+{
+    return new npc_scourge_generals_asAI(pCreature);
+}
+
+/*##### QUEST: Time For Answer #####
+SDAuthor: MaxXx2021
+*/
+
+enum
+{
+   NPC_MATTHIAS             = 32423,
+   NPC_LICH_KING_TA         = 32443,
+   NPC_SINDRAGOSA           = 32446,
+
+   SPELL_VISION             = 61043, //change phase on value=2
+
+   GO_SINDRAGOSA_BONES      = 193961,
+
+   QUEST_ANSWER_1           = 13360,
+   QUEST_ANSWER_2           = 13399,
+};
+
 void AddSC_icecrown()
 {
     Script* newscript;
@@ -2591,5 +3001,20 @@ void AddSC_icecrown()
     newscript = new Script;
     newscript->Name = "go_balargarde_horn";
     newscript->pGOUse = &GOUse_go_balargarde_horn;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_death_gate_as";
+    newscript->GetAI = &GetAI_npc_death_gate_as;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_death_knight_as";
+    newscript->GetAI = &GetAI_npc_death_knight_as;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_scourge_generals_as";
+    newscript->GetAI = &GetAI_npc_scourge_generals_as;
     newscript->RegisterSelf();
 }

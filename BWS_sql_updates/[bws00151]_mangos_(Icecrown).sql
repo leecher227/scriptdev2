@@ -75,3 +75,13 @@ UPDATE creature_template SET ScriptName = "npc_balargarde" WHERE entry = 31016;
 UPDATE gameobject_template SET ScriptName="go_balargarde_horn" WHERE entry = 193028;
 update `creature_template` set `faction_A`='974', `faction_H`='974', `unit_flags`='768', `type_flags`='268435564' where `entry`=31083;
 update `creature_template` set `VehicleId`=40 where `entry` in (31050, 31056);
+
+-- ##### QUEST: The Air Stand Still #####
+UPDATE `creature_template` SET `equipment_id`='365',`minlevel`='83', `maxlevel`='83', `minhealth`='11156000', `maxhealth`='11156000', `armor`='10627', `faction_A`='35', `faction_H`='35', `npcflag`='0', `mindmg`='120', `maxdmg`='240', `attackpower`='163', `dmg_multiplier`='35', `baseattacktime`='2000', `ScriptName`="npc_death_knight_as" WHERE entry = 30838;
+UPDATE `creature_template` SET `equipment_id`='30839',`baseattacktime`= 2000, `dmg_multiplier`= 2.2, `attackpower`=146, `mindmg`=391, `maxdmg`=585, `armor`=9633, `faction_A`=2006, `faction_H`=2006, `mechanic_immune_mask`=1, `minmana`=39940, `maxmana`=39940, `minhealth`=441000, `maxhealth`=441000, `minlevel`=80, `maxlevel`=80, `ScriptName`="npc_death_knight_as" WHERE entry=30839; -- From Lanc
+UPDATE `creature_template` SET `equipment_id`='448', `baseattacktime`= 2000, `dmg_multiplier`= 2.2, `attackpower`=146, `mindmg`=391, `maxdmg`=585, `armor`=9633, `faction_A`=2006, `faction_H`=2006, `mechanic_immune_mask`=1, `minmana`=39940, `maxmana`=39940, `minhealth`=441000, `maxhealth`=441000, `minlevel`=80, `maxlevel`=80, `ScriptName`="npc_death_knight_as" WHERE entry=30840; -- From Lanc Big Thanks
+UPDATE creature_template SET ScriptName = "npc_death_gate_as" WHERE entry in (30841, 30850, 30852);
+UPDATE creature_template SET ScriptName = "npc_scourge_generals_as" WHERE entry in (30829, 30830, 30831);
+ 
+DELETE FROM `creature_equip_template` WHERE (`entry`=30839);
+INSERT INTO `creature_equip_template` (`entry`, `equipentry1`, `equipentry2`, `equipentry3`) VALUES (30839, 38632, 0, 0);
